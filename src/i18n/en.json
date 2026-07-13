@@ -1,0 +1,102 @@
+{
+  "app": {
+    "productName": "Map Lab",
+    "tagline": "Explore and customize map styles",
+    "version": "v0.1.0",
+    "feedback": "Feedback"
+  },
+  "sidebar": {
+    "viewGroup": "View",
+    "mapCategoryGroup": "Map Category",
+    "languageGroup": "Language",
+    "items": {
+      "browse": {
+        "label": "Map Browse",
+        "description": "Tune map styles live"
+      },
+      "useCase": {
+        "label": "Use Case",
+        "description": "Preview in a real app"
+      },
+      "manual": {
+        "label": "Component Manual",
+        "description": "Inspect component tokens"
+      },
+      "entity": {
+        "label": "Entity Map",
+        "description": "Streets and POI"
+      },
+      "visualization": {
+        "label": "Visualization Map",
+        "description": "Muted base for data layers"
+      },
+      "zh": {
+        "label": "中文 zh",
+        "description": "Chinese UI and labels"
+      },
+      "en": {
+        "label": "English en",
+        "description": "English UI and labels"
+      }
+    }
+  },
+  "params": {
+    "title": "Parameter Controls",
+    "zoom": "Zoom",
+    "apply": "Apply",
+    "markerStyle": "Marker Style",
+    "layerVisibility": "Layer Visibility",
+    "showMapUi": "Show map UI",
+    "routeNodes": "Route Nodes",
+    "start": "Start",
+    "middle": "Waypoint",
+    "end": "Destination",
+    "addressPlaceholder": "Enter address",
+    "styles": {
+      "default": "default",
+      "pin": "pin",
+      "dot": "dot",
+      "custom": "custom"
+    }
+  },
+  "map": {
+    "entity": "Entity Map",
+    "visualization": "Visualization Map",
+    "zh": "Chinese labels",
+    "en": "English labels",
+    "poi": "POI",
+    "warehouse": "Warehouse",
+    "hub": "Sorting Hub",
+    "destination": "Destination",
+    "customMarker": "Custom"
+  },
+  "useCase": {
+    "deliveredRange": "Estimated delivery Mar 28-30",
+    "status": "Package has reached the final destination",
+    "carrier": "SF Express",
+    "trackingNo": "Tracking No. SF1298 3401 682",
+    "copy": "Copy",
+    "goodsCount": "3 items",
+    "phoneTime": "09:41"
+  },
+  "manual": {
+    "title": "Component Manual",
+    "intro": "Browse map component design tokens and extend the catalog through configuration.",
+    "tokens": "Design Tokens",
+    "preview": "Component Preview",
+    "specs": {
+      "trackingBubble": {
+        "name": "Tracking Bubble",
+        "description": "Full information tracking bubble"
+      },
+      "marker": {
+        "name": "Marker",
+        "description": "Map marker"
+      },
+      "routeLine": {
+        "name": "Route Line",
+        "description": "Route path line"
+      }
+    }
+  }
+}

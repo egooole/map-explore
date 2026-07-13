@@ -1,0 +1,102 @@
+{
+  "app": {
+    "productName": "Map Lab",
+    "tagline": "探索并定制地图样式",
+    "version": "v0.1.0",
+    "feedback": "反馈"
+  },
+  "sidebar": {
+    "viewGroup": "视图 View",
+    "mapCategoryGroup": "地图分类 Map Category",
+    "languageGroup": "语言 Language",
+    "items": {
+      "browse": {
+        "label": "地图浏览",
+        "description": "实时调整地图样式"
+      },
+      "useCase": {
+        "label": "Use Case",
+        "description": "放进业务界面预览"
+      },
+      "manual": {
+        "label": "组件手册",
+        "description": "查看组件 token"
+      },
+      "entity": {
+        "label": "实体地图",
+        "description": "真实街道与 POI"
+      },
+      "visualization": {
+        "label": "可视化地图",
+        "description": "弱化底图突出数据"
+      },
+      "zh": {
+        "label": "中文 zh",
+        "description": "中文界面与标签"
+      },
+      "en": {
+        "label": "English en",
+        "description": "英文界面与标签"
+      }
+    }
+  },
+  "params": {
+    "title": "参数控制",
+    "zoom": "Zoom",
+    "apply": "应用",
+    "markerStyle": "Marker Style",
+    "layerVisibility": "Layer Visibility",
+    "showMapUi": "显示地图 UI",
+    "routeNodes": "路径节点",
+    "start": "起点",
+    "middle": "中途点",
+    "end": "终点",
+    "addressPlaceholder": "输入地址",
+    "styles": {
+      "default": "default",
+      "pin": "pin",
+      "dot": "dot",
+      "custom": "custom"
+    }
+  },
+  "map": {
+    "entity": "实体地图",
+    "visualization": "可视化地图",
+    "zh": "中文标签",
+    "en": "English labels",
+    "poi": "POI",
+    "warehouse": "仓库",
+    "hub": "分拨中心",
+    "destination": "目的地",
+    "customMarker": "自定义"
+  },
+  "useCase": {
+    "deliveredRange": "预计送达 3 月 28-30 日",
+    "status": "包裹已到达最终目的地",
+    "carrier": "顺丰速运",
+    "trackingNo": "运单号 SF1298 3401 682",
+    "copy": "复制",
+    "goodsCount": "3 件商品",
+    "phoneTime": "09:41"
+  },
+  "manual": {
+    "title": "组件手册",
+    "intro": "浏览地图组件的设计规格 token，并通过配置文件扩展组件库。",
+    "tokens": "设计 Token",
+    "preview": "组件预览",
+    "specs": {
+      "trackingBubble": {
+        "name": "Tracking Bubble",
+        "description": "轨迹气泡·完整信息"
+      },
+      "marker": {
+        "name": "Marker",
+        "description": "标记"
+      },
+      "routeLine": {
+        "name": "Route Line",
+        "description": "路径线"
+      }
+    }
+  }
+}

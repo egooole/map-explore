@@ -1,0 +1,41 @@
+[
+  {
+    "id": "tracking-bubble",
+    "nameKey": "manual.specs.trackingBubble.name",
+    "descriptionKey": "manual.specs.trackingBubble.description",
+    "previewType": "bubble",
+    "tokens": {
+      "cardBackground": "#ffffff",
+      "cornerRadius": "10px",
+      "border": "1px solid #d9e2ef",
+      "shadow": "0 10px 28px rgba(15, 23, 42, 0.12)",
+      "icon": "truck-filled / 20px",
+      "statusText": "14px / 600 / #0f172a",
+      "addressText": "12px / 400 / #64748b"
+    }
+  },
+  {
+    "id": "marker",
+    "nameKey": "manual.specs.marker.name",
+    "descriptionKey": "manual.specs.marker.description",
+    "previewType": "marker",
+    "tokens": {
+      "size": "32px",
+      "color": "#2563eb",
+      "iconSlot": "16px center aligned",
+      "labelTypography": "12px / 600 / #1e293b"
+    }
+  },
+  {
+    "id": "route-line",
+    "nameKey": "manual.specs.routeLine.name",
+    "descriptionKey": "manual.specs.routeLine.description",
+    "previewType": "route",
+    "tokens": {
+      "strokeWidth": "4px",
+      "strokeColor": "#2563eb",
+      "dashPattern": "solid / 8 8 optional",
+      "arrow": "terminal arrow / 12px"
+    }
+  }
+]
