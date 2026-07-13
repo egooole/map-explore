@@ -1,0 +1,107 @@
+@media (max-width: 1100px) {
+  .AppShell {
+    display: block;
+  }
+
+  .Sidebar {
+    min-height: auto;
+    width: 100%;
+  }
+
+  .Sidebar__nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .SidebarFooter {
+    padding-bottom: 4px;
+  }
+
+  .MapBrowseScene,
+  .UseCaseScene,
+  .ManualHierarchy__layer--map > div,
+  .ManualDetail {
+    grid-template-columns: 1fr;
+  }
+
+  .ParamPanel {
+    min-height: auto;
+  }
+
+  .ManualDetail {
+    min-height: 0;
+  }
+
+  .ManualDetail__right {
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+    padding-left: 0;
+    padding-top: 16px;
+  }
+
+  .ManualDetail__left {
+    grid-template-rows: auto minmax(320px, auto) auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .MainStage {
+    padding: 12px;
+  }
+
+  .Sidebar {
+    padding: 14px 10px;
+  }
+
+  .Sidebar__nav {
+    grid-template-columns: 1fr;
+  }
+
+  .MapCanvas {
+    min-height: 420px;
+  }
+
+  .PhoneFrame {
+    height: 660px;
+    max-width: 360px;
+    width: 100%;
+  }
+
+  .ManualScene {
+    border-radius: 0;
+    margin: -12px;
+    min-height: 100dvh;
+    padding: 22px 16px;
+  }
+
+  .ManualScene__header h1 {
+    font-size: 28px;
+  }
+
+  .ManualDetail {
+    border-radius: var(--radius-lg);
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .ManualHierarchy__layer--category > div {
+    width: 100%;
+  }
+
+  .ManualHierarchy__layer--category button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ManualInfoRows__row {
+    grid-template-columns: 1fr;
+  }
+
+  .ManualMapRegion,
+  .ManualMapRegion .MapCanvas {
+    min-height: 260px;
+  }
+
+  .ManualMapRegion {
+    height: 260px;
+  }
+}

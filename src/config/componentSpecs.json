@@ -1,41 +1,244 @@
-[
-  {
-    "id": "tracking-bubble",
-    "nameKey": "manual.specs.trackingBubble.name",
-    "descriptionKey": "manual.specs.trackingBubble.description",
-    "previewType": "bubble",
-    "tokens": {
-      "cardBackground": "#ffffff",
-      "cornerRadius": "10px",
-      "border": "1px solid #d9e2ef",
-      "shadow": "0 10px 28px rgba(15, 23, 42, 0.12)",
-      "icon": "truck-filled / 20px",
-      "statusText": "14px / 600 / #0f172a",
-      "addressText": "12px / 400 / #64748b"
+{
+  "mapTypes": [
+    {
+      "id": "entity",
+      "labelKey": "manual.mapTypes.entity",
+      "descriptionKey": "manual.mapTypeDescriptions.entity",
+      "categories": [
+        {
+          "id": "point",
+          "labelKey": "manual.categories.point",
+          "components": [
+            {
+              "id": "entity-point-placeholder-01",
+              "nameKey": "manual.placeholders.componentName",
+              "descriptionKey": "manual.placeholders.componentDescription",
+              "previewType": "point",
+              "styleRows": [
+                { "labelKey": "manual.content.style", "valueKey": "manual.placeholders.pending" },
+                { "labelKey": "manual.content.preview", "valueKey": "manual.placeholders.pending" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.content.fakeMod", "valueKey": "manual.placeholders.pending" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.placeholders.code"
+              },
+              "usage": {
+                "primary": {
+                  "tagKey": "manual.usageTags.primary",
+                  "bulletKeys": ["manual.placeholders.pendingBullet"]
+                },
+                "extended": {
+                  "tagKey": "manual.usageTags.extended",
+                  "bulletKeys": ["manual.placeholders.pendingBullet"]
+                },
+                "constraints": {
+                  "tagKey": "manual.usageTags.constraints",
+                  "bulletKeys": ["manual.placeholders.pendingBullet"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "line",
+          "labelKey": "manual.categories.line",
+          "components": [
+            {
+              "id": "entity-line-placeholder-01",
+              "nameKey": "manual.placeholders.componentName",
+              "descriptionKey": "manual.placeholders.componentDescription",
+              "previewType": "line",
+              "styleRows": [
+                { "labelKey": "manual.content.style", "valueKey": "manual.placeholders.pending" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.content.fakeMod", "valueKey": "manual.placeholders.pending" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.placeholders.code"
+              },
+              "usage": {
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.placeholders.pendingBullet"] }
+              }
+            }
+          ]
+        },
+        {
+          "id": "area",
+          "labelKey": "manual.categories.area",
+          "components": [
+            {
+              "id": "entity-area-placeholder-01",
+              "nameKey": "manual.placeholders.componentName",
+              "descriptionKey": "manual.placeholders.componentDescription",
+              "previewType": "area",
+              "styleRows": [
+                { "labelKey": "manual.content.style", "valueKey": "manual.placeholders.pending" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.content.fakeMod", "valueKey": "manual.placeholders.pending" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.placeholders.code"
+              },
+              "usage": {
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.placeholders.pendingBullet"] }
+              }
+            }
+          ]
+        },
+        {
+          "id": "container",
+          "labelKey": "manual.categories.container",
+          "components": [
+            {
+              "id": "entity-container-placeholder-01",
+              "nameKey": "manual.placeholders.componentName",
+              "descriptionKey": "manual.placeholders.componentDescription",
+              "previewType": "container",
+              "styleRows": [
+                { "labelKey": "manual.content.style", "valueKey": "manual.placeholders.pending" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.content.fakeMod", "valueKey": "manual.placeholders.pending" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.placeholders.code"
+              },
+              "usage": {
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.placeholders.pendingBullet"] }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "visualization",
+      "labelKey": "manual.mapTypes.visualization",
+      "descriptionKey": "manual.mapTypeDescriptions.visualization",
+      "categories": [
+        {
+          "id": "point",
+          "labelKey": "manual.categories.point",
+          "components": [
+            {
+              "id": "visualization-point-placeholder-01",
+              "nameKey": "manual.placeholders.componentName",
+              "descriptionKey": "manual.placeholders.componentDescription",
+              "previewType": "point",
+              "styleRows": [
+                { "labelKey": "manual.content.style", "valueKey": "manual.placeholders.pending" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.content.fakeMod", "valueKey": "manual.placeholders.pending" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.placeholders.code"
+              },
+              "usage": {
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.placeholders.pendingBullet"] }
+              }
+            }
+          ]
+        },
+        {
+          "id": "line",
+          "labelKey": "manual.categories.line",
+          "components": [
+            {
+              "id": "visualization-line-placeholder-01",
+              "nameKey": "manual.placeholders.componentName",
+              "descriptionKey": "manual.placeholders.componentDescription",
+              "previewType": "line",
+              "styleRows": [
+                { "labelKey": "manual.content.style", "valueKey": "manual.placeholders.pending" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.content.fakeMod", "valueKey": "manual.placeholders.pending" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.placeholders.code"
+              },
+              "usage": {
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.placeholders.pendingBullet"] }
+              }
+            }
+          ]
+        },
+        {
+          "id": "area",
+          "labelKey": "manual.categories.area",
+          "components": [
+            {
+              "id": "visualization-area-placeholder-01",
+              "nameKey": "manual.placeholders.componentName",
+              "descriptionKey": "manual.placeholders.componentDescription",
+              "previewType": "area",
+              "styleRows": [
+                { "labelKey": "manual.content.style", "valueKey": "manual.placeholders.pending" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.content.fakeMod", "valueKey": "manual.placeholders.pending" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.placeholders.code"
+              },
+              "usage": {
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.placeholders.pendingBullet"] }
+              }
+            }
+          ]
+        },
+        {
+          "id": "container",
+          "labelKey": "manual.categories.container",
+          "components": [
+            {
+              "id": "visualization-container-placeholder-01",
+              "nameKey": "manual.placeholders.componentName",
+              "descriptionKey": "manual.placeholders.componentDescription",
+              "previewType": "container",
+              "styleRows": [
+                { "labelKey": "manual.content.style", "valueKey": "manual.placeholders.pending" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.content.fakeMod", "valueKey": "manual.placeholders.pending" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.placeholders.code"
+              },
+              "usage": {
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.placeholders.pendingBullet"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.placeholders.pendingBullet"] }
+              }
+            }
+          ]
+        }
+      ]
     }
-  },
-  {
-    "id": "marker",
-    "nameKey": "manual.specs.marker.name",
-    "descriptionKey": "manual.specs.marker.description",
-    "previewType": "marker",
-    "tokens": {
-      "size": "32px",
-      "color": "#2563eb",
-      "iconSlot": "16px center aligned",
-      "labelTypography": "12px / 600 / #1e293b"
-    }
-  },
-  {
-    "id": "route-line",
-    "nameKey": "manual.specs.routeLine.name",
-    "descriptionKey": "manual.specs.routeLine.description",
-    "previewType": "route",
-    "tokens": {
-      "strokeWidth": "4px",
-      "strokeColor": "#2563eb",
-      "dashPattern": "solid / 8 8 optional",
-      "arrow": "terminal arrow / 12px"
-    }
-  }
-]
+  ]
+}

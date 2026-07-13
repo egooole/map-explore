@@ -1,7 +1,8 @@
-import { BookOpen, Check, Globe2, Languages, Map, MapPinned, Play, Route } from "lucide-react";
+import { BookOpen, Check, Globe2, Languages, Map, Play, Route } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
+import shopBagLogo from "../assets/tiktok-shop-bag-logo.svg";
 import i18n from "../i18n";
 import {
   MapCategory,
@@ -83,7 +84,7 @@ export function Sidebar() {
     <aside className="Sidebar">
       <header className="SidebarHeader">
         <div className="SidebarHeader__logo" aria-hidden="true">
-          <MapPinned size={22} />
+          <img alt="" src={shopBagLogo} />
         </div>
         <div>
           <h1>{t("app.productName")}</h1>

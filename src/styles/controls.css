@@ -1,0 +1,139 @@
+.ParamPanel {
+  align-self: stretch;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+}
+
+.ParamPanel h2 {
+  font-size: 15px;
+  font-weight: 760;
+  line-height: 1.4;
+  margin: 0;
+  padding-bottom: 2px;
+}
+
+.ParamPanel__route {
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.ParamPanel__route h3 {
+  color: var(--color-tertiary);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.ParamRow {
+  display: grid;
+  gap: 7px;
+}
+
+.ParamRow > span {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.ParamRow input,
+.ParamRow select {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  min-height: 40px;
+  min-width: 0;
+  padding: 0 10px;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  width: 100%;
+}
+
+.ParamRow input:hover,
+.ParamRow select:hover {
+  border-color: var(--color-border-strong);
+}
+
+.ParamRow input:focus,
+.ParamRow select:focus {
+  background: #ffffff;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(15, 98, 254, 0.12);
+  outline: none;
+}
+
+.ParamRow__inline {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 72px;
+}
+
+.ParamRow__inline button,
+.ParamRow > button,
+.Switch {
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  display: inline-flex;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 40px;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.ParamRow__inline button:hover,
+.ParamRow > button:hover,
+.Switch:hover {
+  background: var(--color-primary-soft);
+  border-color: rgba(15, 98, 254, 0.24);
+  color: var(--color-primary-strong);
+}
+
+.Switch {
+  gap: 10px;
+  justify-content: flex-start;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.Switch span {
+  background: #c4cad4;
+  border-radius: 999px;
+  height: 18px;
+  position: relative;
+  width: 34px;
+}
+
+.Switch span::after {
+  background: white;
+  border-radius: 999px;
+  content: "";
+  height: 14px;
+  left: 2px;
+  position: absolute;
+  top: 2px;
+  transition: transform 180ms ease;
+  width: 14px;
+}
+
+.Switch.is-on span {
+  background: var(--color-success);
+}
+
+.Switch.is-on span::after {
+  transform: translateX(16px);
+}
+
+.Switch b {
+  color: var(--color-text);
+  font-size: 13px;
+}

@@ -84,9 +84,91 @@
   },
   "manual": {
     "title": "组件手册",
-    "intro": "浏览地图组件的设计规格 token，并通过配置文件扩展组件库。",
+    "intro": "按地图类型、组件分类和具体组件组织内容，持续沉淀可扩展的地图组件规范。",
     "tokens": "设计 Token",
     "preview": "组件预览",
+    "componentList": "组件列表",
+    "componentDetail": "组件详情",
+    "hierarchy": "组件手册三层导航",
+    "previewDestination": "目的地",
+    "previewAddress": "Crypto.com Arena, Los Angeles",
+    "layers": {
+      "mapType": "地图类型",
+      "componentCategory": "组件分类",
+      "component": "具体组件"
+    },
+    "mapTypes": {
+      "entity": "实体地图",
+      "visualization": "可视化地图"
+    },
+    "mapTypeDescriptions": {
+      "entity": "真实街道与业务 POI 场景",
+      "visualization": "弱化底图并突出数据表达"
+    },
+    "categories": {
+      "point": "点",
+      "line": "线",
+      "area": "面",
+      "container": "容器"
+    },
+    "panels": {
+      "content": "内容板",
+      "usage": "使用场景"
+    },
+    "content": {
+      "style": "样式",
+      "preview": "组件效果预览",
+      "fakeMod": "FakeMod",
+      "styleDisplay": "样式展示",
+      "baseData": "基础数据 / 配置",
+      "frontendCode": "前端实现代码",
+      "showCode": "查看代码",
+      "hideCode": "收起代码"
+    },
+    "usageIntro": "场景标签用于快速识别类型，具体说明放在下方 bullet 中。",
+    "usageTags": {
+      "primary": "主要场景",
+      "extended": "扩展场景",
+      "constraints": "使用约束"
+    },
+    "placeholders": {
+      "componentName": "占位组件",
+      "componentDescription": "待接入真实组件设计后补充名称、预览、样式、FakeMod 与实现说明。",
+      "pending": "待补充",
+      "pendingBullet": "待接入 Figma MCP 或组件设计后补充具体说明。",
+      "code": "// 待接入组件设计后补充前端实现代码\nexport function PlaceholderMapComponent() {\n  return null;\n}"
+    },
+    "sections": {
+      "spec": "样式",
+      "content": "内容",
+      "useCases": "使用场景举例"
+    },
+    "rows": {
+      "content": "内容",
+      "casePrimary": "主要场景",
+      "caseSecondary": "扩展场景",
+      "caseConstraint": "使用约束",
+      "size": "尺寸",
+      "color": "颜色",
+      "strokeWidth": "线宽",
+      "strokeColor": "线色"
+    },
+    "values": {
+      "trackingBubble": {
+        "content": "图标槽 + 状态文案 + 地址",
+        "casePrimary": "物流轨迹中展示当前包裹节点、签收点或异常点。",
+        "caseSecondary": "出行、外卖、同城配送等场景中用于强调目的地或下一步动作。",
+        "caseConstraint": "同一视野内建议只突出一个完整信息气泡，避免遮挡路线和关键 POI。"
+      },
+      "marker": {
+        "casePrimary": "标记仓库、门店、司机、用户当前位置等单点实体。",
+        "caseSecondary": "配合标签或聚合态表达多个附近兴趣点。"
+      },
+      "routeLine": {
+        "casePrimary": "表达配送、导航、巡检等路径流向。",
+        "caseSecondary": "可用虚线表示预测路径、历史轨迹或未确认路线。"
+      }
+    },
     "specs": {
       "trackingBubble": {
         "name": "Tracking Bubble",

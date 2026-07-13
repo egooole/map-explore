@@ -18,6 +18,7 @@ type GoogleMapsGlobal = {
     Map: new (element: HTMLElement, options: Record<string, unknown>) => GoogleMap;
     OverlayView: typeof GoogleOverlayView;
     Point: new (x: number, y: number) => unknown;
+    Polygon: new (options: Record<string, unknown>) => GooglePolygon;
     Polyline: new (options: Record<string, unknown>) => GooglePolyline;
     Size: new (width: number, height: number) => unknown;
   };
@@ -32,6 +33,11 @@ interface GoogleMap {
 }
 
 interface GooglePolyline {
+  setMap: (map: GoogleMap | null) => void;
+  setOptions: (options: Record<string, unknown>) => void;
+}
+
+interface GooglePolygon {
   setMap: (map: GoogleMap | null) => void;
   setOptions: (options: Record<string, unknown>) => void;
 }
@@ -55,6 +61,7 @@ interface MapCanvasProps {
   lang: WorkbenchLanguage;
   controls: MapControlsState;
   compact?: boolean;
+  previewFeature?: "point" | "line" | "area" | "container";
 }
 
 const center: GoogleLatLng = { lat: 31.225, lng: 121.45 };
@@ -63,6 +70,14 @@ const routePositions: GoogleLatLng[] = [
   { lat: 31.207, lng: 121.317 },
   { lat: 31.223, lng: 121.445 },
   { lat: 31.236, lng: 121.502 },
+];
+
+const areaPositions: GoogleLatLng[] = [
+  { lat: 31.214, lng: 121.405 },
+  { lat: 31.237, lng: 121.427 },
+  { lat: 31.232, lng: 121.474 },
+  { lat: 31.202, lng: 121.463 },
+  { lat: 31.196, lng: 121.421 },
 ];
 
 const scriptId = "map-lab-google-maps";
@@ -153,11 +168,12 @@ function createOverlayMarker(googleMaps: GoogleMapsGlobal, map: GoogleMap, posit
   return overlay;
 }
 
-export function MapCanvas({ mapCategory, lang, controls, compact = false }: MapCanvasProps) {
+export function MapCanvas({ mapCategory, lang, controls, compact = false, previewFeature }: MapCanvasProps) {
   const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<GoogleMap | null>(null);
   const polylineRef = useRef<GooglePolyline | null>(null);
+  const polygonRef = useRef<GooglePolygon | null>(null);
   const markersRef = useRef<GoogleOverlayView[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "missing-key" | "error">("idle");
   const preset = mapPresets[mapCategory][lang];
@@ -226,6 +242,10 @@ export function MapCanvas({ mapCategory, lang, controls, compact = false }: MapC
     map.setCenter(center);
     map.setZoom(controls.zoom);
 
+    const shouldShowMarkers = !previewFeature || previewFeature === "point";
+    const shouldShowLine = !previewFeature || previewFeature === "line";
+    const shouldShowArea = previewFeature === "area";
+
     if (!polylineRef.current) {
       polylineRef.current = new googleMaps.maps.Polyline({
         geodesic: true,
@@ -247,19 +267,40 @@ export function MapCanvas({ mapCategory, lang, controls, compact = false }: MapC
           : [],
       path: routePositions,
       strokeColor: routeColor,
-      strokeOpacity: mapCategory === "visualization" ? 0 : 0.94,
+      strokeOpacity: shouldShowLine ? (mapCategory === "visualization" ? 0 : 0.94) : 0,
       strokeWeight: 4,
     });
+    polylineRef.current.setMap(shouldShowLine ? map : null);
+
+    if (!polygonRef.current) {
+      polygonRef.current = new googleMaps.maps.Polygon({
+        map,
+        paths: areaPositions,
+      });
+    }
+
+    polygonRef.current.setOptions({
+      fillColor: mapCategory === "visualization" ? "#475569" : "#0f62fe",
+      fillOpacity: mapCategory === "visualization" ? 0.16 : 0.18,
+      paths: areaPositions,
+      strokeColor: mapCategory === "visualization" ? "#334155" : "#0f62fe",
+      strokeOpacity: 0.8,
+      strokeWeight: 2,
+    });
+    polygonRef.current.setMap(shouldShowArea ? map : null);
 
     markersRef.current.forEach((marker) => marker.setMap(null));
-    markersRef.current = routePositions.map((position, index) =>
-      createOverlayMarker(googleMaps, map, position, createMarkerElement(controls.markerStyle, markerLabels[index])),
-    );
-  }, [controls.markerStyle, controls.showMapUi, controls.zoom, mapCategory, markerLabels, preset.mapId, preset.mapTypeId, preset.styles, routeColor, status]);
+    markersRef.current = shouldShowMarkers
+      ? routePositions.map((position, index) =>
+          createOverlayMarker(googleMaps, map, position, createMarkerElement(controls.markerStyle, markerLabels[index])),
+        )
+      : [];
+  }, [controls.markerStyle, controls.showMapUi, controls.zoom, mapCategory, markerLabels, preset.mapId, preset.mapTypeId, preset.styles, previewFeature, routeColor, status]);
 
   useEffect(() => {
     return () => {
       polylineRef.current?.setMap(null);
+      polygonRef.current?.setMap(null);
       markersRef.current.forEach((marker) => marker.setMap(null));
       markersRef.current = [];
     };

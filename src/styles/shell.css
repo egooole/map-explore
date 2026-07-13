@@ -1,0 +1,30 @@
+.AppShell {
+  background: var(--color-app-bg);
+  display: flex;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+.MainStage {
+  flex: 1;
+  min-width: 0;
+  overflow: auto;
+  padding: 20px;
+}
+
+.MapBrowseScene,
+.UseCaseScene {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) var(--param-width);
+  min-height: calc(100dvh - 40px);
+}
+
+.UseCaseScene {
+  align-items: center;
+  grid-template-columns: minmax(420px, 1fr) var(--param-width);
+}
+
+.UseCaseScene__phone {
+  display: flex;
+  justify-content: center;
+}

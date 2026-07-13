@@ -84,9 +84,91 @@
   },
   "manual": {
     "title": "Component Manual",
-    "intro": "Browse map component design tokens and extend the catalog through configuration.",
+    "intro": "Organize map component guidance by map type, component category, and concrete component for long-term expansion.",
     "tokens": "Design Tokens",
     "preview": "Component Preview",
+    "componentList": "Component List",
+    "componentDetail": "Component Detail",
+    "hierarchy": "Component manual hierarchy",
+    "previewDestination": "Destination",
+    "previewAddress": "Crypto.com Arena, Los Angeles",
+    "layers": {
+      "mapType": "Map Type",
+      "componentCategory": "Component Category",
+      "component": "Component"
+    },
+    "mapTypes": {
+      "entity": "Entity Map",
+      "visualization": "Visualization Map"
+    },
+    "mapTypeDescriptions": {
+      "entity": "Real streets and business POI contexts",
+      "visualization": "Muted base map focused on data expression"
+    },
+    "categories": {
+      "point": "Point",
+      "line": "Line",
+      "area": "Area",
+      "container": "Container"
+    },
+    "panels": {
+      "content": "Content Panel",
+      "usage": "Usage Scenarios"
+    },
+    "content": {
+      "style": "Style",
+      "preview": "Component preview",
+      "fakeMod": "FakeMod",
+      "styleDisplay": "Style Display",
+      "baseData": "Base Data / Config",
+      "frontendCode": "Frontend Code",
+      "showCode": "View Code",
+      "hideCode": "Collapse Code"
+    },
+    "usageIntro": "Tags summarize the scenario type; detailed guidance lives in the bullets.",
+    "usageTags": {
+      "primary": "Primary",
+      "extended": "Extended",
+      "constraints": "Constraints"
+    },
+    "placeholders": {
+      "componentName": "Placeholder Component",
+      "componentDescription": "Add the real component name, preview, style, FakeMod, and implementation notes after design import.",
+      "pending": "Pending",
+      "pendingBullet": "Fill this after Figma MCP or component design data is connected.",
+      "code": "// Add frontend implementation code after component design import\nexport function PlaceholderMapComponent() {\n  return null;\n}"
+    },
+    "sections": {
+      "spec": "Style",
+      "content": "Content",
+      "useCases": "Example Use Cases"
+    },
+    "rows": {
+      "content": "Content",
+      "casePrimary": "Primary case",
+      "caseSecondary": "Extended case",
+      "caseConstraint": "Usage constraint",
+      "size": "Size",
+      "color": "Color",
+      "strokeWidth": "Stroke width",
+      "strokeColor": "Stroke color"
+    },
+    "values": {
+      "trackingBubble": {
+        "content": "Icon slot + status text + address",
+        "casePrimary": "Show the current package node, delivery point, or exception point in a logistics trace.",
+        "caseSecondary": "Highlight a destination or next action in mobility, food delivery, and local courier flows.",
+        "caseConstraint": "Prefer one full-information bubble per viewport to avoid covering routes and key POI."
+      },
+      "marker": {
+        "casePrimary": "Mark a warehouse, store, driver, or user location as a single map entity.",
+        "caseSecondary": "Pair with labels or clustering to represent multiple nearby POI."
+      },
+      "routeLine": {
+        "casePrimary": "Represent delivery, navigation, inspection, or tracking path direction.",
+        "caseSecondary": "Use dashed styling for predicted paths, historical traces, or unconfirmed routes."
+      }
+    },
     "specs": {
       "trackingBubble": {
         "name": "Tracking Bubble",

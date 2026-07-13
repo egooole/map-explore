@@ -1,0 +1,142 @@
+.MapCanvas {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: none;
+  min-height: 560px;
+  overflow: hidden;
+  position: relative;
+}
+
+.MapCanvas--compact {
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 300px;
+}
+
+.MapCanvas__google {
+  height: 100%;
+  min-height: inherit;
+  width: 100%;
+}
+
+.MapCanvas--visualization .MapCanvas__google {
+  filter: saturate(0.88) contrast(1.02);
+}
+
+.MapCanvas__state {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-panel);
+  color: var(--color-muted);
+  display: flex;
+  font-size: 13px;
+  font-weight: 700;
+  left: 50%;
+  min-height: 44px;
+  padding: 0 14px;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 600;
+}
+
+.MapCanvas__meta,
+.MapCanvas__poi {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid rgba(225, 229, 236, 0.94);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-panel);
+  display: flex;
+  gap: 8px;
+  left: 16px;
+  padding: 7px 9px;
+  position: absolute;
+  top: 16px;
+  z-index: 500;
+}
+
+.MapCanvas__meta span,
+.MapCanvas__poi span {
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.MapCanvas__meta span + span,
+.MapCanvas__poi span + span {
+  color: var(--color-muted);
+}
+
+.MapCanvas__poi {
+  bottom: 16px;
+  left: 16px;
+  top: auto;
+}
+
+.MapMarker {
+  background: transparent;
+  border: 0;
+  left: 0;
+  pointer-events: auto;
+  position: absolute;
+  top: 0;
+}
+
+.MapMarker > span {
+  align-items: center;
+  background: var(--color-primary);
+  border: 3px solid #ffffff;
+  border-radius: 999px 999px 999px 4px;
+  box-shadow: 0 8px 18px rgba(15, 98, 254, 0.22);
+  display: flex;
+  height: 32px;
+  justify-content: center;
+  transform: rotate(-45deg);
+  width: 32px;
+}
+
+.MapMarker i {
+  background: white;
+  border-radius: 999px;
+  display: block;
+  height: 10px;
+  width: 10px;
+}
+
+.MapMarker--dot > span {
+  border-radius: 999px;
+  height: 18px;
+  transform: none;
+  width: 18px;
+}
+
+.MapMarker--pin > span {
+  background: var(--color-danger);
+}
+
+.MapMarker--custom > span {
+  background: #0f766e;
+  border-radius: 8px;
+  transform: rotate(0deg);
+}
+
+.MapMarker__tooltip {
+  background: #ffffff;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-panel);
+  color: var(--color-text);
+  font-size: 12px;
+  font-weight: 760;
+  left: 50%;
+  padding: 5px 8px;
+  position: absolute;
+  top: -34px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
