@@ -138,6 +138,41 @@
       "pendingBullet": "Fill this after Figma MCP or component design data is connected.",
       "code": "// Add frontend implementation code after component design import\nexport function PlaceholderMapComponent() {\n  return null;\n}"
     },
+    "pointMarker": {
+      "name": "Normal",
+      "description": "Point component for location, muted, completed, emphasized, and selected states on entity maps.",
+      "variants": {
+        "default": "Default",
+        "muted": "Muted",
+        "completed": "Completed",
+        "emphasized": "Emphasized",
+        "selected": "Hover & Selected"
+      },
+      "style": {
+        "variantSet": "4 base states distributed on the map: default / muted / completed / emphasized; hover&selected is the interaction state",
+        "sizes": "24px for base states; 40px for emphasized and hover/selected states",
+        "color": "Blue for default, emphasized, and selected; gray for muted and completed, then blue emphasized styling on selection",
+        "shadow": "White stroke plus subtle shadow for legibility on dense base maps"
+      },
+      "fakeMod": {
+        "component": "MapPointMarker",
+        "property": "Property 1 = Location / No info / {state}",
+        "figmaNodes": "2968:200012 / 200015 / 200018 / 200021 / 200025"
+      },
+      "usage": {
+        "primary": "Represent user location, destination points, POI, or key logistics trace nodes.",
+        "extended": "Use emphasized or selected states for high-priority nodes when the map needs a clear current focus.",
+        "constraints": "Avoid using emphasized states for many points in the same viewport so the base map, routes, and key POI remain readable."
+      },
+      "code": "type PointMarkerVariant = \"default\" | \"muted\" | \"completed\" | \"emphasized\";\n\ninterface PointMarkerProps {\n  variant: PointMarkerVariant;\n  label: string;\n  selected?: boolean;\n}\n\nexport function PointMarker({ variant, label, selected }: PointMarkerProps) {\n  const interactive = variant === \"default\" || variant === \"completed\" || variant === \"emphasized\";\n  return (\n    <MapOverlayMarker\n      className={`MapMarker--point-${variant} ${selected ? \"is-selected\" : \"\"}`}\n      interactive={interactive}\n      label={label}\n    />\n  );\n}"
+    },
+    "informatedLocation": {
+      "name": "Informated location",
+      "description": "Add preview, style, FakeMod, and implementation notes after the information-rich location design is connected.",
+      "fakeMod": {
+        "component": "InformatedLocation"
+      }
+    },
     "sections": {
       "spec": "Style",
       "content": "Content",
@@ -150,6 +185,11 @@
       "caseConstraint": "Usage constraint",
       "size": "Size",
       "color": "Color",
+      "variant": "State",
+      "shadow": "Stroke / Shadow",
+      "component": "Component",
+      "property": "Property",
+      "figmaNodes": "Figma nodes",
       "strokeWidth": "Stroke width",
       "strokeColor": "Stroke color"
     },

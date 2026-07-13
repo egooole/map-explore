@@ -1,4 +1,10 @@
 export type MarkerStyle = "default" | "pin" | "dot" | "custom";
+export type MarkerPreviewVariant = "default" | "muted" | "completed" | "emphasized" | "selected";
+
+export interface MarkerPreviewState {
+  id: MarkerPreviewVariant;
+  label: string;
+}
 
 export interface RouteNode {
   id: "start" | "middle" | "end";

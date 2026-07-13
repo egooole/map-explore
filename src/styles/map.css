@@ -125,6 +125,80 @@
   transform: rotate(0deg);
 }
 
+.MapMarker--point-default > span,
+.MapMarker--point-muted > span,
+.MapMarker--point-completed > span,
+.MapMarker--point-emphasized > span,
+.MapMarker--point-selected > span {
+  border-radius: 999px;
+  box-shadow: 0 4px 11px rgba(15, 23, 42, 0.18), 0 1px 2px rgba(15, 23, 42, 0.16);
+  transform: none;
+  transition: background 120ms ease, border-width 120ms ease, box-shadow 120ms ease, height 120ms ease, width 120ms ease;
+}
+
+.MapMarker--point-default > span,
+.MapMarker--point-muted > span,
+.MapMarker--point-completed > span {
+  border-width: 4px;
+  height: 24px;
+  width: 24px;
+}
+
+.MapMarker--point-emphasized > span,
+.MapMarker--point-selected > span {
+  border-width: 6px;
+  box-shadow: 0 8px 18px rgba(15, 98, 254, 0.24), 0 2px 5px rgba(15, 23, 42, 0.18);
+  height: 40px;
+  width: 40px;
+}
+
+.MapMarker--point-default > span,
+.MapMarker--point-emphasized > span,
+.MapMarker--point-selected > span {
+  background: #2450ff;
+}
+
+.MapMarker--point-muted > span {
+  background: #c9d2fc;
+}
+
+.MapMarker--point-completed > span {
+  background: #b6bdc8;
+}
+
+.MapMarker--interactive {
+  cursor: pointer;
+}
+
+.MapMarker--interactive:focus-visible {
+  outline: none;
+}
+
+.MapMarker--interactive:focus-visible > span {
+  box-shadow: 0 0 0 4px rgba(36, 80, 255, 0.16), 0 8px 18px rgba(15, 98, 254, 0.22);
+}
+
+.MapMarker--point-default.MapMarker--interactive:hover > span,
+.MapMarker--point-default.is-selected > span,
+.MapMarker--point-completed.MapMarker--interactive:hover > span,
+.MapMarker--point-completed.is-selected > span,
+.MapMarker--point-emphasized.MapMarker--interactive:hover > span,
+.MapMarker--point-emphasized.is-selected > span {
+  background: #2450ff;
+  border-width: 6px;
+  box-shadow: 0 8px 18px rgba(15, 98, 254, 0.24), 0 2px 5px rgba(15, 23, 42, 0.18);
+  height: 40px;
+  width: 40px;
+}
+
+.MapMarker--point-default i,
+.MapMarker--point-muted i,
+.MapMarker--point-completed i,
+.MapMarker--point-emphasized i,
+.MapMarker--point-selected i {
+  display: none;
+}
+
 .MapMarker__tooltip {
   background: #ffffff;
   border: 1px solid var(--color-border);

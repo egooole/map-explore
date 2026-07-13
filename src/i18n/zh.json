@@ -138,6 +138,41 @@
       "pendingBullet": "待接入 Figma MCP 或组件设计后补充具体说明。",
       "code": "// 待接入组件设计后补充前端实现代码\nexport function PlaceholderMapComponent() {\n  return null;\n}"
     },
+    "pointMarker": {
+      "name": "Normal",
+      "description": "实体地图中用于表达定位、弱化、完成、强化与选中状态的点组件。",
+      "variants": {
+        "default": "默认",
+        "muted": "弱化",
+        "completed": "已完成",
+        "emphasized": "强化",
+        "selected": "Hover & Selected"
+      },
+      "style": {
+        "variantSet": "4 个基础状态随机分布：默认 / 弱化 / 已完成 / 强化；hover&selected 为交互态",
+        "sizes": "24px 基础态；40px 强化态与 hover/selected 态",
+        "color": "蓝色用于默认、强化与选中；灰色用于弱化与完成，选中后统一转为蓝色强化样式",
+        "shadow": "白色描边 + 轻量投影，保持在复杂底图上的可识别性"
+      },
+      "fakeMod": {
+        "component": "MapPointMarker",
+        "property": "Property 1 = 定位/无信息/{state}",
+        "figmaNodes": "2968:200012 / 200015 / 200018 / 200021 / 200025"
+      },
+      "usage": {
+        "primary": "用于表达用户当前位置、目标点、POI 或物流轨迹中的关键节点。",
+        "extended": "可在高优先级节点使用强化或选中态，配合地图缩放突出当前焦点。",
+        "constraints": "同屏大量点位时避免全部使用强化态，防止遮挡底图、路线和关键 POI。"
+      },
+      "code": "type PointMarkerVariant = \"default\" | \"muted\" | \"completed\" | \"emphasized\";\n\ninterface PointMarkerProps {\n  variant: PointMarkerVariant;\n  label: string;\n  selected?: boolean;\n}\n\nexport function PointMarker({ variant, label, selected }: PointMarkerProps) {\n  const interactive = variant === \"default\" || variant === \"completed\" || variant === \"emphasized\";\n  return (\n    <MapOverlayMarker\n      className={`MapMarker--point-${variant} ${selected ? \"is-selected\" : \"\"}`}\n      interactive={interactive}\n      label={label}\n    />\n  );\n}"
+    },
+    "informatedLocation": {
+      "name": "Informated location",
+      "description": "待接入信息型定位组件设计后补充预览、样式、FakeMod 与实现说明。",
+      "fakeMod": {
+        "component": "InformatedLocation"
+      }
+    },
     "sections": {
       "spec": "样式",
       "content": "内容",
@@ -150,6 +185,11 @@
       "caseConstraint": "使用约束",
       "size": "尺寸",
       "color": "颜色",
+      "variant": "状态",
+      "shadow": "描边 / 阴影",
+      "component": "组件",
+      "property": "属性",
+      "figmaNodes": "Figma 节点",
       "strokeWidth": "线宽",
       "strokeColor": "线色"
     },

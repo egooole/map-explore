@@ -2,7 +2,7 @@ import { ChevronDown, Code2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { MapCategory, WorkbenchLanguage } from "../store/workbenchStore";
-import type { MapControlsState } from "../types";
+import type { MapControlsState, MarkerPreviewState, MarkerPreviewVariant } from "../types";
 import { MapCanvas } from "./MapCanvas";
 
 export type ManualCategoryId = "point" | "line" | "area" | "container";
@@ -18,11 +18,17 @@ export interface ManualUsageGroup {
   bulletKeys: string[];
 }
 
+export interface ManualMarkerVariant {
+  id: MarkerPreviewVariant;
+  labelKey: string;
+}
+
 export interface ManualComponentSpec {
   id: string;
   nameKey: string;
   descriptionKey: string;
   previewType: ManualCategoryId;
+  markerVariants?: ManualMarkerVariant[];
   styleRows: ManualInfoRow[];
   fakeModRows: ManualInfoRow[];
   code: {
@@ -43,6 +49,21 @@ interface ComponentCardProps {
   mapCategory: MapCategory;
   lang: WorkbenchLanguage;
 }
+
+const pointPreviewPattern: MarkerPreviewVariant[] = [
+  "default",
+  "completed",
+  "muted",
+  "default",
+  "emphasized",
+  "completed",
+  "default",
+  "muted",
+  "completed",
+  "default",
+  "emphasized",
+  "default",
+];
 
 function resolveValue(row: ManualInfoRow, t: (key: string) => string) {
   return row.valueKey ? t(row.valueKey) : row.value ?? "";
@@ -114,6 +135,20 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang }: Component
     }),
     [categoryId],
   );
+  const previewMarkers = useMemo<MarkerPreviewState[] | undefined>(
+    () => {
+      if (!spec.markerVariants?.length) {
+        return undefined;
+      }
+
+      const markersById = new Map(spec.markerVariants.map((marker) => [marker.id, marker]));
+      return pointPreviewPattern
+        .map((variant) => markersById.get(variant))
+        .filter((marker): marker is ManualMarkerVariant => Boolean(marker))
+        .map((marker) => ({ id: marker.id, label: t(marker.labelKey) }));
+    },
+    [spec.markerVariants, t],
+  );
 
   return (
     <article className="ManualDetail" id={`manual-component-${spec.id}`}>
@@ -125,7 +160,14 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang }: Component
         </header>
 
         <div className="ManualMapRegion">
-          <MapCanvas compact controls={previewControls} lang={lang} mapCategory={mapCategory} previewFeature={spec.previewType} />
+          <MapCanvas
+            compact
+            controls={previewControls}
+            lang={lang}
+            mapCategory={mapCategory}
+            previewFeature={spec.previewType}
+            previewMarkers={previewMarkers}
+          />
         </div>
 
         <section className="ManualSpecSection">

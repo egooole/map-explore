@@ -10,16 +10,62 @@
           "labelKey": "manual.categories.point",
           "components": [
             {
-              "id": "entity-point-placeholder-01",
-              "nameKey": "manual.placeholders.componentName",
-              "descriptionKey": "manual.placeholders.componentDescription",
+              "id": "entity-point-location-marker",
+              "nameKey": "manual.pointMarker.name",
+              "descriptionKey": "manual.pointMarker.description",
               "previewType": "point",
+              "markerVariants": [
+                { "id": "default", "labelKey": "manual.pointMarker.variants.default" },
+                { "id": "muted", "labelKey": "manual.pointMarker.variants.muted" },
+                { "id": "completed", "labelKey": "manual.pointMarker.variants.completed" },
+                { "id": "emphasized", "labelKey": "manual.pointMarker.variants.emphasized" },
+                { "id": "selected", "labelKey": "manual.pointMarker.variants.selected" }
+              ],
               "styleRows": [
-                { "labelKey": "manual.content.style", "valueKey": "manual.placeholders.pending" },
-                { "labelKey": "manual.content.preview", "valueKey": "manual.placeholders.pending" }
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.pointMarker.style.variantSet" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.pointMarker.style.sizes" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.pointMarker.style.color" },
+                { "labelKey": "manual.rows.shadow", "valueKey": "manual.pointMarker.style.shadow" }
               ],
               "fakeModRows": [
-                { "labelKey": "manual.content.fakeMod", "valueKey": "manual.placeholders.pending" }
+                { "labelKey": "manual.rows.component", "valueKey": "manual.pointMarker.fakeMod.component" },
+                { "labelKey": "manual.rows.property", "valueKey": "manual.pointMarker.fakeMod.property" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.pointMarker.fakeMod.figmaNodes" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.pointMarker.code"
+              },
+              "usage": {
+                "primary": {
+                  "tagKey": "manual.usageTags.primary",
+                  "bulletKeys": ["manual.pointMarker.usage.primary"]
+                },
+                "extended": {
+                  "tagKey": "manual.usageTags.extended",
+                  "bulletKeys": ["manual.pointMarker.usage.extended"]
+                },
+                "constraints": {
+                  "tagKey": "manual.usageTags.constraints",
+                  "bulletKeys": ["manual.pointMarker.usage.constraints"]
+                }
+              }
+            },
+            {
+              "id": "entity-point-informated-location",
+              "nameKey": "manual.informatedLocation.name",
+              "descriptionKey": "manual.informatedLocation.description",
+              "previewType": "point",
+              "styleRows": [
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.placeholders.pending" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.placeholders.pending" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.placeholders.pending" },
+                { "labelKey": "manual.rows.shadow", "valueKey": "manual.placeholders.pending" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.rows.component", "valueKey": "manual.informatedLocation.fakeMod.component" },
+                { "labelKey": "manual.rows.property", "valueKey": "manual.placeholders.pending" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.placeholders.pending" }
               ],
               "code": {
                 "language": "tsx",

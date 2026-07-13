@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { mapKey, mapPresets } from "../config/mapPresets";
 import type { MapCategory, WorkbenchLanguage } from "../store/workbenchStore";
-import type { MapControlsState, MarkerStyle } from "../types";
+import type { MapControlsState, MarkerPreviewState, MarkerPreviewVariant, MarkerStyle } from "../types";
 
 declare global {
   interface Window {
@@ -62,6 +62,7 @@ interface MapCanvasProps {
   controls: MapControlsState;
   compact?: boolean;
   previewFeature?: "point" | "line" | "area" | "container";
+  previewMarkers?: MarkerPreviewState[];
 }
 
 const center: GoogleLatLng = { lat: 31.225, lng: 121.45 };
@@ -70,6 +71,21 @@ const routePositions: GoogleLatLng[] = [
   { lat: 31.207, lng: 121.317 },
   { lat: 31.223, lng: 121.445 },
   { lat: 31.236, lng: 121.502 },
+];
+
+const pointPreviewPositions: GoogleLatLng[] = [
+  { lat: 31.235, lng: 121.391 },
+  { lat: 31.219, lng: 121.404 },
+  { lat: 31.226, lng: 121.432 },
+  { lat: 31.229, lng: 121.438 },
+  { lat: 31.221, lng: 121.444 },
+  { lat: 31.216, lng: 121.451 },
+  { lat: 31.205, lng: 121.474 },
+  { lat: 31.244, lng: 121.488 },
+  { lat: 31.228, lng: 121.503 },
+  { lat: 31.199, lng: 121.517 },
+  { lat: 31.238, lng: 121.528 },
+  { lat: 31.211, lng: 121.535 },
 ];
 
 const areaPositions: GoogleLatLng[] = [
@@ -81,6 +97,7 @@ const areaPositions: GoogleLatLng[] = [
 ];
 
 const scriptId = "map-lab-google-maps";
+const interactivePointVariants: MarkerPreviewVariant[] = ["default", "completed", "emphasized"];
 
 function resetGoogleMapsScript() {
   document.querySelectorAll(`script[id="${scriptId}"], script[src*="maps.googleapis.com/maps/api/js"]`).forEach((script) => {
@@ -129,10 +146,32 @@ function loadGoogleMaps(lang: WorkbenchLanguage) {
   return window.__mapLabGoogleMapsPromise;
 }
 
-function createMarkerElement(style: MarkerStyle, label: string) {
+function createMarkerElement(style: MarkerStyle, label: string, previewVariant?: MarkerPreviewVariant) {
   const marker = document.createElement("div");
-  marker.className = `MapMarker MapMarker--${style}`;
-  marker.innerHTML = style === "dot" ? "<span></span>" : "<span><i></i></span>";
+  marker.className = previewVariant ? `MapMarker MapMarker--point-${previewVariant}` : `MapMarker MapMarker--${style}`;
+  marker.innerHTML = style === "dot" && !previewVariant ? "<span></span>" : "<span><i></i></span>";
+
+  if (previewVariant && interactivePointVariants.includes(previewVariant)) {
+    marker.classList.add("MapMarker--interactive");
+    marker.tabIndex = 0;
+    marker.setAttribute("aria-label", label);
+    marker.setAttribute("role", "button");
+    marker.addEventListener("click", () => {
+      const canvas = marker.closest(".MapCanvas");
+      canvas?.querySelectorAll(".MapMarker.is-selected").forEach((selectedMarker) => {
+        if (selectedMarker !== marker) {
+          selectedMarker.classList.remove("is-selected");
+        }
+      });
+      marker.classList.toggle("is-selected");
+    });
+    marker.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        marker.click();
+      }
+    });
+  }
 
   const tooltip = document.createElement("div");
   tooltip.className = "MapMarker__tooltip";
@@ -142,7 +181,13 @@ function createMarkerElement(style: MarkerStyle, label: string) {
   return marker;
 }
 
-function createOverlayMarker(googleMaps: GoogleMapsGlobal, map: GoogleMap, position: GoogleLatLng, element: HTMLElement) {
+function createOverlayMarker(
+  googleMaps: GoogleMapsGlobal,
+  map: GoogleMap,
+  position: GoogleLatLng,
+  element: HTMLElement,
+  anchor: "bottom" | "center" = "bottom",
+) {
   class MarkerOverlay extends googleMaps.maps.OverlayView {
     private markerElement = element;
 
@@ -155,7 +200,8 @@ function createOverlayMarker(googleMaps: GoogleMapsGlobal, map: GoogleMap, posit
       if (!pixel) {
         return;
       }
-      this.markerElement.style.transform = `translate(${pixel.x}px, ${pixel.y}px) translate(-50%, -100%)`;
+      const anchorTransform = anchor === "center" ? "translate(-50%, -50%)" : "translate(-50%, -100%)";
+      this.markerElement.style.transform = `translate(${pixel.x}px, ${pixel.y}px) ${anchorTransform}`;
     }
 
     onRemove() {
@@ -168,7 +214,7 @@ function createOverlayMarker(googleMaps: GoogleMapsGlobal, map: GoogleMap, posit
   return overlay;
 }
 
-export function MapCanvas({ mapCategory, lang, controls, compact = false, previewFeature }: MapCanvasProps) {
+export function MapCanvas({ mapCategory, lang, controls, compact = false, previewFeature, previewMarkers }: MapCanvasProps) {
   const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<GoogleMap | null>(null);
@@ -291,11 +337,34 @@ export function MapCanvas({ mapCategory, lang, controls, compact = false, previe
 
     markersRef.current.forEach((marker) => marker.setMap(null));
     markersRef.current = shouldShowMarkers
-      ? routePositions.map((position, index) =>
-          createOverlayMarker(googleMaps, map, position, createMarkerElement(controls.markerStyle, markerLabels[index])),
-        )
+      ? previewMarkers?.length
+        ? previewMarkers.map((marker, index) =>
+            createOverlayMarker(
+              googleMaps,
+              map,
+              pointPreviewPositions[index % pointPreviewPositions.length],
+              createMarkerElement(controls.markerStyle, marker.label, marker.id),
+              "center",
+            ),
+          )
+        : routePositions.map((position, index) =>
+            createOverlayMarker(googleMaps, map, position, createMarkerElement(controls.markerStyle, markerLabels[index])),
+          )
       : [];
-  }, [controls.markerStyle, controls.showMapUi, controls.zoom, mapCategory, markerLabels, preset.mapId, preset.mapTypeId, preset.styles, previewFeature, routeColor, status]);
+  }, [
+    controls.markerStyle,
+    controls.showMapUi,
+    controls.zoom,
+    mapCategory,
+    markerLabels,
+    preset.mapId,
+    preset.mapTypeId,
+    preset.styles,
+    previewFeature,
+    previewMarkers,
+    routeColor,
+    status,
+  ]);
 
   useEffect(() => {
     return () => {
