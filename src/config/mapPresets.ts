@@ -1,45 +1,45 @@
 import type { MapCategory, WorkbenchLanguage } from "../store/workbenchStore";
+import { mapExploreLightStyles, mapExploreVisualizationStyles, type GoogleMapStyle } from "./googleMapStyles";
 
 export interface MapPreset {
   id: string;
   labelLocale: WorkbenchLanguage;
-  tileUrl: string;
-  attribution: string;
-  mapIdEnv?: string;
-  styleUrlEnv?: string;
+  mapId?: string;
+  mapTypeId: "roadmap" | "terrain";
+  styles?: GoogleMapStyle[];
 }
 
 export const mapPresets: Record<MapCategory, Record<WorkbenchLanguage, MapPreset>> = {
   entity: {
     zh: {
-      id: "entity-zh",
+      id: "google-entity-zh",
       labelLocale: "zh",
-      tileUrl: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      attribution: "&copy; OpenStreetMap contributors",
-      mapIdEnv: "VITE_ENTITY_MAP_ID",
+      mapId: import.meta.env.VITE_ENTITY_MAP_ID,
+      mapTypeId: "roadmap",
+      styles: mapExploreLightStyles,
     },
     en: {
-      id: "entity-en",
+      id: "google-entity-en",
       labelLocale: "en",
-      tileUrl: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      attribution: "&copy; OpenStreetMap contributors",
-      mapIdEnv: "VITE_ENTITY_MAP_ID",
+      mapId: import.meta.env.VITE_ENTITY_MAP_ID,
+      mapTypeId: "roadmap",
+      styles: mapExploreLightStyles,
     },
   },
   visualization: {
     zh: {
-      id: "visualization-zh",
+      id: "google-visualization-zh",
       labelLocale: "zh",
-      tileUrl: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-      attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
-      styleUrlEnv: "VITE_VISUALIZATION_STYLE_URL",
+      mapId: import.meta.env.VITE_VISUALIZATION_MAP_ID,
+      mapTypeId: "roadmap",
+      styles: mapExploreVisualizationStyles,
     },
     en: {
-      id: "visualization-en",
+      id: "google-visualization-en",
       labelLocale: "en",
-      tileUrl: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-      attribution: "&copy; OpenStreetMap contributors &copy; CARTO",
-      styleUrlEnv: "VITE_VISUALIZATION_STYLE_URL",
+      mapId: import.meta.env.VITE_VISUALIZATION_MAP_ID,
+      mapTypeId: "roadmap",
+      styles: mapExploreVisualizationStyles,
     },
   },
 };

@@ -22,10 +22,10 @@ Create a `.env.local` file when your map provider requires keys or hosted styles
 ```bash
 VITE_MAP_KEY=your-provider-key
 VITE_ENTITY_MAP_ID=your-entity-map-id
-VITE_VISUALIZATION_STYLE_URL=your-visualization-style-url
+VITE_VISUALIZATION_MAP_ID=your-visualization-map-id
 ```
 
-The default implementation uses public Leaflet tile presets in `src/config/mapPresets.ts`. The provider details are isolated in `MapCanvas`, so you can swap to Google Maps, Mapbox, or another vendor without changing the scene and panel APIs.
+The default implementation uses Google Maps JavaScript API in `MapCanvas`. Put your Google Maps API key in `VITE_MAP_KEY`. Optional Google Cloud Map IDs for entity and visualization styles can be configured through `VITE_ENTITY_MAP_ID` and `VITE_VISUALIZATION_MAP_ID`; local fallback styling for the visualization map lives in `src/config/mapPresets.ts`.
 
 ## Directory Structure
 

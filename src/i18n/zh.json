@@ -68,7 +68,10 @@
     "warehouse": "仓库",
     "hub": "分拨中心",
     "destination": "目的地",
-    "customMarker": "自定义"
+    "customMarker": "自定义",
+    "loading": "正在加载 Google Maps...",
+    "googleKeyMissing": "缺少 VITE_MAP_KEY，无法加载 Google Maps",
+    "loadError": "Google Maps 加载失败，请检查 API Key 或网络"
   },
   "useCase": {
     "deliveredRange": "预计送达 3 月 28-30 日",

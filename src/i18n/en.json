@@ -68,7 +68,10 @@
     "warehouse": "Warehouse",
     "hub": "Sorting Hub",
     "destination": "Destination",
-    "customMarker": "Custom"
+    "customMarker": "Custom",
+    "loading": "Loading Google Maps...",
+    "googleKeyMissing": "VITE_MAP_KEY is missing, so Google Maps cannot load",
+    "loadError": "Google Maps failed to load. Check the API key or network"
   },
   "useCase": {
     "deliveredRange": "Estimated delivery Mar 28-30",
