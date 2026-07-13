@@ -92,6 +92,7 @@
   background: var(--color-primary);
   border: 3px solid #ffffff;
   border-radius: 999px 999px 999px 4px;
+  box-sizing: border-box;
   box-shadow: 0 8px 18px rgba(15, 98, 254, 0.22);
   display: flex;
   height: 32px;
