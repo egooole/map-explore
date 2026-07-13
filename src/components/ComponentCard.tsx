@@ -2,7 +2,7 @@ import { ChevronDown, Code2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { MapCategory, WorkbenchLanguage } from "../store/workbenchStore";
-import type { MapControlsState, MarkerPreviewState, MarkerPreviewVariant } from "../types";
+import type { MapControlsState, MarkerPreviewFamily, MarkerPreviewState, MarkerPreviewVariant } from "../types";
 import { MapCanvas } from "./MapCanvas";
 
 export type ManualCategoryId = "point" | "line" | "area" | "container";
@@ -28,6 +28,7 @@ export interface ManualComponentSpec {
   nameKey: string;
   descriptionKey: string;
   previewType: ManualCategoryId;
+  markerFamily?: MarkerPreviewFamily;
   markerVariants?: ManualMarkerVariant[];
   styleRows: ManualInfoRow[];
   fakeModRows: ManualInfoRow[];
@@ -166,6 +167,7 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang }: Component
             lang={lang}
             mapCategory={mapCategory}
             previewFeature={spec.previewType}
+            previewMarkerFamily={spec.markerFamily}
             previewMarkers={previewMarkers}
           />
         </div>

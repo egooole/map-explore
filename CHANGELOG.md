@@ -1,3 +1,10 @@
+## [0.8.3] - 2026-07-13
+**改动类型**：新增
+**涉及区域**：ComponentCard、MapCanvas、componentSpecs.json、i18n、map.css、types.ts
+**变更描述**：将 Figma 中“定位/有信息”点组件接入组件手册的 Informated location，使用本地 SVG 还原默认、Disable、已完成、强化四个基础状态；有有效 mapId 时可走 Google Maps Advanced Marker，否则自动退回稳定的 OverlayView。
+**影响面**：影响 Component Manual 的 Informated location 组件预览、样式说明、FakeMod 信息与代码示例；Normal 点组件仍使用现有轻量 overlay；无破坏性变更。
+**关联需求**：接入 Figma Informated location 组件设计
+
 ## [0.8.2] - 2026-07-13
 **改动类型**：新增
 **涉及区域**：ComponentCard、MapCanvas、componentSpecs.json、i18n、map.css

@@ -1,5 +1,6 @@
 export type MarkerStyle = "default" | "pin" | "dot" | "custom";
 export type MarkerPreviewVariant = "default" | "muted" | "completed" | "emphasized" | "selected";
+export type MarkerPreviewFamily = "normal" | "informated";
 
 export interface MarkerPreviewState {
   id: MarkerPreviewVariant;

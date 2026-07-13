@@ -168,10 +168,32 @@
     },
     "informatedLocation": {
       "name": "Informated location",
-      "description": "Add preview, style, FakeMod, and implementation notes after the information-rich location design is connected.",
+      "description": "Information-rich location point with a warehouse icon for business entities on the map.",
+      "variants": {
+        "default": "Default",
+        "disabled": "Disable",
+        "completed": "Completed",
+        "emphasized": "Emphasized",
+        "selected": "Hover & Selected"
+      },
+      "style": {
+        "variantSet": "4 base states distributed on the map: default / Disable / completed / emphasized; hover&selected is the interaction state",
+        "sizes": "Rendered at original SVG bounds: 59x62 for base states; 95x99 for emphasized and hover/selected states",
+        "color": "Blue for default, emphasized, and selected; Disable uses #C9D2FC; completed uses neutral gray",
+        "icon": "White stroked warehouse line icon, centered",
+        "shadow": "Use the SVG's built-in white stroke and shadow to match the Figma export"
+      },
       "fakeMod": {
-        "component": "InformatedLocation"
-      }
+        "component": "InformatedLocation",
+        "property": "Property 1 = Location / With info / {state}",
+        "figmaNodes": "2977:200598 / 200605 / 200612 / 200619 / 200626"
+      },
+      "usage": {
+        "primary": "Use for warehouses, stores, stations, or locations with explicit business meaning.",
+        "extended": "Use emphasized or selected states for selected warehouses, active delivery nodes, or high-priority operation points.",
+        "constraints": "Information-rich points carry more visual weight than normal points; control density when many are visible in the same viewport."
+      },
+      "code": "type InformatedLocationVariant = \"default\" | \"disabled\" | \"completed\" | \"emphasized\";\n\nasync function renderInformatedLocation(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: InformatedLocationVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const visualVariant = variant === \"disabled\" ? \"muted\" : variant;\n  const content = document.createElement(\"div\");\n  content.className = `MapMarker MapMarker--advanced MapMarker--informated-${visualVariant}`;\n\n  return new AdvancedMarkerElement({\n    content,\n    map,\n    position,\n  });\n}"
     },
     "sections": {
       "spec": "Style",
@@ -190,6 +212,7 @@
       "component": "Component",
       "property": "Property",
       "figmaNodes": "Figma nodes",
+      "icon": "Icon",
       "strokeWidth": "Stroke width",
       "strokeColor": "Stroke color"
     },

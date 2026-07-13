@@ -168,10 +168,32 @@
     },
     "informatedLocation": {
       "name": "Informated location",
-      "description": "待接入信息型定位组件设计后补充预览、样式、FakeMod 与实现说明。",
+      "description": "带仓库图标的信息型定位点，用于表达有明确业务实体的地图位置。",
+      "variants": {
+        "default": "默认",
+        "disabled": "Disable",
+        "completed": "已完成",
+        "emphasized": "强化",
+        "selected": "Hover & Selected"
+      },
+      "style": {
+        "variantSet": "4 个基础状态随机分布：默认 / Disable / 已完成 / 强化；hover&selected 为交互态",
+        "sizes": "按 SVG 原始外框展示：59×62 基础态；95×99 强化态与 hover/selected 态",
+        "color": "蓝色用于默认、强化与选中；Disable 使用 #C9D2FC；已完成使用中性灰",
+        "icon": "仓库线性图标，白色描边，居中显示",
+        "shadow": "使用 SVG 内置白色描边与投影，保持与 Figma 导出一致"
+      },
       "fakeMod": {
-        "component": "InformatedLocation"
-      }
+        "component": "InformatedLocation",
+        "property": "Property 1 = 定位/有信息/{state}",
+        "figmaNodes": "2977:200598 / 200605 / 200612 / 200619 / 200626"
+      },
+      "usage": {
+        "primary": "用于仓库、门店、站点等有明确业务属性的位置点。",
+        "extended": "可在选中仓库、当前配送节点、重点运营点位时使用强化或选中态。",
+        "constraints": "信息型点比普通点视觉权重更高，同屏大量使用时需要控制密度，避免压过底图和路线。"
+      },
+      "code": "type InformatedLocationVariant = \"default\" | \"disabled\" | \"completed\" | \"emphasized\";\n\nasync function renderInformatedLocation(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: InformatedLocationVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const visualVariant = variant === \"disabled\" ? \"muted\" : variant;\n  const content = document.createElement(\"div\");\n  content.className = `MapMarker MapMarker--advanced MapMarker--informated-${visualVariant}`;\n\n  return new AdvancedMarkerElement({\n    content,\n    map,\n    position,\n  });\n}"
     },
     "sections": {
       "spec": "样式",
@@ -190,6 +212,7 @@
       "component": "组件",
       "property": "属性",
       "figmaNodes": "Figma 节点",
+      "icon": "图标",
       "strokeWidth": "线宽",
       "strokeColor": "线色"
     },

@@ -1,8 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import informatedCompletedMarker from "../assets/informated-location/completed.svg";
+import informatedDefaultMarker from "../assets/informated-location/default.svg";
+import informatedDisableMarker from "../assets/informated-location/disable.svg";
+import informatedEmphasizedMarker from "../assets/informated-location/emphasized.svg";
+import informatedSelectedMarker from "../assets/informated-location/selected.svg";
 import { mapKey, mapPresets } from "../config/mapPresets";
 import type { MapCategory, WorkbenchLanguage } from "../store/workbenchStore";
-import type { MapControlsState, MarkerPreviewState, MarkerPreviewVariant, MarkerStyle } from "../types";
+import type { MapControlsState, MarkerPreviewFamily, MarkerPreviewState, MarkerPreviewVariant, MarkerStyle } from "../types";
 
 declare global {
   interface Window {
@@ -15,6 +20,7 @@ declare global {
 type GoogleMapsGlobal = {
   maps: {
     ControlPosition: Record<string, number>;
+    importLibrary: (library: "marker") => Promise<GoogleMarkerLibrary>;
     Map: new (element: HTMLElement, options: Record<string, unknown>) => GoogleMap;
     OverlayView: typeof GoogleOverlayView;
     Point: new (x: number, y: number) => unknown;
@@ -42,6 +48,20 @@ interface GooglePolygon {
   setOptions: (options: Record<string, unknown>) => void;
 }
 
+interface GoogleAdvancedMarker {
+  map: GoogleMap | null;
+}
+
+type GoogleMarkerLibrary = {
+  AdvancedMarkerElement: new (options: {
+    content: HTMLElement;
+    gmpClickable?: boolean;
+    map: GoogleMap;
+    position: GoogleLatLng;
+    title?: string;
+  }) => GoogleAdvancedMarker;
+};
+
 declare class GoogleOverlayView {
   draw(): void;
   getPanes(): { overlayMouseTarget: HTMLElement } | null;
@@ -56,12 +76,17 @@ interface GoogleLatLng {
   lng: number;
 }
 
+interface MapMarkerHandle {
+  remove: () => void;
+}
+
 interface MapCanvasProps {
   mapCategory: MapCategory;
   lang: WorkbenchLanguage;
   controls: MapControlsState;
   compact?: boolean;
   previewFeature?: "point" | "line" | "area" | "container";
+  previewMarkerFamily?: MarkerPreviewFamily;
   previewMarkers?: MarkerPreviewState[];
 }
 
@@ -98,6 +123,14 @@ const areaPositions: GoogleLatLng[] = [
 
 const scriptId = "map-lab-google-maps";
 const interactivePointVariants: MarkerPreviewVariant[] = ["default", "completed", "emphasized"];
+
+const informatedMarkerAssets: Record<MarkerPreviewVariant, string> = {
+  completed: informatedCompletedMarker,
+  default: informatedDefaultMarker,
+  emphasized: informatedEmphasizedMarker,
+  muted: informatedDisableMarker,
+  selected: informatedSelectedMarker,
+};
 
 function resetGoogleMapsScript() {
   document.querySelectorAll(`script[id="${scriptId}"], script[src*="maps.googleapis.com/maps/api/js"]`).forEach((script) => {
@@ -146,10 +179,21 @@ function loadGoogleMaps(lang: WorkbenchLanguage) {
   return window.__mapLabGoogleMapsPromise;
 }
 
-function createMarkerElement(style: MarkerStyle, label: string, previewVariant?: MarkerPreviewVariant) {
+function createMarkerElement(
+  style: MarkerStyle,
+  label: string,
+  previewVariant?: MarkerPreviewVariant,
+  previewFamily: MarkerPreviewFamily = "normal",
+) {
   const marker = document.createElement("div");
-  marker.className = previewVariant ? `MapMarker MapMarker--point-${previewVariant}` : `MapMarker MapMarker--${style}`;
-  marker.innerHTML = style === "dot" && !previewVariant ? "<span></span>" : "<span><i></i></span>";
+  const previewClass = previewFamily === "normal" ? "point" : previewFamily;
+  marker.className = previewVariant ? `MapMarker MapMarker--${previewClass}-${previewVariant}` : `MapMarker MapMarker--${style}`;
+  marker.innerHTML =
+    previewVariant && previewFamily === "informated"
+      ? `<span class="MapMarker__asset"><img alt="" class="MapMarker__assetBase" src="${informatedMarkerAssets[previewVariant]}" /><img alt="" class="MapMarker__assetSelected" src="${informatedSelectedMarker}" /></span>`
+      : style === "dot" && !previewVariant
+        ? "<span></span>"
+        : "<span><i></i></span>";
 
   if (previewVariant && interactivePointVariants.includes(previewVariant)) {
     marker.classList.add("MapMarker--interactive");
@@ -187,7 +231,7 @@ function createOverlayMarker(
   position: GoogleLatLng,
   element: HTMLElement,
   anchor: "bottom" | "center" = "bottom",
-) {
+): MapMarkerHandle {
   class MarkerOverlay extends googleMaps.maps.OverlayView {
     private markerElement = element;
 
@@ -211,16 +255,50 @@ function createOverlayMarker(
 
   const overlay = new MarkerOverlay();
   overlay.setMap(map);
-  return overlay;
+  return {
+    remove: () => overlay.setMap(null),
+  };
 }
 
-export function MapCanvas({ mapCategory, lang, controls, compact = false, previewFeature, previewMarkers }: MapCanvasProps) {
+async function createAdvancedMarker(
+  googleMaps: GoogleMapsGlobal,
+  map: GoogleMap,
+  position: GoogleLatLng,
+  element: HTMLElement,
+): Promise<MapMarkerHandle> {
+  const { AdvancedMarkerElement } = await googleMaps.maps.importLibrary("marker");
+  element.classList.add("MapMarker--advanced");
+  const marker = new AdvancedMarkerElement({
+    content: element,
+    gmpClickable: element.classList.contains("MapMarker--interactive"),
+    map,
+    position,
+    title: element.getAttribute("aria-label") ?? undefined,
+  });
+
+  return {
+    remove: () => {
+      marker.map = null;
+      element.remove();
+    },
+  };
+}
+
+export function MapCanvas({
+  mapCategory,
+  lang,
+  controls,
+  compact = false,
+  previewFeature,
+  previewMarkerFamily = "normal",
+  previewMarkers,
+}: MapCanvasProps) {
   const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<GoogleMap | null>(null);
   const polylineRef = useRef<GooglePolyline | null>(null);
   const polygonRef = useRef<GooglePolygon | null>(null);
-  const markersRef = useRef<GoogleOverlayView[]>([]);
+  const markersRef = useRef<MapMarkerHandle[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "missing-key" | "error">("idle");
   const preset = mapPresets[mapCategory][lang];
   const routeColor = mapCategory === "visualization" ? "#475569" : "#0f62fe";
@@ -335,22 +413,53 @@ export function MapCanvas({ mapCategory, lang, controls, compact = false, previe
     });
     polygonRef.current.setMap(shouldShowArea ? map : null);
 
-    markersRef.current.forEach((marker) => marker.setMap(null));
-    markersRef.current = shouldShowMarkers
-      ? previewMarkers?.length
-        ? previewMarkers.map((marker, index) =>
-            createOverlayMarker(
-              googleMaps,
-              map,
-              pointPreviewPositions[index % pointPreviewPositions.length],
-              createMarkerElement(controls.markerStyle, marker.label, marker.id),
-              "center",
-            ),
-          )
-        : routePositions.map((position, index) =>
-            createOverlayMarker(googleMaps, map, position, createMarkerElement(controls.markerStyle, markerLabels[index])),
-          )
-      : [];
+    let cancelled = false;
+
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current = [];
+
+    const renderMarkers = async () => {
+      if (!shouldShowMarkers) {
+        return;
+      }
+
+      if (previewMarkers?.length) {
+        const markerHandles = await Promise.all(
+          previewMarkers.map((marker, index) => {
+            const markerElement = createMarkerElement(controls.markerStyle, marker.label, marker.id, previewMarkerFamily);
+            const markerPosition = pointPreviewPositions[index % pointPreviewPositions.length];
+
+            return previewMarkerFamily === "informated" && preset.mapId
+              ? createAdvancedMarker(googleMaps, map, markerPosition, markerElement)
+              : Promise.resolve(createOverlayMarker(googleMaps, map, markerPosition, markerElement, "center"));
+          }),
+        );
+
+        if (cancelled) {
+          markerHandles.forEach((marker) => marker.remove());
+          return;
+        }
+
+        markersRef.current = markerHandles;
+        return;
+      }
+
+      markersRef.current = routePositions.map((position, index) =>
+        createOverlayMarker(googleMaps, map, position, createMarkerElement(controls.markerStyle, markerLabels[index])),
+      );
+    };
+
+    renderMarkers().catch(() => {
+      if (!cancelled) {
+        setStatus("error");
+      }
+    });
+
+    return () => {
+      cancelled = true;
+      markersRef.current.forEach((marker) => marker.remove());
+      markersRef.current = [];
+    };
   }, [
     controls.markerStyle,
     controls.showMapUi,
@@ -361,6 +470,7 @@ export function MapCanvas({ mapCategory, lang, controls, compact = false, previe
     preset.mapTypeId,
     preset.styles,
     previewFeature,
+    previewMarkerFamily,
     previewMarkers,
     routeColor,
     status,
@@ -370,7 +480,7 @@ export function MapCanvas({ mapCategory, lang, controls, compact = false, previe
     return () => {
       polylineRef.current?.setMap(null);
       polygonRef.current?.setMap(null);
-      markersRef.current.forEach((marker) => marker.setMap(null));
+      markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
     };
   }, []);

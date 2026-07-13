@@ -87,6 +87,12 @@
   top: 0;
 }
 
+.MapMarker--advanced {
+  left: auto;
+  position: relative;
+  top: auto;
+}
+
 .MapMarker > span {
   align-items: center;
   background: var(--color-primary);
@@ -130,7 +136,12 @@
 .MapMarker--point-muted > span,
 .MapMarker--point-completed > span,
 .MapMarker--point-emphasized > span,
-.MapMarker--point-selected > span {
+.MapMarker--point-selected > span,
+.MapMarker--informated-default > span,
+.MapMarker--informated-muted > span,
+.MapMarker--informated-completed > span,
+.MapMarker--informated-emphasized > span,
+.MapMarker--informated-selected > span {
   border-radius: 999px;
   box-shadow: 0 4px 11px rgba(15, 23, 42, 0.18), 0 1px 2px rgba(15, 23, 42, 0.16);
   transform: none;
@@ -153,9 +164,28 @@
   width: 40px;
 }
 
+.MapMarker--informated-default > span,
+.MapMarker--informated-muted > span,
+.MapMarker--informated-completed > span {
+  border-width: 4px;
+  height: 40px;
+  width: 40px;
+}
+
+.MapMarker--informated-emphasized > span,
+.MapMarker--informated-selected > span {
+  border-width: 6px;
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.22), 0 5px 14px rgba(15, 98, 254, 0.2);
+  height: 64px;
+  width: 64px;
+}
+
 .MapMarker--point-default > span,
 .MapMarker--point-emphasized > span,
-.MapMarker--point-selected > span {
+.MapMarker--point-selected > span,
+.MapMarker--informated-default > span,
+.MapMarker--informated-emphasized > span,
+.MapMarker--informated-selected > span {
   background: #2450ff;
 }
 
@@ -164,6 +194,14 @@
 }
 
 .MapMarker--point-completed > span {
+  background: #b6bdc8;
+}
+
+.MapMarker--informated-muted > span {
+  background: #c9d2fc;
+}
+
+.MapMarker--informated-completed > span {
   background: #b6bdc8;
 }
 
@@ -184,12 +222,37 @@
 .MapMarker--point-completed.MapMarker--interactive:hover > span,
 .MapMarker--point-completed.is-selected > span,
 .MapMarker--point-emphasized.MapMarker--interactive:hover > span,
-.MapMarker--point-emphasized.is-selected > span {
+.MapMarker--point-emphasized.is-selected > span,
+.MapMarker--informated-default.MapMarker--interactive:hover > span,
+.MapMarker--informated-default.is-selected > span,
+.MapMarker--informated-completed.MapMarker--interactive:hover > span,
+.MapMarker--informated-completed.is-selected > span,
+.MapMarker--informated-emphasized.MapMarker--interactive:hover > span,
+.MapMarker--informated-emphasized.is-selected > span {
   background: #2450ff;
   border-width: 6px;
   box-shadow: 0 8px 18px rgba(15, 98, 254, 0.24), 0 2px 5px rgba(15, 23, 42, 0.18);
+}
+
+.MapMarker--point-default.MapMarker--interactive:hover > span,
+.MapMarker--point-default.is-selected > span,
+.MapMarker--point-completed.MapMarker--interactive:hover > span,
+.MapMarker--point-completed.is-selected > span,
+.MapMarker--point-emphasized.MapMarker--interactive:hover > span,
+.MapMarker--point-emphasized.is-selected > span {
   height: 40px;
   width: 40px;
+}
+
+.MapMarker--informated-default.MapMarker--interactive:hover > span,
+.MapMarker--informated-default.is-selected > span,
+.MapMarker--informated-completed.MapMarker--interactive:hover > span,
+.MapMarker--informated-completed.is-selected > span,
+.MapMarker--informated-emphasized.MapMarker--interactive:hover > span,
+.MapMarker--informated-emphasized.is-selected > span {
+  box-shadow: 0 12px 26px rgba(15, 23, 42, 0.22), 0 5px 14px rgba(15, 98, 254, 0.2);
+  height: 64px;
+  width: 64px;
 }
 
 .MapMarker--point-default i,
@@ -198,6 +261,105 @@
 .MapMarker--point-emphasized i,
 .MapMarker--point-selected i {
   display: none;
+}
+
+.MapMarker--informated-default i,
+.MapMarker--informated-muted i,
+.MapMarker--informated-completed i,
+.MapMarker--informated-emphasized i,
+.MapMarker--informated-selected i {
+  align-items: center;
+  background: transparent;
+  color: #ffffff;
+  display: flex;
+  height: 20px;
+  justify-content: center;
+  width: 20px;
+}
+
+.MapMarker--informated-emphasized i,
+.MapMarker--informated-selected i,
+.MapMarker--informated-default.MapMarker--interactive:hover i,
+.MapMarker--informated-default.is-selected i,
+.MapMarker--informated-completed.MapMarker--interactive:hover i,
+.MapMarker--informated-completed.is-selected i,
+.MapMarker--informated-emphasized.MapMarker--interactive:hover i,
+.MapMarker--informated-emphasized.is-selected i {
+  height: 30px;
+  width: 30px;
+}
+
+.MapMarker--informated-default svg,
+.MapMarker--informated-muted svg,
+.MapMarker--informated-completed svg,
+.MapMarker--informated-emphasized svg,
+.MapMarker--informated-selected svg {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+.MapMarker--informated-default > .MapMarker__asset,
+.MapMarker--informated-muted > .MapMarker__asset,
+.MapMarker--informated-completed > .MapMarker__asset {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  display: block;
+  height: 62px;
+  overflow: visible;
+  position: relative;
+  transition: none;
+  width: 59px;
+}
+
+.MapMarker--informated-emphasized > .MapMarker__asset,
+.MapMarker--informated-selected > .MapMarker__asset,
+.MapMarker--informated-default.MapMarker--interactive:hover > .MapMarker__asset,
+.MapMarker--informated-default.is-selected > .MapMarker__asset,
+.MapMarker--informated-completed.MapMarker--interactive:hover > .MapMarker__asset,
+.MapMarker--informated-completed.is-selected > .MapMarker__asset,
+.MapMarker--informated-emphasized.MapMarker--interactive:hover > .MapMarker__asset,
+.MapMarker--informated-emphasized.is-selected > .MapMarker__asset {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  height: 99px;
+  width: 95px;
+}
+
+.MapMarker__assetBase,
+.MapMarker__assetSelected {
+  display: block;
+  height: 100%;
+  inset: 0;
+  max-width: none;
+  position: absolute;
+  width: 100%;
+}
+
+.MapMarker__assetSelected {
+  display: none;
+}
+
+.MapMarker--informated-default.MapMarker--interactive:hover .MapMarker__assetBase,
+.MapMarker--informated-default.is-selected .MapMarker__assetBase,
+.MapMarker--informated-completed.MapMarker--interactive:hover .MapMarker__assetBase,
+.MapMarker--informated-completed.is-selected .MapMarker__assetBase,
+.MapMarker--informated-emphasized.MapMarker--interactive:hover .MapMarker__assetBase,
+.MapMarker--informated-emphasized.is-selected .MapMarker__assetBase {
+  display: none;
+}
+
+.MapMarker--informated-default.MapMarker--interactive:hover .MapMarker__assetSelected,
+.MapMarker--informated-default.is-selected .MapMarker__assetSelected,
+.MapMarker--informated-completed.MapMarker--interactive:hover .MapMarker__assetSelected,
+.MapMarker--informated-completed.is-selected .MapMarker__assetSelected,
+.MapMarker--informated-emphasized.MapMarker--interactive:hover .MapMarker__assetSelected,
+.MapMarker--informated-emphasized.is-selected .MapMarker__assetSelected {
+  display: block;
 }
 
 .MapMarker__tooltip {

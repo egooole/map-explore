@@ -14,6 +14,7 @@
               "nameKey": "manual.pointMarker.name",
               "descriptionKey": "manual.pointMarker.description",
               "previewType": "point",
+              "markerFamily": "normal",
               "markerVariants": [
                 { "id": "default", "labelKey": "manual.pointMarker.variants.default" },
                 { "id": "muted", "labelKey": "manual.pointMarker.variants.muted" },
@@ -56,33 +57,42 @@
               "nameKey": "manual.informatedLocation.name",
               "descriptionKey": "manual.informatedLocation.description",
               "previewType": "point",
+              "markerFamily": "informated",
+              "markerVariants": [
+                { "id": "default", "labelKey": "manual.informatedLocation.variants.default" },
+                { "id": "muted", "labelKey": "manual.informatedLocation.variants.disabled" },
+                { "id": "completed", "labelKey": "manual.informatedLocation.variants.completed" },
+                { "id": "emphasized", "labelKey": "manual.informatedLocation.variants.emphasized" },
+                { "id": "selected", "labelKey": "manual.informatedLocation.variants.selected" }
+              ],
               "styleRows": [
-                { "labelKey": "manual.rows.variant", "valueKey": "manual.placeholders.pending" },
-                { "labelKey": "manual.rows.size", "valueKey": "manual.placeholders.pending" },
-                { "labelKey": "manual.rows.color", "valueKey": "manual.placeholders.pending" },
-                { "labelKey": "manual.rows.shadow", "valueKey": "manual.placeholders.pending" }
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.informatedLocation.style.variantSet" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.informatedLocation.style.sizes" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.informatedLocation.style.color" },
+                { "labelKey": "manual.rows.icon", "valueKey": "manual.informatedLocation.style.icon" },
+                { "labelKey": "manual.rows.shadow", "valueKey": "manual.informatedLocation.style.shadow" }
               ],
               "fakeModRows": [
                 { "labelKey": "manual.rows.component", "valueKey": "manual.informatedLocation.fakeMod.component" },
-                { "labelKey": "manual.rows.property", "valueKey": "manual.placeholders.pending" },
-                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.placeholders.pending" }
+                { "labelKey": "manual.rows.property", "valueKey": "manual.informatedLocation.fakeMod.property" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.informatedLocation.fakeMod.figmaNodes" }
               ],
               "code": {
                 "language": "tsx",
-                "valueKey": "manual.placeholders.code"
+                "valueKey": "manual.informatedLocation.code"
               },
               "usage": {
                 "primary": {
                   "tagKey": "manual.usageTags.primary",
-                  "bulletKeys": ["manual.placeholders.pendingBullet"]
+                  "bulletKeys": ["manual.informatedLocation.usage.primary"]
                 },
                 "extended": {
                   "tagKey": "manual.usageTags.extended",
-                  "bulletKeys": ["manual.placeholders.pendingBullet"]
+                  "bulletKeys": ["manual.informatedLocation.usage.extended"]
                 },
                 "constraints": {
                   "tagKey": "manual.usageTags.constraints",
-                  "bulletKeys": ["manual.placeholders.pendingBullet"]
+                  "bulletKeys": ["manual.informatedLocation.usage.constraints"]
                 }
               }
             }
