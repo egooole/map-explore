@@ -269,12 +269,12 @@
         "selected": "Hover & Selected"
       },
       "style": {
-        "sizes": "200×12 基础态，线体 8px；200×20 hover/selected 态，线体 16px",
+        "sizes": "预览组合约 282×121；路线线体 8px，hover/selected 时增至 12px",
         "color": "默认 #2A3EF4；弱化 #C9D2FC；已完成 #9C9EAD；hover/selected #2232C3",
-        "shadow": "2px 白色描边 + 4px/8px 圆角，保证复杂底图上的可读性"
+        "shadow": "路线使用白色外描边与轻量投影；重叠段通过主路线与次路线错层表达"
       },
       "usage": {
-        "primary": "用于表达配送、导航、巡检或轨迹回放中的普通路径段。",
+        "primary": "用于表达从 A/B 起点汇入同一目的地的配送、导航、巡检或轨迹回放路径。",
         "constraints": "同一视野内避免多条高亮路线叠加；hover/selected 仅用于当前焦点路线。"
       }
     },

@@ -131,12 +131,7 @@ const routePositions: GoogleLatLng[] = [
   { lat: 31.236, lng: 121.502 },
 ];
 
-const routePreviewPositions: GoogleLatLng[] = [
-  { lat: 31.238, lng: 121.39 },
-  { lat: 31.226, lng: 121.43 },
-  { lat: 31.213, lng: 121.47 },
-  { lat: 31.201, lng: 121.51 },
-];
+const routePreviewPosition: GoogleLatLng = { lat: 31.223, lng: 121.46 };
 
 const pointPreviewPositions: GoogleLatLng[] = [
   { lat: 31.235, lng: 121.391 },
@@ -412,11 +407,36 @@ function createMarkerElement(
 
 function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVariant, label: string) {
   const route = document.createElement("div");
-  route.className = `MapRoutePreview MapMarker--interactive MapRoutePreview--${family} MapRoutePreview--${variant}`;
+  route.className = `MapRoutePreview MapRoutePreview--network MapMarker--interactive MapRoutePreview--${family} MapRoutePreview--${variant}`;
   route.tabIndex = 0;
   route.setAttribute("aria-label", label);
   route.setAttribute("role", "button");
-  route.innerHTML = family === "normalHasArrow" ? '<span class="MapRoutePreview__line"><i></i></span>' : '<span class="MapRoutePreview__line"></span>';
+  route.innerHTML = `
+    <svg aria-hidden="true" class="MapRoutePreview__networkSvg" viewBox="0 0 282 121">
+      <path class="MapRoutePreview__strokeBase" d="M52 20 L106 73 L151 63 L232 43" />
+      <path class="MapRoutePreview__strokeBase" d="M28 101 L97 79 L151 63 L232 43" />
+      <path class="MapRoutePreview__route MapRoutePreview__route--secondary" d="M28 101 L97 79 L151 63 L232 43" />
+      <path class="MapRoutePreview__route MapRoutePreview__route--primary" d="M52 20 L106 73 L151 63 L232 43" />
+      <g class="MapRoutePreview__arrows MapRoutePreview__arrows--secondary">
+        <path d="M62 88 L74 84 L64 78" />
+        <path d="M116 73 L129 69 L119 62" />
+        <path d="M178 58 L190 53 L180 47" />
+      </g>
+      <g class="MapRoutePreview__arrows MapRoutePreview__arrows--primary">
+        <path d="M76 43 L88 55 L72 56" />
+        <path d="M129 68 L143 65 L132 58" />
+        <path d="M178 58 L190 53 L180 47" />
+      </g>
+    </svg>
+    <span class="MapRoutePreview__pin MapRoutePreview__pin--one">1</span>
+    <span class="MapRoutePreview__pin MapRoutePreview__pin--two">2</span>
+    <span class="MapRoutePreview__destination" aria-hidden="true">
+      <svg viewBox="0 0 24 24">
+        <path d="M4.75 9.4 12 5l7.25 4.4v8.85H4.75V9.4Z" />
+        <path d="M8 18.25v-5.5h8v5.5M7.25 10.3h9.5" />
+      </svg>
+    </span>
+  `;
 
   route.addEventListener("click", () => {
     const canvas = route.closest(".MapCanvas");
@@ -743,14 +763,13 @@ export function MapCanvas({
         return;
       }
 
-      const routeHandles = await Promise.all(
-        previewRoutes.map((route, index) => {
-          const routeElement = createRouteElement(previewRouteFamily, route.id, route.label);
-          return activeMapId
-            ? createAdvancedMarker(googleMaps, map, routePreviewPositions[index % routePreviewPositions.length], routeElement, "center")
-            : Promise.resolve(createOverlayMarker(googleMaps, map, routePreviewPositions[index % routePreviewPositions.length], routeElement, "center"));
-        }),
-      );
+      const selectedRoute = previewRoutes.find((route) => route.id === "default") ?? previewRoutes[0];
+      const routeElement = createRouteElement(previewRouteFamily, selectedRoute.id, selectedRoute.label);
+      const routeHandles = [
+        await (activeMapId
+          ? createAdvancedMarker(googleMaps, map, routePreviewPosition, routeElement, "center")
+          : Promise.resolve(createOverlayMarker(googleMaps, map, routePreviewPosition, routeElement, "center"))),
+      ];
 
       if (cancelled) {
         routeHandles.forEach((route) => route.remove());

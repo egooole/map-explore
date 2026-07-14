@@ -269,12 +269,12 @@
         "selected": "Hover & Selected"
       },
       "style": {
-        "sizes": "200x12 base state with 8px route body; 200x20 hover/selected state with 16px route body",
+        "sizes": "Preview group is about 282x121; route body is 8px and increases to 12px on hover/selected",
         "color": "Default #2A3EF4; muted #C9D2FC; completed #9C9EAD; hover/selected #2232C3",
-        "shadow": "2px white stroke plus 4px/8px radius for legibility on dense maps"
+        "shadow": "Routes use a white outer stroke and subtle shadow; overlapping segments are expressed by layered primary and secondary routes"
       },
       "usage": {
-        "primary": "Use for regular route segments in delivery, navigation, inspection, or trace replay flows.",
+        "primary": "Use for delivery, navigation, inspection, or trace replay paths where A/B origins merge into one destination.",
         "constraints": "Avoid stacking many highlighted routes in one viewport; reserve hover/selected for the focused route."
       }
     },
