@@ -299,8 +299,8 @@
       "description": "Regular route with directional arrows, used to express route direction, flow, or next movement.",
       "style": {
         "variantSet": "Line / has arrow: default / muted / completed / hover&selected",
-        "sizes": "SVG preview group is 284x143 and rendered at the original Figma ratio through Advanced Marker",
-        "arrow": "Route body, arrows, endpoints, and destination icon come from one SVG asset to preserve the Figma visual"
+        "sizes": "Default SVG is 284x143; hover&selected SVG is 284x197, bottom-aligned inside a fixed-height container",
+        "arrow": "Route body, arrows, endpoints, destination icon, and hover info layer come from SVG assets to preserve the Figma visual"
       },
       "fakeMod": {
         "component": "NormalRouteHasArrow",
@@ -310,7 +310,7 @@
       "usage": {
         "extended": "Use for delivery direction, the next navigation segment, vehicle/package flow, or paths where start/end direction matters."
       },
-      "code": "import normalRouteHasArrowDefault from \"../assets/route/normal-route-has-arrow-default.svg\";\n\ntype NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nasync function renderNormalRouteHasArrow(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: NormalRouteVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `<img alt=\"\" class=\"MapRoutePreview__asset\" src=\"${normalRouteHasArrowDefault}\" />`;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
+      "code": "import normalRouteHasArrowDefault from \"../assets/route/normal-route-has-arrow-default.svg\";\nimport normalRouteHasArrowHover from \"../assets/route/normal-route-has-arrow-hover.svg\";\n\ntype NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nasync function renderNormalRouteHasArrow(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: NormalRouteVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `\n    <img alt=\"\" class=\"MapRoutePreview__asset MapRoutePreview__asset--default\" src=\"${normalRouteHasArrowDefault}\" />\n    <img alt=\"\" class=\"MapRoutePreview__asset MapRoutePreview__asset--hover\" src=\"${normalRouteHasArrowHover}\" />\n  `;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
     "sections": {
       "spec": "Style",

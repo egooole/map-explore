@@ -538,15 +538,41 @@
 }
 
 .MapRoutePreview--normalHasArrow {
-  height: 143px;
+  height: 197px;
   width: 284px;
 }
 
 .MapRoutePreview__asset {
   display: block;
-  height: 143px;
   max-width: none;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 120ms ease;
   width: 284px;
+}
+
+.MapRoutePreview__asset--default {
+  bottom: 0;
+  height: 143px;
+  left: 0;
+  opacity: 1;
+}
+
+.MapRoutePreview__asset--hover {
+  height: 197px;
+  left: 0;
+  opacity: 0;
+  top: 0;
+}
+
+.MapRoutePreview--normalHasArrow:hover .MapRoutePreview__asset--default,
+.MapRoutePreview--normalHasArrow.is-selected .MapRoutePreview__asset--default {
+  opacity: 0;
+}
+
+.MapRoutePreview--normalHasArrow:hover .MapRoutePreview__asset--hover,
+.MapRoutePreview--normalHasArrow.is-selected .MapRoutePreview__asset--hover {
+  opacity: 1;
 }
 
 .MapRoutePreview__networkSvg {

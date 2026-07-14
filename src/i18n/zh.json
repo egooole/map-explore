@@ -299,8 +299,8 @@
       "description": "带方向箭头的普通路线，用于表达路径方向、流向或下一步移动趋势。",
       "style": {
         "variantSet": "线/带方向：默认 / 弱化 / 已完成 / hover&selected",
-        "sizes": "SVG 预览组合 284×143；以 Advanced Marker 按设计稿原始比例渲染",
-        "arrow": "路线、箭头、起终点与目的地图标来自同一 SVG 资产，优先还原 Figma 视觉"
+        "sizes": "默认 SVG 284×143；hover&selected SVG 284×197，容器固定高度后贴底切换",
+        "arrow": "路线、箭头、起终点、目的地图标与 hover 信息浮层来自 SVG 资产，优先还原 Figma 视觉"
       },
       "fakeMod": {
         "component": "NormalRouteHasArrow",
@@ -310,7 +310,7 @@
       "usage": {
         "extended": "适用于配送行进方向、导航下一段、车辆/包裹流向，或需要区分起终点方向的路径。"
       },
-      "code": "import normalRouteHasArrowDefault from \"../assets/route/normal-route-has-arrow-default.svg\";\n\ntype NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nasync function renderNormalRouteHasArrow(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: NormalRouteVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `<img alt=\"\" class=\"MapRoutePreview__asset\" src=\"${normalRouteHasArrowDefault}\" />`;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
+      "code": "import normalRouteHasArrowDefault from \"../assets/route/normal-route-has-arrow-default.svg\";\nimport normalRouteHasArrowHover from \"../assets/route/normal-route-has-arrow-hover.svg\";\n\ntype NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nasync function renderNormalRouteHasArrow(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: NormalRouteVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `\n    <img alt=\"\" class=\"MapRoutePreview__asset MapRoutePreview__asset--default\" src=\"${normalRouteHasArrowDefault}\" />\n    <img alt=\"\" class=\"MapRoutePreview__asset MapRoutePreview__asset--hover\" src=\"${normalRouteHasArrowHover}\" />\n  `;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
     "sections": {
       "spec": "样式",

@@ -9,6 +9,7 @@ import informatedDisableMarker from "../assets/informated-location/disable.svg";
 import informatedEmphasizedMarker from "../assets/informated-location/emphasized.svg";
 import informatedSelectedMarker from "../assets/informated-location/selected.svg";
 import normalRouteHasArrowDefault from "../assets/route/normal-route-has-arrow-default.svg";
+import normalRouteHasArrowHover from "../assets/route/normal-route-has-arrow-hover.svg";
 import { mapExploreDarkStyles, mapExploreVisualizationDarkStyles } from "../config/googleMapStyles";
 import { mapKey, mapPresets } from "../config/mapPresets";
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
@@ -413,7 +414,10 @@ function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVar
   route.setAttribute("aria-label", label);
   route.setAttribute("role", "button");
   if (family === "normalHasArrow") {
-    route.innerHTML = `<img alt="" class="MapRoutePreview__asset" src="${normalRouteHasArrowDefault}" />`;
+    route.innerHTML = `
+      <img alt="" class="MapRoutePreview__asset MapRoutePreview__asset--default" src="${normalRouteHasArrowDefault}" />
+      <img alt="" class="MapRoutePreview__asset MapRoutePreview__asset--hover" src="${normalRouteHasArrowHover}" />
+    `;
   } else {
     route.innerHTML = `
     <svg aria-hidden="true" class="MapRoutePreview__networkSvg" viewBox="0 0 282 121">
