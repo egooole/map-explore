@@ -79,7 +79,6 @@ export function MapBrowseScene() {
       <aside className="BrowseInspector">
         <section className="BrowseComponentPicker" aria-label={t("browse.components.aria")}>
           <header>
-            <p>{t("browse.components.kicker")}</p>
             <h2>{t("browse.components.title")}</h2>
             <span>{t("browse.components.description")}</span>
           </header>

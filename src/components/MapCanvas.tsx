@@ -543,6 +543,8 @@ export function MapCanvas({
   const activeMapId = mapTheme === "dark" ? undefined : preset.mapId;
   const routeColor = mapCategory === "visualization" ? "#475569" : "#0f62fe";
   const markerLabels = useMemo(() => [t("map.warehouse"), t("map.hub"), t("map.destination")], [t]);
+  const isCumulativePreview = previewMarkerFamily === "cumulative" && previewDistribution === "chinaCluster";
+  const renderPreviewZoom = isCumulativePreview ? previewZoom : undefined;
 
   useEffect(() => {
     let cancelled = false;
@@ -584,7 +586,7 @@ export function MapCanvas({
     return () => {
       cancelled = true;
     };
-  }, [activeMapId, activeStyles, controls.showMapUi, controls.zoom, lang, mapCategory, preset.mapTypeId, previewDistribution]);
+  }, [activeMapId, activeStyles, controls.showMapUi, lang, mapCategory, preset.mapTypeId, previewDistribution]);
 
   useEffect(() => {
     if (!mapRef.current || status !== "ready") {
@@ -600,13 +602,21 @@ export function MapCanvas({
   }, [controls.zoom, status]);
 
   useEffect(() => {
+    if (!mapRef.current || status !== "ready") {
+      return;
+    }
+
+    mapRef.current.setCenter(resolvePreviewCenter(previewDistribution));
+    mapRef.current.setZoom(controls.zoom);
+  }, [controls.zoom, previewDistribution, previewFeature, previewMarkerFamily, status]);
+
+  useEffect(() => {
     if (!window.google?.maps || !mapRef.current || status !== "ready") {
       return;
     }
 
     const googleMaps = window.google;
     const map = mapRef.current;
-    const isCumulativePreview = previewMarkerFamily === "cumulative" && previewDistribution === "chinaCluster";
 
     map.setOptions({
       clickableIcons: mapCategory === "entity",
@@ -618,10 +628,6 @@ export function MapCanvas({
       styles: activeStyles,
       zoomControl: controls.showMapUi,
     });
-    if (!isCumulativePreview) {
-      map.setCenter(resolvePreviewCenter(previewDistribution));
-      map.setZoom(controls.zoom);
-    }
 
     const shouldShowMarkers = !previewFeature || previewFeature === "point" || previewFeature === "container";
     const shouldShowLine = !previewFeature || previewFeature === "line" || previewFeature === "container";
@@ -683,7 +689,7 @@ export function MapCanvas({
       if (previewMarkers?.length) {
         const markerItems: PreviewMarkerItem[] =
           isCumulativePreview
-            ? resolveCumulativePreviewItems(previewZoom, previewMarkers)
+            ? resolveCumulativePreviewItems(renderPreviewZoom ?? controls.zoom, previewMarkers)
             : previewMarkers.map((marker, index) => {
                 const previewPositions = resolvePreviewPositions(previewDistribution);
                 return {
@@ -705,7 +711,7 @@ export function MapCanvas({
             );
             if (family === "cumulative" && marker.count) {
               markerElement.addEventListener("click", () => {
-                map.setZoom(Math.min((map.getZoom() ?? previewZoom) + 1, 8));
+                map.setZoom(Math.min((map.getZoom() ?? renderPreviewZoom ?? controls.zoom) + 1, 8));
               });
             }
 
@@ -748,7 +754,6 @@ export function MapCanvas({
   }, [
     controls.markerStyle,
     controls.showMapUi,
-    controls.zoom,
     mapCategory,
     markerLabels,
     activeMapId,
@@ -758,7 +763,7 @@ export function MapCanvas({
     previewFeature,
     previewMarkerFamily,
     previewMarkers,
-    previewZoom,
+    renderPreviewZoom,
     routeColor,
     status,
   ]);
