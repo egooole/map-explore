@@ -68,6 +68,14 @@
       "custom": "custom"
     }
   },
+  "browse": {
+    "components": {
+      "aria": "地图组件展示选择器",
+      "kicker": "组件展示",
+      "title": "地图内容",
+      "description": "选择点、线、面或容器组件，直接在地图中查看效果。"
+    }
+  },
   "map": {
     "entity": "实体地图",
     "visualization": "可视化地图",

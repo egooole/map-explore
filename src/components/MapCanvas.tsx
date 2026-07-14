@@ -623,9 +623,9 @@ export function MapCanvas({
       map.setZoom(controls.zoom);
     }
 
-    const shouldShowMarkers = !previewFeature || previewFeature === "point";
-    const shouldShowLine = !previewFeature || previewFeature === "line";
-    const shouldShowArea = previewFeature === "area";
+    const shouldShowMarkers = !previewFeature || previewFeature === "point" || previewFeature === "container";
+    const shouldShowLine = !previewFeature || previewFeature === "line" || previewFeature === "container";
+    const shouldShowArea = previewFeature === "area" || previewFeature === "container";
 
     if (!polylineRef.current) {
       polylineRef.current = new googleMaps.maps.Polyline({

@@ -1,8 +1,9 @@
 import { ChevronDown, Code2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { createPreviewMarkers, getPreviewZoom } from "../config/manualPreview";
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
-import type { CustomMarkerContent, MapControlsState, MarkerPreviewFamily, MarkerPreviewState, MarkerPreviewVariant } from "../types";
+import type { CustomMarkerContent, MapControlsState, MarkerPreviewFamily, MarkerPreviewVariant } from "../types";
 import { MapCanvas } from "./MapCanvas";
 
 export type ManualCategoryId = "point" | "line" | "area" | "container";
@@ -54,56 +55,6 @@ interface ComponentCardProps {
   lang: WorkbenchLanguage;
   mapTheme: MapTheme;
 }
-
-const pointPreviewPattern: MarkerPreviewVariant[] = [
-  "default",
-  "completed",
-  "muted",
-  "default",
-  "emphasized",
-  "completed",
-  "default",
-  "muted",
-  "completed",
-  "default",
-  "emphasized",
-  "default",
-];
-
-const chinaPointPreviewPattern: MarkerPreviewVariant[] = [
-  "default",
-  "completed",
-  "muted",
-  "default",
-  "emphasized",
-  "completed",
-  "default",
-  "muted",
-  "completed",
-  "default",
-  "emphasized",
-  "default",
-  "default",
-  "completed",
-  "muted",
-  "emphasized",
-  "default",
-  "completed",
-  "muted",
-  "default",
-  "completed",
-  "default",
-  "emphasized",
-  "muted",
-  "completed",
-  "default",
-  "muted",
-  "completed",
-  "default",
-  "emphasized",
-];
-
-const chinaClusterPreviewCounts = [18, 42, 12, 126, 86, 64, 38, 52, 220, 148, 34, 76, 28, 15];
 
 function resolveValue(row: ManualInfoRow, t: (key: string) => string) {
   return row.valueKey ? t(row.valueKey) : row.value ?? "";
@@ -171,45 +122,11 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }:
         { id: "end", value: "Placeholder end" },
       ],
       showMapUi: spec.previewDistribution === "chinaCluster",
-      zoom: spec.previewDistribution === "china" || spec.previewDistribution === "chinaCluster" ? 4 : 13,
+      zoom: getPreviewZoom(spec),
     }),
-    [categoryId, spec.previewDistribution],
+    [categoryId, spec],
   );
-  const previewMarkers = useMemo<MarkerPreviewState[] | undefined>(
-    () => {
-      if (!spec.markerVariants?.length) {
-        return undefined;
-      }
-
-      if (spec.markerFamily === "custom") {
-        return pointPreviewPattern.map((_, index) => {
-          const marker = spec.markerVariants?.[index % spec.markerVariants.length];
-          return {
-            customContent: marker?.customContent,
-            id: marker?.id ?? "default",
-            label: marker ? t(marker.labelKey) : t("manual.customLocation.name"),
-          };
-        });
-      }
-
-      if (spec.previewDistribution === "chinaCluster") {
-        const baseMarker = spec.markerVariants.find((marker) => marker.id === "default") ?? spec.markerVariants[0];
-        return chinaClusterPreviewCounts.map((count) => ({
-          count,
-          id: baseMarker.id,
-          label: `${t(baseMarker.labelKey)} ${count}`,
-        }));
-      }
-
-      const markersById = new Map(spec.markerVariants.map((marker) => [marker.id, marker]));
-      const previewPattern = spec.previewDistribution === "china" ? chinaPointPreviewPattern : pointPreviewPattern;
-      return previewPattern
-        .map((variant) => markersById.get(variant))
-        .filter((marker): marker is ManualMarkerVariant => Boolean(marker))
-        .map((marker) => ({ id: marker.id, label: t(marker.labelKey) }));
-    },
-    [spec.markerVariants, spec.previewDistribution, t],
-  );
+  const previewMarkers = useMemo(() => createPreviewMarkers(spec, t), [spec, t]);
 
   return (
     <article className="ManualDetail" id={`manual-component-${spec.id}`}>

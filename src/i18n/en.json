@@ -68,6 +68,14 @@
       "custom": "custom"
     }
   },
+  "browse": {
+    "components": {
+      "aria": "Map component display picker",
+      "kicker": "Component Display",
+      "title": "Map Content",
+      "description": "Choose point, line, area, or container components and preview them directly on the map."
+    }
+  },
   "map": {
     "entity": "Entity Map",
     "visualization": "Visualization Map",
