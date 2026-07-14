@@ -1,13 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import customShopMarker from "../assets/custom-location/shop.svg";
+import customUserMarker from "../assets/custom-location/user.svg";
+import customWarehouseMarker from "../assets/custom-location/warehouse.svg";
 import informatedCompletedMarker from "../assets/informated-location/completed.svg";
 import informatedDefaultMarker from "../assets/informated-location/default.svg";
 import informatedDisableMarker from "../assets/informated-location/disable.svg";
 import informatedEmphasizedMarker from "../assets/informated-location/emphasized.svg";
 import informatedSelectedMarker from "../assets/informated-location/selected.svg";
+import { mapExploreDarkStyles, mapExploreVisualizationDarkStyles } from "../config/googleMapStyles";
 import { mapKey, mapPresets } from "../config/mapPresets";
-import type { MapCategory, WorkbenchLanguage } from "../store/workbenchStore";
-import type { MapControlsState, MarkerPreviewFamily, MarkerPreviewState, MarkerPreviewVariant, MarkerStyle } from "../types";
+import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
+import type { CustomMarkerContent, MapControlsState, MarkerPreviewFamily, MarkerPreviewState, MarkerPreviewVariant, MarkerStyle } from "../types";
 
 declare global {
   interface Window {
@@ -31,11 +35,17 @@ type GoogleMapsGlobal = {
 };
 
 interface GoogleMap {
+  addListener: (eventName: "zoom_changed", handler: () => void) => GoogleMapsListener;
   controls: Record<number, { clear: () => void }>;
   fitBounds: (bounds: unknown, padding?: number) => void;
+  getZoom: () => number | undefined;
   setCenter: (center: GoogleLatLng) => void;
   setOptions: (options: Record<string, unknown>) => void;
   setZoom: (zoom: number) => void;
+}
+
+interface GoogleMapsListener {
+  remove: () => void;
 }
 
 interface GooglePolyline {
@@ -54,6 +64,8 @@ interface GoogleAdvancedMarker {
 
 type GoogleMarkerLibrary = {
   AdvancedMarkerElement: new (options: {
+    anchorLeft?: string;
+    anchorTop?: string;
     content: HTMLElement;
     gmpClickable?: boolean;
     map: GoogleMap;
@@ -80,17 +92,26 @@ interface MapMarkerHandle {
   remove: () => void;
 }
 
+interface PreviewMarkerItem {
+  family: MarkerPreviewFamily;
+  marker: MarkerPreviewState;
+  position: GoogleLatLng;
+}
+
 interface MapCanvasProps {
   mapCategory: MapCategory;
   lang: WorkbenchLanguage;
   controls: MapControlsState;
   compact?: boolean;
+  mapTheme?: MapTheme;
+  previewDistribution?: "local" | "china" | "chinaCluster";
   previewFeature?: "point" | "line" | "area" | "container";
   previewMarkerFamily?: MarkerPreviewFamily;
   previewMarkers?: MarkerPreviewState[];
 }
 
 const center: GoogleLatLng = { lat: 31.225, lng: 121.45 };
+const chinaCenter: GoogleLatLng = { lat: 35.8, lng: 103.8 };
 
 const routePositions: GoogleLatLng[] = [
   { lat: 31.207, lng: 121.317 },
@@ -113,6 +134,137 @@ const pointPreviewPositions: GoogleLatLng[] = [
   { lat: 31.211, lng: 121.535 },
 ];
 
+const chinaPointPreviewPositions: GoogleLatLng[] = [
+  { lat: 39.9042, lng: 116.4074 },
+  { lat: 39.3434, lng: 117.3616 },
+  { lat: 38.0428, lng: 114.5149 },
+  { lat: 31.2304, lng: 121.4737 },
+  { lat: 31.2989, lng: 120.5853 },
+  { lat: 30.2741, lng: 120.1551 },
+  { lat: 32.0603, lng: 118.7969 },
+  { lat: 29.8683, lng: 121.544 },
+  { lat: 23.1291, lng: 113.2644 },
+  { lat: 22.5431, lng: 114.0579 },
+  { lat: 23.0207, lng: 113.7518 },
+  { lat: 22.2707, lng: 113.5767 },
+  { lat: 30.5728, lng: 104.0668 },
+  { lat: 29.563, lng: 106.5516 },
+  { lat: 34.3416, lng: 108.9398 },
+  { lat: 36.0611, lng: 103.8343 },
+  { lat: 43.8256, lng: 87.6168 },
+  { lat: 38.4872, lng: 106.2309 },
+  { lat: 36.6171, lng: 101.7782 },
+  { lat: 45.8038, lng: 126.5349 },
+  { lat: 43.8171, lng: 125.3235 },
+  { lat: 41.8057, lng: 123.4315 },
+  { lat: 30.5928, lng: 114.3055 },
+  { lat: 28.2282, lng: 112.9388 },
+  { lat: 26.0745, lng: 119.2965 },
+  { lat: 24.4798, lng: 118.0894 },
+  { lat: 25.0389, lng: 102.7183 },
+  { lat: 26.647, lng: 106.6302 },
+  { lat: 22.817, lng: 108.3669 },
+  { lat: 20.044, lng: 110.1999 },
+];
+
+const chinaClusterPreviewPositions: GoogleLatLng[] = [
+  { lat: 39.94, lng: 116.42 },
+  { lat: 37.2, lng: 118.48 },
+  { lat: 43.92, lng: 125.38 },
+  { lat: 31.18, lng: 121.34 },
+  { lat: 30.08, lng: 118.95 },
+  { lat: 30.58, lng: 104.08 },
+  { lat: 34.26, lng: 108.95 },
+  { lat: 30.55, lng: 114.32 },
+  { lat: 23.05, lng: 113.55 },
+  { lat: 24.75, lng: 118.1 },
+  { lat: 26.5, lng: 106.6 },
+  { lat: 22.75, lng: 108.35 },
+  { lat: 36.1, lng: 103.75 },
+  { lat: 43.78, lng: 87.62 },
+];
+
+const chinaRegionalClusterPreviewPositions: Array<GoogleLatLng & { count: number }> = [
+  { count: 10, lat: 39.9, lng: 116.4 },
+  { count: 32, lat: 36.67, lng: 117.05 },
+  { count: 7, lat: 41.82, lng: 123.43 },
+  { count: 5, lat: 45.76, lng: 126.64 },
+  { count: 44, lat: 31.23, lng: 121.47 },
+  { count: 37, lat: 30.27, lng: 120.16 },
+  { count: 45, lat: 32.06, lng: 118.8 },
+  { count: 30, lat: 29.87, lng: 121.54 },
+  { count: 56, lat: 23.13, lng: 113.26 },
+  { count: 48, lat: 22.54, lng: 114.06 },
+  { count: 64, lat: 23.02, lng: 113.75 },
+  { count: 52, lat: 22.27, lng: 113.58 },
+  { count: 35, lat: 30.57, lng: 104.07 },
+  { count: 29, lat: 29.56, lng: 106.55 },
+  { count: 21, lat: 30.59, lng: 114.31 },
+  { count: 31, lat: 28.23, lng: 112.94 },
+  { count: 18, lat: 34.34, lng: 108.94 },
+  { count: 20, lat: 36.06, lng: 103.83 },
+  { count: 16, lat: 26.08, lng: 119.3 },
+  { count: 18, lat: 24.48, lng: 118.09 },
+  { count: 14, lat: 25.04, lng: 102.72 },
+  { count: 20, lat: 26.65, lng: 106.63 },
+  { count: 12, lat: 22.82, lng: 108.37 },
+  { count: 16, lat: 20.04, lng: 110.2 },
+];
+
+const chinaMicroClusterPreviewPositions: Array<GoogleLatLng & { count: number }> = [
+  { count: 3, lat: 39.9, lng: 116.4 },
+  { count: 7, lat: 39.13, lng: 117.2 },
+  { count: 12, lat: 36.67, lng: 117.05 },
+  { count: 20, lat: 37.87, lng: 112.55 },
+  { count: 14, lat: 31.23, lng: 121.47 },
+  { count: 11, lat: 31.14, lng: 121.58 },
+  { count: 19, lat: 30.27, lng: 120.16 },
+  { count: 18, lat: 32.06, lng: 118.8 },
+  { count: 13, lat: 29.87, lng: 121.54 },
+  { count: 22, lat: 23.13, lng: 113.26 },
+  { count: 18, lat: 22.54, lng: 114.06 },
+  { count: 16, lat: 23.02, lng: 113.75 },
+  { count: 20, lat: 22.27, lng: 113.58 },
+  { count: 12, lat: 30.57, lng: 104.07 },
+  { count: 17, lat: 29.56, lng: 106.55 },
+  { count: 9, lat: 30.59, lng: 114.31 },
+  { count: 12, lat: 28.23, lng: 112.94 },
+  { count: 8, lat: 34.34, lng: 108.94 },
+  { count: 10, lat: 36.06, lng: 103.83 },
+  { count: 6, lat: 26.08, lng: 119.3 },
+  { count: 10, lat: 24.48, lng: 118.09 },
+  { count: 7, lat: 25.04, lng: 102.72 },
+  { count: 7, lat: 26.65, lng: 106.63 },
+  { count: 8, lat: 22.82, lng: 108.37 },
+];
+
+const chinaLeafPointPreviewPositions: GoogleLatLng[] = [
+  { lat: 31.23, lng: 121.47 },
+  { lat: 31.14, lng: 121.58 },
+  { lat: 31.31, lng: 121.39 },
+  { lat: 30.27, lng: 120.16 },
+  { lat: 30.18, lng: 120.21 },
+  { lat: 32.06, lng: 118.8 },
+  { lat: 23.13, lng: 113.26 },
+  { lat: 23.02, lng: 113.75 },
+  { lat: 22.54, lng: 114.06 },
+  { lat: 22.27, lng: 113.58 },
+  { lat: 30.57, lng: 104.07 },
+  { lat: 29.56, lng: 106.55 },
+  { lat: 30.59, lng: 114.31 },
+  { lat: 28.23, lng: 112.94 },
+  { lat: 39.9, lng: 116.4 },
+  { lat: 39.13, lng: 117.2 },
+  { lat: 36.67, lng: 117.05 },
+  { lat: 34.34, lng: 108.94 },
+  { lat: 26.08, lng: 119.3 },
+  { lat: 24.48, lng: 118.09 },
+  { lat: 25.04, lng: 102.72 },
+  { lat: 26.65, lng: 106.63 },
+  { lat: 22.82, lng: 108.37 },
+  { lat: 20.04, lng: 110.2 },
+];
+
 const areaPositions: GoogleLatLng[] = [
   { lat: 31.214, lng: 121.405 },
   { lat: 31.237, lng: 121.427 },
@@ -130,6 +282,12 @@ const informatedMarkerAssets: Record<MarkerPreviewVariant, string> = {
   emphasized: informatedEmphasizedMarker,
   muted: informatedDisableMarker,
   selected: informatedSelectedMarker,
+};
+
+const customMarkerAssets: Partial<Record<CustomMarkerContent, string>> = {
+  shop: customShopMarker,
+  user: customUserMarker,
+  warehouse: customWarehouseMarker,
 };
 
 function resetGoogleMapsScript() {
@@ -184,6 +342,8 @@ function createMarkerElement(
   label: string,
   previewVariant?: MarkerPreviewVariant,
   previewFamily: MarkerPreviewFamily = "normal",
+  count?: number,
+  customContent?: CustomMarkerContent,
 ) {
   const marker = document.createElement("div");
   const previewClass = previewFamily === "normal" ? "point" : previewFamily;
@@ -191,6 +351,12 @@ function createMarkerElement(
   marker.innerHTML =
     previewVariant && previewFamily === "informated"
       ? `<span class="MapMarker__asset"><img alt="" class="MapMarker__assetBase" src="${informatedMarkerAssets[previewVariant]}" /><img alt="" class="MapMarker__assetSelected" src="${informatedSelectedMarker}" /></span>`
+      : previewVariant && previewFamily === "cumulative"
+        ? `<span class="MapMarker__cluster"><b>${count ?? ""}</b></span>`
+      : previewVariant && previewFamily === "custom" && customContent
+        ? customMarkerAssets[customContent]
+          ? `<span class="MapMarker__customAsset"><img alt="" src="${customMarkerAssets[customContent]}" /></span>`
+          : `<span class="MapMarker__customTextPin"><b>${customContent === "number" ? "2" : "O"}</b></span>`
       : style === "dot" && !previewVariant
         ? "<span></span>"
         : "<span><i></i></span>";
@@ -223,6 +389,62 @@ function createMarkerElement(
   marker.appendChild(tooltip);
 
   return marker;
+}
+
+function resolvePreviewCenter(previewDistribution: MapCanvasProps["previewDistribution"]) {
+  return previewDistribution === "china" || previewDistribution === "chinaCluster" ? chinaCenter : center;
+}
+
+function resolvePreviewPositions(previewDistribution: MapCanvasProps["previewDistribution"]) {
+  if (previewDistribution === "chinaCluster") {
+    return chinaClusterPreviewPositions;
+  }
+
+  return previewDistribution === "china" ? chinaPointPreviewPositions : pointPreviewPositions;
+}
+
+function resolveCumulativePreviewItems(zoom: number, previewMarkers: MarkerPreviewState[] | undefined): PreviewMarkerItem[] {
+  if (zoom >= 7) {
+    const variants: MarkerPreviewVariant[] = ["default", "completed", "muted", "default", "emphasized", "completed"];
+    return chinaLeafPointPreviewPositions.map((position, index) => ({
+      family: "normal" as MarkerPreviewFamily,
+      marker: {
+        id: variants[index % variants.length],
+        label: previewMarkers?.[0]?.label ?? "Normal point",
+      },
+      position,
+    }));
+  }
+
+  if (zoom >= 6) {
+    return chinaMicroClusterPreviewPositions.map((cluster) => ({
+      family: "cumulative" as MarkerPreviewFamily,
+      marker: {
+        count: cluster.count,
+        id: "default" as MarkerPreviewVariant,
+        label: `Cluster ${cluster.count}`,
+      },
+      position: { lat: cluster.lat, lng: cluster.lng },
+    }));
+  }
+
+  if (zoom >= 5) {
+    return chinaRegionalClusterPreviewPositions.map((cluster) => ({
+      family: "cumulative" as MarkerPreviewFamily,
+      marker: {
+        count: cluster.count,
+        id: "default" as MarkerPreviewVariant,
+        label: `Cluster ${cluster.count}`,
+      },
+      position: { lat: cluster.lat, lng: cluster.lng },
+    }));
+  }
+
+  return (previewMarkers ?? []).map((marker, index) => ({
+    family: "cumulative" as MarkerPreviewFamily,
+    marker,
+    position: chinaClusterPreviewPositions[index % chinaClusterPreviewPositions.length],
+  }));
 }
 
 function createOverlayMarker(
@@ -265,10 +487,22 @@ async function createAdvancedMarker(
   map: GoogleMap,
   position: GoogleLatLng,
   element: HTMLElement,
+  anchor: "bottom" | "center" = "bottom",
 ): Promise<MapMarkerHandle> {
   const { AdvancedMarkerElement } = await googleMaps.maps.importLibrary("marker");
   element.classList.add("MapMarker--advanced");
+  const anchorOptions =
+    anchor === "center"
+      ? {
+          anchorLeft: "-50%",
+          anchorTop: "-50%",
+        }
+      : {
+          anchorLeft: "-50%",
+          anchorTop: "-100%",
+        };
   const marker = new AdvancedMarkerElement({
+    ...anchorOptions,
     content: element,
     gmpClickable: element.classList.contains("MapMarker--interactive"),
     map,
@@ -289,6 +523,8 @@ export function MapCanvas({
   lang,
   controls,
   compact = false,
+  mapTheme = "light",
+  previewDistribution = "local",
   previewFeature,
   previewMarkerFamily = "normal",
   previewMarkers,
@@ -300,7 +536,11 @@ export function MapCanvas({
   const polygonRef = useRef<GooglePolygon | null>(null);
   const markersRef = useRef<MapMarkerHandle[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "missing-key" | "error">("idle");
+  const [previewZoom, setPreviewZoom] = useState(controls.zoom);
   const preset = mapPresets[mapCategory][lang];
+  const darkStyles = mapCategory === "visualization" ? mapExploreVisualizationDarkStyles : mapExploreDarkStyles;
+  const activeStyles = mapTheme === "dark" ? darkStyles : preset.mapId ? undefined : preset.styles;
+  const activeMapId = mapTheme === "dark" ? undefined : preset.mapId;
   const routeColor = mapCategory === "visualization" ? "#475569" : "#0f62fe";
   const markerLabels = useMemo(() => [t("map.warehouse"), t("map.hub"), t("map.destination")], [t]);
 
@@ -317,20 +557,21 @@ export function MapCanvas({
         const map =
           mapRef.current ??
           new googleMaps.maps.Map(rootRef.current, {
-            center,
+            center: resolvePreviewCenter(previewDistribution),
             clickableIcons: mapCategory === "entity",
             disableDefaultUI: !controls.showMapUi,
             gestureHandling: "greedy",
-            mapId: preset.mapId,
+            mapId: activeMapId,
             mapTypeControl: false,
             mapTypeId: preset.mapTypeId,
             streetViewControl: controls.showMapUi,
-            styles: preset.styles,
+            styles: activeStyles,
             zoom: controls.zoom,
             zoomControl: controls.showMapUi,
           });
 
         mapRef.current = map;
+        setPreviewZoom(map.getZoom() ?? controls.zoom);
         setStatus("ready");
       })
       .catch((error: Error) => {
@@ -343,7 +584,20 @@ export function MapCanvas({
     return () => {
       cancelled = true;
     };
-  }, [controls.showMapUi, controls.zoom, lang, mapCategory, preset.mapId, preset.mapTypeId, preset.styles]);
+  }, [activeMapId, activeStyles, controls.showMapUi, controls.zoom, lang, mapCategory, preset.mapTypeId, previewDistribution]);
+
+  useEffect(() => {
+    if (!mapRef.current || status !== "ready") {
+      return;
+    }
+
+    setPreviewZoom(mapRef.current.getZoom() ?? controls.zoom);
+    const listener = mapRef.current.addListener("zoom_changed", () => {
+      setPreviewZoom(mapRef.current?.getZoom() ?? controls.zoom);
+    });
+
+    return () => listener.remove();
+  }, [controls.zoom, status]);
 
   useEffect(() => {
     if (!window.google?.maps || !mapRef.current || status !== "ready") {
@@ -352,19 +606,22 @@ export function MapCanvas({
 
     const googleMaps = window.google;
     const map = mapRef.current;
+    const isCumulativePreview = previewMarkerFamily === "cumulative" && previewDistribution === "chinaCluster";
 
     map.setOptions({
       clickableIcons: mapCategory === "entity",
       disableDefaultUI: !controls.showMapUi,
-      mapId: preset.mapId,
+      mapId: activeMapId,
       mapTypeControl: false,
       mapTypeId: preset.mapTypeId,
       streetViewControl: controls.showMapUi,
-      styles: preset.styles,
+      styles: activeStyles,
       zoomControl: controls.showMapUi,
     });
-    map.setCenter(center);
-    map.setZoom(controls.zoom);
+    if (!isCumulativePreview) {
+      map.setCenter(resolvePreviewCenter(previewDistribution));
+      map.setZoom(controls.zoom);
+    }
 
     const shouldShowMarkers = !previewFeature || previewFeature === "point";
     const shouldShowLine = !previewFeature || previewFeature === "line";
@@ -424,14 +681,37 @@ export function MapCanvas({
       }
 
       if (previewMarkers?.length) {
-        const markerHandles = await Promise.all(
-          previewMarkers.map((marker, index) => {
-            const markerElement = createMarkerElement(controls.markerStyle, marker.label, marker.id, previewMarkerFamily);
-            const markerPosition = pointPreviewPositions[index % pointPreviewPositions.length];
+        const markerItems: PreviewMarkerItem[] =
+          isCumulativePreview
+            ? resolveCumulativePreviewItems(previewZoom, previewMarkers)
+            : previewMarkers.map((marker, index) => {
+                const previewPositions = resolvePreviewPositions(previewDistribution);
+                return {
+                  family: previewMarkerFamily,
+                  marker,
+                  position: previewPositions[index % previewPositions.length],
+                };
+              });
 
-            return previewMarkerFamily === "informated" && preset.mapId
-              ? createAdvancedMarker(googleMaps, map, markerPosition, markerElement)
-              : Promise.resolve(createOverlayMarker(googleMaps, map, markerPosition, markerElement, "center"));
+        const markerHandles = await Promise.all(
+          markerItems.map(({ family, marker, position }) => {
+            const markerElement = createMarkerElement(
+              controls.markerStyle,
+              marker.label,
+              marker.id,
+              family,
+              marker.count,
+              marker.customContent,
+            );
+            if (family === "cumulative" && marker.count) {
+              markerElement.addEventListener("click", () => {
+                map.setZoom(Math.min((map.getZoom() ?? previewZoom) + 1, 8));
+              });
+            }
+
+            return activeMapId
+              ? createAdvancedMarker(googleMaps, map, position, markerElement, "center")
+              : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement, "center"));
           }),
         );
 
@@ -444,8 +724,13 @@ export function MapCanvas({
         return;
       }
 
-      markersRef.current = routePositions.map((position, index) =>
-        createOverlayMarker(googleMaps, map, position, createMarkerElement(controls.markerStyle, markerLabels[index])),
+      markersRef.current = await Promise.all(
+        routePositions.map((position, index) => {
+          const markerElement = createMarkerElement(controls.markerStyle, markerLabels[index]);
+          return activeMapId
+            ? createAdvancedMarker(googleMaps, map, position, markerElement)
+            : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement));
+        }),
       );
     };
 
@@ -466,12 +751,14 @@ export function MapCanvas({
     controls.zoom,
     mapCategory,
     markerLabels,
-    preset.mapId,
+    activeMapId,
     preset.mapTypeId,
-    preset.styles,
+    activeStyles,
+    previewDistribution,
     previewFeature,
     previewMarkerFamily,
     previewMarkers,
+    previewZoom,
     routeColor,
     status,
   ]);

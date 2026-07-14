@@ -9,6 +9,7 @@
     "viewGroup": "视图 View",
     "mapCategoryGroup": "地图分类 Map Category",
     "languageGroup": "语言 Language",
+    "appearanceGroup": "地图样式 Map Style",
     "items": {
       "browse": {
         "label": "地图浏览",
@@ -37,6 +38,14 @@
       "en": {
         "label": "English en",
         "description": "英文界面与标签"
+      },
+      "light": {
+        "label": "浅色底图",
+        "description": "Light map"
+      },
+      "dark": {
+        "label": "暗色底图",
+        "description": "Dark map"
       }
     }
   },
@@ -164,7 +173,7 @@
         "extended": "可在高优先级节点使用强化或选中态，配合地图缩放突出当前焦点。",
         "constraints": "同屏大量点位时避免全部使用强化态，防止遮挡底图、路线和关键 POI。"
       },
-      "code": "type PointMarkerVariant = \"default\" | \"muted\" | \"completed\" | \"emphasized\";\n\ninterface PointMarkerProps {\n  variant: PointMarkerVariant;\n  label: string;\n  selected?: boolean;\n}\n\nexport function PointMarker({ variant, label, selected }: PointMarkerProps) {\n  const interactive = variant === \"default\" || variant === \"completed\" || variant === \"emphasized\";\n  return (\n    <MapOverlayMarker\n      className={`MapMarker--point-${variant} ${selected ? \"is-selected\" : \"\"}`}\n      interactive={interactive}\n      label={label}\n    />\n  );\n}"
+      "code": "type PointMarkerVariant = \"default\" | \"muted\" | \"completed\" | \"emphasized\";\n\nasync function renderPointMarker(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: PointMarkerVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapMarker MapMarker--advanced MapMarker--point-${variant}`;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
     "informatedLocation": {
       "name": "Informated location",
@@ -194,6 +203,55 @@
         "constraints": "信息型点比普通点视觉权重更高，同屏大量使用时需要控制密度，避免压过底图和路线。"
       },
       "code": "type InformatedLocationVariant = \"default\" | \"disabled\" | \"completed\" | \"emphasized\";\n\nasync function renderInformatedLocation(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: InformatedLocationVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const visualVariant = variant === \"disabled\" ? \"muted\" : variant;\n  const content = document.createElement(\"div\");\n  content.className = `MapMarker MapMarker--advanced MapMarker--informated-${visualVariant}`;\n\n  return new AdvancedMarkerElement({\n    content,\n    map,\n    position,\n  });\n}"
+    },
+    "cumulativeLocation": {
+      "name": "Cumulative location",
+      "description": "缩小地图时将相近点位合并为聚合气泡；继续放大后递进拆分，直到还原为 Normal 点。",
+      "style": {
+        "variantSet": "聚合/Default；hover&selected 切换为聚合/Hover；高 zoom 拆分为 Normal 点",
+        "sizes": "40px 默认态；64px hover/selected 态；数字随聚合数量变化，叶子层使用 Normal 尺寸",
+        "color": "#2450FF 蓝色圆心 + 白色描边 + 白色数字",
+        "shadow": "白色外圈与轻量投影，保证在底图上可读"
+      },
+      "fakeMod": {
+        "component": "CumulativeLocation",
+        "property": "Property 1 = 聚合/{Default | Hover}"
+      },
+      "usage": {
+        "primary": "用于缩小地图时聚合多个相近的 Normal / Informated location 点位。",
+        "extended": "可按当前屏幕缩放层级做递进拆分，例如 42 放大后拆为 10 + 32，再继续拆为 3 + 7 + 12 + 20。",
+        "constraints": "聚合半径应随 zoom 调整；拆到叶子层后不再显示数字气泡，改用 Normal 点表达。"
+      },
+      "code": "interface ClusterNode {\n  count: number;\n  position: google.maps.LatLngLiteral;\n  children?: ClusterNode[];\n}\n\nfunction renderByZoom(node: ClusterNode, zoom: number) {\n  if (zoom >= 7 && !node.children?.length) {\n    return <NormalPoint position={node.position} />;\n  }\n\n  if (zoom >= 5 && node.children?.length) {\n    return node.children.map((child) => renderByZoom(child, zoom));\n  }\n\n  return <CumulativeLocation count={node.count} position={node.position} />;\n}\n\nconst example = {\n  count: 42,\n  children: [\n    { count: 10, children: [{ count: 3 }, { count: 7 }] },\n    { count: 32, children: [{ count: 12 }, { count: 20 }] },\n  ],\n};"
+    },
+    "customLocation": {
+      "name": "Custom",
+      "description": "自定义定位组件，用字母、数字或业务图标表达不同类型的自定义点位。",
+      "variants": {
+        "letter": "字母",
+        "number": "数字",
+        "warehouse": "仓库",
+        "shop": "商家",
+        "user": "用户"
+      },
+      "style": {
+        "variantSet": "5 种内容变体：字母 / 数字 / 仓库 / 商家 / 用户",
+        "sizes": "40px 组件外框；图标 SVG 以约 59×62 外溢投影呈现",
+        "color": "#2A3EF4 蓝色圆心 + 白色外形 / 图标 / 文本",
+        "icon": "支持字母、数字和业务图标槽",
+        "shadow": "白色 pin 底形 + 轻量投影，保持复杂底图上的识别度"
+      },
+      "fakeMod": {
+        "component": "CustomLocation",
+        "property": "Property 1 = 定位/有信息/{字母 | 数字 | 仓 | 商家 | 用户}",
+        "figmaNodes": "2977:200642 / 200649 / 200656 / 200663 / 200670"
+      },
+      "usage": {
+        "primary": "用于承载需要业务自定义图标、形态或内容的点位组件。",
+        "extended": "可作为未来多业务模板入口，例如门店、活动点、异常点或运营自定义 POI。",
+        "constraints": "同一地图内建议控制自定义内容种类，避免字母、数字和多类图标混用导致识别成本过高。"
+      },
+      "code": "type CustomLocationContent = \"letter\" | \"number\" | \"warehouse\" | \"shop\" | \"user\";\n\nasync function renderCustomLocation(map: google.maps.Map, position: google.maps.LatLngLiteral, contentType: CustomLocationContent) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = \"MapMarker MapMarker--advanced MapMarker--custom-default\";\n  content.dataset.content = contentType;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
     "sections": {
       "spec": "样式",

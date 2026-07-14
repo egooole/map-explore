@@ -95,6 +95,94 @@
                   "bulletKeys": ["manual.informatedLocation.usage.constraints"]
                 }
               }
+            },
+            {
+              "id": "entity-point-cumulative-location",
+              "nameKey": "manual.cumulativeLocation.name",
+              "descriptionKey": "manual.cumulativeLocation.description",
+              "previewType": "point",
+              "previewDistribution": "chinaCluster",
+              "markerFamily": "cumulative",
+              "markerVariants": [
+                { "id": "default", "labelKey": "manual.pointMarker.variants.default" },
+                { "id": "muted", "labelKey": "manual.pointMarker.variants.muted" },
+                { "id": "completed", "labelKey": "manual.pointMarker.variants.completed" },
+                { "id": "emphasized", "labelKey": "manual.pointMarker.variants.emphasized" },
+                { "id": "selected", "labelKey": "manual.pointMarker.variants.selected" }
+              ],
+              "styleRows": [
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.cumulativeLocation.style.variantSet" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.cumulativeLocation.style.sizes" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.cumulativeLocation.style.color" },
+                { "labelKey": "manual.rows.shadow", "valueKey": "manual.cumulativeLocation.style.shadow" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.rows.component", "valueKey": "manual.cumulativeLocation.fakeMod.component" },
+                { "labelKey": "manual.rows.property", "valueKey": "manual.cumulativeLocation.fakeMod.property" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.placeholders.pending" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.cumulativeLocation.code"
+              },
+              "usage": {
+                "primary": {
+                  "tagKey": "manual.usageTags.primary",
+                  "bulletKeys": ["manual.cumulativeLocation.usage.primary"]
+                },
+                "extended": {
+                  "tagKey": "manual.usageTags.extended",
+                  "bulletKeys": ["manual.cumulativeLocation.usage.extended"]
+                },
+                "constraints": {
+                  "tagKey": "manual.usageTags.constraints",
+                  "bulletKeys": ["manual.cumulativeLocation.usage.constraints"]
+                }
+              }
+            },
+            {
+              "id": "entity-point-custom",
+              "nameKey": "manual.customLocation.name",
+              "descriptionKey": "manual.customLocation.description",
+              "previewType": "point",
+              "markerFamily": "custom",
+              "markerVariants": [
+                { "id": "default", "customContent": "letter", "labelKey": "manual.customLocation.variants.letter" },
+                { "id": "default", "customContent": "number", "labelKey": "manual.customLocation.variants.number" },
+                { "id": "default", "customContent": "warehouse", "labelKey": "manual.customLocation.variants.warehouse" },
+                { "id": "default", "customContent": "shop", "labelKey": "manual.customLocation.variants.shop" },
+                { "id": "default", "customContent": "user", "labelKey": "manual.customLocation.variants.user" }
+              ],
+              "styleRows": [
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.customLocation.style.variantSet" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.customLocation.style.sizes" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.customLocation.style.color" },
+                { "labelKey": "manual.rows.icon", "valueKey": "manual.customLocation.style.icon" },
+                { "labelKey": "manual.rows.shadow", "valueKey": "manual.customLocation.style.shadow" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.rows.component", "valueKey": "manual.customLocation.fakeMod.component" },
+                { "labelKey": "manual.rows.property", "valueKey": "manual.customLocation.fakeMod.property" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.customLocation.fakeMod.figmaNodes" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.customLocation.code"
+              },
+              "usage": {
+                "primary": {
+                  "tagKey": "manual.usageTags.primary",
+                  "bulletKeys": ["manual.customLocation.usage.primary"]
+                },
+                "extended": {
+                  "tagKey": "manual.usageTags.extended",
+                  "bulletKeys": ["manual.customLocation.usage.extended"]
+                },
+                "constraints": {
+                  "tagKey": "manual.usageTags.constraints",
+                  "bulletKeys": ["manual.customLocation.usage.constraints"]
+                }
+              }
             }
           ]
         },

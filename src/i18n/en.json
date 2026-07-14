@@ -9,6 +9,7 @@
     "viewGroup": "View",
     "mapCategoryGroup": "Map Category",
     "languageGroup": "Language",
+    "appearanceGroup": "Map Style",
     "items": {
       "browse": {
         "label": "Map Browse",
@@ -37,6 +38,14 @@
       "en": {
         "label": "English en",
         "description": "English UI and labels"
+      },
+      "light": {
+        "label": "Light map",
+        "description": "Light basemap"
+      },
+      "dark": {
+        "label": "Dark map",
+        "description": "Dark basemap"
       }
     }
   },
@@ -164,7 +173,7 @@
         "extended": "Use emphasized or selected states for high-priority nodes when the map needs a clear current focus.",
         "constraints": "Avoid using emphasized states for many points in the same viewport so the base map, routes, and key POI remain readable."
       },
-      "code": "type PointMarkerVariant = \"default\" | \"muted\" | \"completed\" | \"emphasized\";\n\ninterface PointMarkerProps {\n  variant: PointMarkerVariant;\n  label: string;\n  selected?: boolean;\n}\n\nexport function PointMarker({ variant, label, selected }: PointMarkerProps) {\n  const interactive = variant === \"default\" || variant === \"completed\" || variant === \"emphasized\";\n  return (\n    <MapOverlayMarker\n      className={`MapMarker--point-${variant} ${selected ? \"is-selected\" : \"\"}`}\n      interactive={interactive}\n      label={label}\n    />\n  );\n}"
+      "code": "type PointMarkerVariant = \"default\" | \"muted\" | \"completed\" | \"emphasized\";\n\nasync function renderPointMarker(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: PointMarkerVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapMarker MapMarker--advanced MapMarker--point-${variant}`;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
     "informatedLocation": {
       "name": "Informated location",
@@ -194,6 +203,55 @@
         "constraints": "Information-rich points carry more visual weight than normal points; control density when many are visible in the same viewport."
       },
       "code": "type InformatedLocationVariant = \"default\" | \"disabled\" | \"completed\" | \"emphasized\";\n\nasync function renderInformatedLocation(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: InformatedLocationVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const visualVariant = variant === \"disabled\" ? \"muted\" : variant;\n  const content = document.createElement(\"div\");\n  content.className = `MapMarker MapMarker--advanced MapMarker--informated-${visualVariant}`;\n\n  return new AdvancedMarkerElement({\n    content,\n    map,\n    position,\n  });\n}"
+    },
+    "cumulativeLocation": {
+      "name": "Cumulative location",
+      "description": "Cluster location component for lower zoom levels. It progressively splits as users zoom in until the leaf layer becomes Normal points.",
+      "style": {
+        "variantSet": "Cluster / Default; hover&selected switches to Cluster / Hover; high zoom splits into Normal points",
+        "sizes": "40px default state; 64px hover/selected state; the number changes with cluster count, and leaf nodes use Normal sizing",
+        "color": "#2450FF blue center + white stroke + white number",
+        "shadow": "White outer ring and subtle shadow for map legibility"
+      },
+      "fakeMod": {
+        "component": "CumulativeLocation",
+        "property": "Property 1 = Cluster / {Default | Hover}"
+      },
+      "usage": {
+        "primary": "Group nearby Normal or Informated location points when the map is zoomed out.",
+        "extended": "Progressively split by the current zoom level, for example 42 becomes 10 + 32, then 3 + 7 + 12 + 20.",
+        "constraints": "Cluster radius should adapt to zoom; once the leaf layer is reached, render Normal points instead of numbered bubbles."
+      },
+      "code": "interface ClusterNode {\n  count: number;\n  position: google.maps.LatLngLiteral;\n  children?: ClusterNode[];\n}\n\nfunction renderByZoom(node: ClusterNode, zoom: number) {\n  if (zoom >= 7 && !node.children?.length) {\n    return <NormalPoint position={node.position} />;\n  }\n\n  if (zoom >= 5 && node.children?.length) {\n    return node.children.map((child) => renderByZoom(child, zoom));\n  }\n\n  return <CumulativeLocation count={node.count} position={node.position} />;\n}\n\nconst example = {\n  count: 42,\n  children: [\n    { count: 10, children: [{ count: 3 }, { count: 7 }] },\n    { count: 32, children: [{ count: 12 }, { count: 20 }] },\n  ],\n};"
+    },
+    "customLocation": {
+      "name": "Custom",
+      "description": "Custom location component for expressing custom point types with letters, numbers, or business icons.",
+      "variants": {
+        "letter": "Letter",
+        "number": "Number",
+        "warehouse": "Warehouse",
+        "shop": "Shop",
+        "user": "User"
+      },
+      "style": {
+        "variantSet": "5 content variants: letter / number / warehouse / shop / user",
+        "sizes": "40px component bounds; icon SVGs render with an overflowing 59x62 shadow frame",
+        "color": "#2A3EF4 blue center with white shape, icon, or text",
+        "icon": "Supports letter, number, and business icon slots",
+        "shadow": "White pin base plus subtle shadow for legibility on dense maps"
+      },
+      "fakeMod": {
+        "component": "CustomLocation",
+        "property": "Property 1 = Location / With info / {letter | number | warehouse | shop | user}",
+        "figmaNodes": "2977:200642 / 200649 / 200656 / 200663 / 200670"
+      },
+      "usage": {
+        "primary": "Use for point components that need business-specific icons, shapes, or content.",
+        "extended": "Can become a future template entry for stores, campaign locations, exception points, or custom operational POI.",
+        "constraints": "Control the number of custom content types in one map view so letters, numbers, and icons do not become hard to scan."
+      },
+      "code": "type CustomLocationContent = \"letter\" | \"number\" | \"warehouse\" | \"shop\" | \"user\";\n\nasync function renderCustomLocation(map: google.maps.Map, position: google.maps.LatLngLiteral, contentType: CustomLocationContent) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = \"MapMarker MapMarker--advanced MapMarker--custom-default\";\n  content.dataset.content = contentType;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
     "sections": {
       "spec": "Style",

@@ -1,11 +1,12 @@
 import { ChevronDown, Code2 } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { MapCategory, WorkbenchLanguage } from "../store/workbenchStore";
-import type { MapControlsState, MarkerPreviewFamily, MarkerPreviewState, MarkerPreviewVariant } from "../types";
+import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
+import type { CustomMarkerContent, MapControlsState, MarkerPreviewFamily, MarkerPreviewState, MarkerPreviewVariant } from "../types";
 import { MapCanvas } from "./MapCanvas";
 
 export type ManualCategoryId = "point" | "line" | "area" | "container";
+type ManualPreviewDistribution = "local" | "china" | "chinaCluster";
 
 export interface ManualInfoRow {
   labelKey: string;
@@ -19,6 +20,7 @@ export interface ManualUsageGroup {
 }
 
 export interface ManualMarkerVariant {
+  customContent?: CustomMarkerContent;
   id: MarkerPreviewVariant;
   labelKey: string;
 }
@@ -28,6 +30,7 @@ export interface ManualComponentSpec {
   nameKey: string;
   descriptionKey: string;
   previewType: ManualCategoryId;
+  previewDistribution?: ManualPreviewDistribution;
   markerFamily?: MarkerPreviewFamily;
   markerVariants?: ManualMarkerVariant[];
   styleRows: ManualInfoRow[];
@@ -49,6 +52,7 @@ interface ComponentCardProps {
   categoryId: ManualCategoryId;
   mapCategory: MapCategory;
   lang: WorkbenchLanguage;
+  mapTheme: MapTheme;
 }
 
 const pointPreviewPattern: MarkerPreviewVariant[] = [
@@ -65,6 +69,41 @@ const pointPreviewPattern: MarkerPreviewVariant[] = [
   "emphasized",
   "default",
 ];
+
+const chinaPointPreviewPattern: MarkerPreviewVariant[] = [
+  "default",
+  "completed",
+  "muted",
+  "default",
+  "emphasized",
+  "completed",
+  "default",
+  "muted",
+  "completed",
+  "default",
+  "emphasized",
+  "default",
+  "default",
+  "completed",
+  "muted",
+  "emphasized",
+  "default",
+  "completed",
+  "muted",
+  "default",
+  "completed",
+  "default",
+  "emphasized",
+  "muted",
+  "completed",
+  "default",
+  "muted",
+  "completed",
+  "default",
+  "emphasized",
+];
+
+const chinaClusterPreviewCounts = [18, 42, 12, 126, 86, 64, 38, 52, 220, 148, 34, 76, 28, 15];
 
 function resolveValue(row: ManualInfoRow, t: (key: string) => string) {
   return row.valueKey ? t(row.valueKey) : row.value ?? "";
@@ -121,7 +160,7 @@ function UsageGroup({ group, tone }: { group: ManualUsageGroup; tone: "primary" 
   );
 }
 
-export function ComponentCard({ spec, categoryId, mapCategory, lang }: ComponentCardProps) {
+export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }: ComponentCardProps) {
   const { t } = useTranslation();
   const previewControls = useMemo<MapControlsState>(
     () => ({
@@ -131,10 +170,10 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang }: Component
         { id: "middle", value: "Placeholder middle" },
         { id: "end", value: "Placeholder end" },
       ],
-      showMapUi: false,
-      zoom: 13,
+      showMapUi: spec.previewDistribution === "chinaCluster",
+      zoom: spec.previewDistribution === "china" || spec.previewDistribution === "chinaCluster" ? 4 : 13,
     }),
-    [categoryId],
+    [categoryId, spec.previewDistribution],
   );
   const previewMarkers = useMemo<MarkerPreviewState[] | undefined>(
     () => {
@@ -142,20 +181,40 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang }: Component
         return undefined;
       }
 
+      if (spec.markerFamily === "custom") {
+        return pointPreviewPattern.map((_, index) => {
+          const marker = spec.markerVariants?.[index % spec.markerVariants.length];
+          return {
+            customContent: marker?.customContent,
+            id: marker?.id ?? "default",
+            label: marker ? t(marker.labelKey) : t("manual.customLocation.name"),
+          };
+        });
+      }
+
+      if (spec.previewDistribution === "chinaCluster") {
+        const baseMarker = spec.markerVariants.find((marker) => marker.id === "default") ?? spec.markerVariants[0];
+        return chinaClusterPreviewCounts.map((count) => ({
+          count,
+          id: baseMarker.id,
+          label: `${t(baseMarker.labelKey)} ${count}`,
+        }));
+      }
+
       const markersById = new Map(spec.markerVariants.map((marker) => [marker.id, marker]));
-      return pointPreviewPattern
+      const previewPattern = spec.previewDistribution === "china" ? chinaPointPreviewPattern : pointPreviewPattern;
+      return previewPattern
         .map((variant) => markersById.get(variant))
         .filter((marker): marker is ManualMarkerVariant => Boolean(marker))
         .map((marker) => ({ id: marker.id, label: t(marker.labelKey) }));
     },
-    [spec.markerVariants, t],
+    [spec.markerVariants, spec.previewDistribution, t],
   );
 
   return (
     <article className="ManualDetail" id={`manual-component-${spec.id}`}>
       <section className="ManualDetail__left" aria-label={t("manual.panels.content")}>
         <header className="ManualPanelHeader">
-          <p>{t("manual.panels.content")}</p>
           <h2>{t(spec.nameKey)}</h2>
           <span>{t(spec.descriptionKey)}</span>
         </header>
@@ -166,7 +225,9 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang }: Component
             controls={previewControls}
             lang={lang}
             mapCategory={mapCategory}
+            mapTheme={mapTheme}
             previewFeature={spec.previewType}
+            previewDistribution={spec.previewDistribution}
             previewMarkerFamily={spec.markerFamily}
             previewMarkers={previewMarkers}
           />

@@ -180,3 +180,125 @@ export const mapExploreVisualizationStyles: GoogleMapStyle[] = [
     stylers: [{ visibility: "off" }],
   },
 ];
+
+export const mapExploreDarkStyles: GoogleMapStyle[] = [
+  {
+    elementType: "geometry",
+    stylers: [{ color: "#1f232b" }],
+  },
+  {
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#aab3c2" }],
+  },
+  {
+    elementType: "labels.text.stroke",
+    stylers: [{ color: "#171a20" }, { weight: 2 }],
+  },
+  {
+    featureType: "administrative",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#8f98a8" }],
+  },
+  {
+    featureType: "landscape.man_made",
+    elementType: "geometry",
+    stylers: [{ color: "#242a33" }],
+  },
+  {
+    featureType: "landscape.natural",
+    elementType: "geometry",
+    stylers: [{ color: "#1b2028" }],
+  },
+  {
+    featureType: "poi",
+    elementType: "geometry",
+    stylers: [{ color: "#272d37" }],
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.icon",
+    stylers: [{ color: "#6f7a8d" }],
+  },
+  {
+    featureType: "poi",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#8b95a6" }],
+  },
+  {
+    featureType: "poi.business",
+    elementType: "geometry",
+    stylers: [{ color: "#2c2c32" }],
+  },
+  {
+    featureType: "poi.medical",
+    elementType: "geometry",
+    stylers: [{ color: "#273245" }],
+  },
+  {
+    featureType: "poi.park",
+    elementType: "geometry",
+    stylers: [{ color: "#223126" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry",
+    stylers: [{ color: "#303642" }],
+  },
+  {
+    featureType: "road",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#222833" }],
+  },
+  {
+    featureType: "road",
+    elementType: "labels.icon",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "road",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#8f98a8" }],
+  },
+  {
+    featureType: "road.arterial",
+    elementType: "geometry",
+    stylers: [{ color: "#39404d" }],
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry",
+    stylers: [{ color: "#465061" }],
+  },
+  {
+    featureType: "transit",
+    elementType: "geometry",
+    stylers: [{ color: "#2b303a" }],
+  },
+  {
+    featureType: "transit",
+    elementType: "labels.icon",
+    stylers: [{ color: "#737f95" }],
+  },
+  {
+    featureType: "water",
+    elementType: "geometry",
+    stylers: [{ color: "#17263a" }],
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#6f91bf" }],
+  },
+];
+
+export const mapExploreVisualizationDarkStyles: GoogleMapStyle[] = [
+  ...mapExploreDarkStyles,
+  {
+    featureType: "poi",
+    stylers: [{ visibility: "off" }],
+  },
+  {
+    featureType: "transit",
+    stylers: [{ visibility: "off" }],
+  },
+];

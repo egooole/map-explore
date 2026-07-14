@@ -1,12 +1,13 @@
 import { BatteryFull, Copy, Signal, Wifi } from "lucide-react";
 import { useTranslation } from "react-i18next";
-import type { MapCategory, WorkbenchLanguage } from "../store/workbenchStore";
+import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
 import type { MapControlsState } from "../types";
 import { MapCanvas } from "./MapCanvas";
 
 interface PhoneFrameProps {
   mapCategory: MapCategory;
   lang: WorkbenchLanguage;
+  mapTheme: MapTheme;
   controls: MapControlsState;
 }
 
@@ -39,7 +40,7 @@ function BusinessCard() {
   );
 }
 
-export function PhoneFrame({ mapCategory, lang, controls }: PhoneFrameProps) {
+export function PhoneFrame({ mapCategory, lang, mapTheme, controls }: PhoneFrameProps) {
   const { t } = useTranslation();
 
   return (
@@ -53,7 +54,7 @@ export function PhoneFrame({ mapCategory, lang, controls }: PhoneFrameProps) {
         </div>
       </div>
       <div className="PhoneFrame__screen">
-        <MapCanvas compact controls={controls} lang={lang} mapCategory={mapCategory} />
+        <MapCanvas compact controls={controls} lang={lang} mapCategory={mapCategory} mapTheme={mapTheme} />
         <BusinessCard />
       </div>
     </section>

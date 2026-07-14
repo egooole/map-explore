@@ -141,7 +141,12 @@
 .MapMarker--informated-muted > span,
 .MapMarker--informated-completed > span,
 .MapMarker--informated-emphasized > span,
-.MapMarker--informated-selected > span {
+.MapMarker--informated-selected > span,
+.MapMarker--cumulative-default > span,
+.MapMarker--cumulative-muted > span,
+.MapMarker--cumulative-completed > span,
+.MapMarker--cumulative-emphasized > span,
+.MapMarker--cumulative-selected > span {
   border-radius: 999px;
   box-shadow: 0 4px 11px rgba(15, 23, 42, 0.18), 0 1px 2px rgba(15, 23, 42, 0.16);
   transform: none;
@@ -180,12 +185,137 @@
   width: 64px;
 }
 
+.MapMarker--cumulative-default > .MapMarker__cluster,
+.MapMarker--cumulative-muted > .MapMarker__cluster,
+.MapMarker--cumulative-completed > .MapMarker__cluster {
+  background: #2450ff;
+  border: 4px solid #ffffff;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.24), 0 1px 3px rgba(15, 23, 42, 0.16);
+  color: #ffffff;
+  font-family: "TikTok Text", var(--font-sans);
+  font-size: 14px;
+  font-weight: 650;
+  height: 40px;
+  line-height: 1;
+  width: 40px;
+}
+
+.MapMarker--cumulative-emphasized > .MapMarker__cluster,
+.MapMarker--cumulative-selected > .MapMarker__cluster {
+  background: #2450ff;
+  border: 8px solid #ffffff;
+  box-shadow: 0 11px 28px rgba(15, 23, 42, 0.28), 0 4px 12px rgba(36, 80, 255, 0.2);
+  color: #ffffff;
+  font-family: "TikTok Text", var(--font-sans);
+  font-size: 22px;
+  font-weight: 650;
+  height: 64px;
+  line-height: 1;
+  width: 64px;
+}
+
+.MapMarker--custom-default > .MapMarker__customAsset {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  display: block;
+  height: 62px;
+  overflow: visible;
+  position: relative;
+  transform: none;
+  transition: filter 120ms ease, transform 120ms ease;
+  width: 59px;
+}
+
+.MapMarker--custom-default > .MapMarker__customAsset img {
+  display: block;
+  height: 100%;
+  max-width: none;
+  width: 100%;
+}
+
+.MapMarker--custom-default > .MapMarker__customTextPin {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  color: #ffffff;
+  display: block;
+  font-family: "TikTok Text", var(--font-sans);
+  font-size: 20px;
+  font-weight: 650;
+  height: 40px;
+  line-height: 24px;
+  overflow: visible;
+  position: relative;
+  transform: none;
+  transition: filter 120ms ease, transform 120ms ease;
+  width: 40px;
+}
+
+.MapMarker__customTextPin::before {
+  background: #ffffff;
+  border-radius: 999px 999px 999px 10px;
+  box-shadow: 0 0 12px rgba(15, 23, 42, 0.2);
+  content: "";
+  height: 35px;
+  left: 2.5px;
+  position: absolute;
+  top: 1.13px;
+  transform: rotate(-45deg);
+  width: 35px;
+}
+
+.MapMarker__customTextPin::after {
+  background: #2a3ef4;
+  border-radius: 999px;
+  content: "";
+  height: 29px;
+  left: 5.5px;
+  position: absolute;
+  top: 4.25px;
+  width: 29px;
+}
+
+.MapMarker__customTextPin b {
+  display: flex;
+  font: inherit;
+  height: 24px;
+  justify-content: center;
+  left: 12px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  top: 6.75px;
+  width: 16px;
+  z-index: 1;
+}
+
+.MapMarker--custom-default.MapMarker--interactive:hover > .MapMarker__customAsset,
+.MapMarker--custom-default.is-selected > .MapMarker__customAsset,
+.MapMarker--custom-default.MapMarker--interactive:hover > .MapMarker__customTextPin,
+.MapMarker--custom-default.is-selected > .MapMarker__customTextPin {
+  filter: drop-shadow(0 6px 12px rgba(36, 80, 255, 0.18));
+  transform: translateY(-1px);
+}
+
+.MapMarker__cluster b {
+  display: block;
+  font: inherit;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
 .MapMarker--point-default > span,
 .MapMarker--point-emphasized > span,
 .MapMarker--point-selected > span,
 .MapMarker--informated-default > span,
 .MapMarker--informated-emphasized > span,
-.MapMarker--informated-selected > span {
+.MapMarker--informated-selected > span,
+.MapMarker--cumulative-default > span,
+.MapMarker--cumulative-emphasized > span,
+.MapMarker--cumulative-selected > span {
   background: #2450ff;
 }
 
@@ -228,7 +358,13 @@
 .MapMarker--informated-completed.MapMarker--interactive:hover > span,
 .MapMarker--informated-completed.is-selected > span,
 .MapMarker--informated-emphasized.MapMarker--interactive:hover > span,
-.MapMarker--informated-emphasized.is-selected > span {
+.MapMarker--informated-emphasized.is-selected > span,
+.MapMarker--cumulative-default.MapMarker--interactive:hover > span,
+.MapMarker--cumulative-default.is-selected > span,
+.MapMarker--cumulative-completed.MapMarker--interactive:hover > span,
+.MapMarker--cumulative-completed.is-selected > span,
+.MapMarker--cumulative-emphasized.MapMarker--interactive:hover > span,
+.MapMarker--cumulative-emphasized.is-selected > span {
   background: #2450ff;
   border-width: 6px;
   box-shadow: 0 8px 18px rgba(15, 98, 254, 0.24), 0 2px 5px rgba(15, 23, 42, 0.18);
@@ -255,11 +391,29 @@
   width: 64px;
 }
 
+.MapMarker--cumulative-default.MapMarker--interactive:hover > .MapMarker__cluster,
+.MapMarker--cumulative-default.is-selected > .MapMarker__cluster,
+.MapMarker--cumulative-completed.MapMarker--interactive:hover > .MapMarker__cluster,
+.MapMarker--cumulative-completed.is-selected > .MapMarker__cluster,
+.MapMarker--cumulative-emphasized.MapMarker--interactive:hover > .MapMarker__cluster,
+.MapMarker--cumulative-emphasized.is-selected > .MapMarker__cluster {
+  border-width: 8px;
+  box-shadow: 0 11px 28px rgba(15, 23, 42, 0.28), 0 4px 12px rgba(36, 80, 255, 0.2);
+  font-size: 22px;
+  height: 64px;
+  width: 64px;
+}
+
 .MapMarker--point-default i,
 .MapMarker--point-muted i,
 .MapMarker--point-completed i,
 .MapMarker--point-emphasized i,
-.MapMarker--point-selected i {
+.MapMarker--point-selected i,
+.MapMarker--cumulative-default i,
+.MapMarker--cumulative-muted i,
+.MapMarker--cumulative-completed i,
+.MapMarker--cumulative-emphasized i,
+.MapMarker--cumulative-selected i {
   display: none;
 }
 

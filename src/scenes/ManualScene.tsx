@@ -25,7 +25,7 @@ const manualSpecDocument = componentSpecs as unknown as ManualSpecDocument;
 
 export function ManualScene() {
   const { t } = useTranslation();
-  const { mapCategory, lang, setMapCategory } = useWorkbenchStore();
+  const { mapCategory, lang, mapTheme, setMapCategory } = useWorkbenchStore();
   const mapTypes = manualSpecDocument.mapTypes;
   const activeMapType = mapTypes.find((item) => item.id === mapCategory) ?? mapTypes[0];
   const [activeCategoryId, setActiveCategoryId] = useState<ManualCategoryId>(activeMapType.categories[0]?.id ?? "point");
@@ -95,6 +95,7 @@ export function ManualScene() {
             key={component.id}
             lang={lang}
             mapCategory={activeMapType.id}
+            mapTheme={mapTheme}
             spec={component}
           />
         ))}

@@ -1,4 +1,4 @@
-import { BookOpen, Check, Globe2, Languages, Map, Play, Route } from "lucide-react";
+import { BookOpen, Globe2, Languages, Map, Moon, Play, Route, Sun } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -6,6 +6,7 @@ import shopBagLogo from "../assets/tiktok-shop-bag-logo.svg";
 import i18n from "../i18n";
 import {
   MapCategory,
+  MapTheme,
   useWorkbenchStore,
   WorkbenchLanguage,
   WorkbenchView,
@@ -29,9 +30,6 @@ function SidebarNavItem({ icon, label, description, active, onClick }: SidebarNa
       <span className="SidebarNavItem__copy">
         <span>{label}</span>
         {description ? <small>{description}</small> : null}
-      </span>
-      <span className="SidebarNavItem__check" aria-hidden="true">
-        <Check size={12} />
       </span>
     </button>
   );
@@ -61,7 +59,7 @@ export function Sidebar() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
-  const { view, mapCategory, lang, setView, setMapCategory, setLang } = useWorkbenchStore();
+  const { view, mapCategory, lang, mapTheme, setView, setMapCategory, setLang, setMapTheme } = useWorkbenchStore();
 
   const handleView = (nextView: WorkbenchView) => {
     setView(nextView);
@@ -78,6 +76,10 @@ export function Sidebar() {
     setLang(nextLang);
     i18n.changeLanguage(nextLang);
     document.documentElement.lang = nextLang === "zh" ? "zh-CN" : "en";
+  };
+
+  const handleMapTheme = (nextTheme: MapTheme) => {
+    setMapTheme(nextTheme);
   };
 
   return (
@@ -148,6 +150,23 @@ export function Sidebar() {
             icon={<Languages size={18} />}
             label={t("sidebar.items.en.label")}
             onClick={() => handleLang("en")}
+          />
+        </SidebarNavGroup>
+
+        <SidebarNavGroup title={t("sidebar.appearanceGroup")}>
+          <SidebarNavItem
+            active={mapTheme === "light"}
+            description={t("sidebar.items.light.description")}
+            icon={<Sun size={18} />}
+            label={t("sidebar.items.light.label")}
+            onClick={() => handleMapTheme("light")}
+          />
+          <SidebarNavItem
+            active={mapTheme === "dark"}
+            description={t("sidebar.items.dark.description")}
+            icon={<Moon size={18} />}
+            label={t("sidebar.items.dark.label")}
+            onClick={() => handleMapTheme("dark")}
           />
         </SidebarNavGroup>
       </nav>

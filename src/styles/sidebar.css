@@ -76,7 +76,7 @@
   color: var(--color-sidebar-text);
   display: grid;
   gap: 10px;
-  grid-template-columns: 3px 22px 1fr 16px;
+  grid-template-columns: 3px 22px 1fr;
   min-height: 46px;
   padding: 7px 9px 7px 0;
   text-align: left;
@@ -122,17 +122,6 @@
   overflow-wrap: anywhere;
 }
 
-.SidebarNavItem__check {
-  align-items: center;
-  background: transparent;
-  border-radius: 999px;
-  color: transparent;
-  display: flex;
-  height: 16px;
-  justify-content: center;
-  width: 16px;
-}
-
 .SidebarNavItem.is-active {
   background: var(--color-primary-soft);
   border-color: transparent;
@@ -147,11 +136,6 @@
 .SidebarNavItem.is-active .SidebarNavItem__icon,
 .SidebarNavItem.is-active .SidebarNavItem__copy small {
   color: var(--color-primary-strong);
-}
-
-.SidebarNavItem.is-active .SidebarNavItem__check {
-  background: var(--color-primary);
-  color: white;
 }
 
 .SidebarFooter {
