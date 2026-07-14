@@ -299,8 +299,8 @@
       "description": "带方向箭头的普通路线，用于表达路径方向、流向或下一步移动趋势。",
       "style": {
         "variantSet": "线/带方向：默认 / 弱化 / 已完成 / hover&selected",
-        "sizes": "MCP primitive：默认 200×12，内部线体 196×8；hover&selected 200×20，内部线体 196×16",
-        "arrow": "路线内部使用方向箭头 mask；默认圆角 4px，hover&selected 圆角 8px"
+        "sizes": "与 Normal route / No arrow 保持同一预览组合：约 282×121；路线线体 8px，hover/selected 时主路线增至 16px",
+        "arrow": "在 No arrow 的路线结构上增加方向箭头，其他点位、目的地和路径布局保持一致"
       },
       "fakeMod": {
         "component": "NormalRouteHasArrow",
@@ -310,7 +310,7 @@
       "usage": {
         "extended": "适用于配送行进方向、导航下一段、车辆/包裹流向，或需要区分起终点方向的路径。"
       },
-      "code": "type NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nfunction createHasArrowRoute(variant: NormalRouteVariant) {\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `\n    <span class=\"MapRoutePrimitive MapRoutePrimitive--${variant}\">\n      <span class=\"MapRoutePrimitive__track MapRoutePrimitive__track--active\"></span>\n      <span class=\"MapRoutePrimitive__arrows\"></span>\n    </span>\n  `;\n  return content;\n}"
+      "code": "type NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nfunction createNormalRouteHasArrow(variant: NormalRouteVariant) {\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `\n    <svg class=\"MapRoutePreview__networkSvg\" viewBox=\"0 0 282 121\">\n      <path class=\"MapRoutePreview__route MapRoutePreview__route--primary\" d=\"...\" />\n      <g class=\"MapRoutePreview__arrows MapRoutePreview__arrows--primary\">...</g>\n    </svg>\n  `;\n  return content;\n}"
     },
     "routeWithLocation": {
       "variants": {

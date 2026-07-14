@@ -477,8 +477,6 @@ function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVar
   route.setAttribute("role", "button");
   if (family === "routeWithNormalLocation" || family === "routeWithInformatedLocation" || family === "routeWithProgress") {
     route.innerHTML = createCompositeRouteElement(family, variant);
-  } else if (family === "normalHasArrow") {
-    route.innerHTML = createRoutePrimitiveMarkup(variant);
   } else {
     route.innerHTML = `
     <svg aria-hidden="true" class="MapRoutePreview__networkSvg" viewBox="0 0 282 121">

@@ -299,8 +299,8 @@
       "description": "Regular route with directional arrows, used to express route direction, flow, or next movement.",
       "style": {
         "variantSet": "Line / has arrow: default / muted / completed / hover&selected",
-        "sizes": "MCP primitive: default 200x12 with a 196x8 inner line; hover&selected 200x20 with a 196x16 inner line",
-        "arrow": "Directional arrow mask inside the route; 4px radius by default and 8px radius on hover&selected"
+        "sizes": "Matches the Normal route / No arrow preview group at about 282x121; route body is 8px and the focused primary route grows to 16px",
+        "arrow": "Adds directional arrows to the No arrow route structure while keeping points, destination, and path layout aligned"
       },
       "fakeMod": {
         "component": "NormalRouteHasArrow",
@@ -310,7 +310,7 @@
       "usage": {
         "extended": "Use for delivery direction, the next navigation segment, vehicle/package flow, or paths where start/end direction matters."
       },
-      "code": "type NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nfunction createHasArrowRoute(variant: NormalRouteVariant) {\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `\n    <span class=\"MapRoutePrimitive MapRoutePrimitive--${variant}\">\n      <span class=\"MapRoutePrimitive__track MapRoutePrimitive__track--active\"></span>\n      <span class=\"MapRoutePrimitive__arrows\"></span>\n    </span>\n  `;\n  return content;\n}"
+      "code": "type NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nfunction createNormalRouteHasArrow(variant: NormalRouteVariant) {\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `\n    <svg class=\"MapRoutePreview__networkSvg\" viewBox=\"0 0 282 121\">\n      <path class=\"MapRoutePreview__route MapRoutePreview__route--primary\" d=\"...\" />\n      <g class=\"MapRoutePreview__arrows MapRoutePreview__arrows--primary\">...</g>\n    </svg>\n  `;\n  return content;\n}"
     },
     "routeWithLocation": {
       "variants": {
