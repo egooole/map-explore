@@ -418,14 +418,14 @@ function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVar
       <path class="MapRoutePreview__route MapRoutePreview__route--secondary" d="M28 101 L97 79 L151 63 L232 43" />
       <path class="MapRoutePreview__route MapRoutePreview__route--primary" d="M52 20 L106 73 L151 63 L232 43" />
       <g class="MapRoutePreview__arrows MapRoutePreview__arrows--secondary">
-        <path d="M62 88 L74 84 L64 78" />
-        <path d="M116 73 L129 69 L119 62" />
-        <path d="M178 58 L190 53 L180 47" />
+        <path d="M58 90 L72 85 L61 79 L69 76 L83 83 L67 92 Z" />
+        <path d="M110 76 L126 71 L113 65 L122 62 L138 69 L121 78 Z" />
+        <path d="M176 59 L191 54 L178 48 L187 45 L203 52 L186 61 Z" />
       </g>
       <g class="MapRoutePreview__arrows MapRoutePreview__arrows--primary">
-        <path d="M76 43 L88 55 L72 56" />
-        <path d="M129 68 L143 65 L132 58" />
-        <path d="M178 58 L190 53 L180 47" />
+        <path d="M78 44 L91 57 L75 58 L82 64 L101 59 L85 39 Z" />
+        <path d="M126 69 L142 66 L129 59 L138 56 L154 63 L137 72 Z" />
+        <path d="M176 59 L191 54 L178 48 L187 45 L203 52 L186 61 Z" />
       </g>
     </svg>
     <span class="MapRoutePreview__pin MapRoutePreview__pin--one">1</span>
@@ -435,6 +435,11 @@ function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVar
         <path d="M4.75 9.4 12 5l7.25 4.4v8.85H4.75V9.4Z" />
         <path d="M8 18.25v-5.5h8v5.5M7.25 10.3h9.5" />
       </svg>
+    </span>
+    <span class="MapRoutePreview__routeTooltip">
+      <b>ATL Hub → EWR Hub</b>
+      <small><span>Text here</span><span>Text here</span></small>
+      <small><span>Text here</span><span>Text here</span></small>
     </span>
   `;
 

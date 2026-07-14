@@ -521,7 +521,8 @@
   --route-primary-hover: #2232c3;
   --route-secondary: #009c94;
   --route-secondary-hover: #008981;
-  --route-arrow: rgba(255, 255, 255, 0.42);
+  --route-secondary-muted: #aee2e1;
+  --route-arrow: rgba(255, 255, 255, 0.38);
   height: 121px;
   left: 0;
   pointer-events: auto;
@@ -547,6 +548,7 @@
 .MapRoutePreview--muted {
   --route-primary: #c9d2fc;
   --route-secondary: #9ed8d4;
+  --route-secondary-muted: #cdeceb;
   --route-arrow: rgba(255, 255, 255, 0.5);
 }
 
@@ -587,31 +589,40 @@
 
 .MapRoutePreview:hover .MapRoutePreview__route,
 .MapRoutePreview.is-selected .MapRoutePreview__route {
-  stroke-width: 12;
+  stroke-width: 8;
 }
 
 .MapRoutePreview:hover .MapRoutePreview__route--primary,
 .MapRoutePreview.is-selected .MapRoutePreview__route--primary {
   stroke: var(--route-primary-hover);
+  stroke-width: 16;
 }
 
 .MapRoutePreview:hover .MapRoutePreview__route--secondary,
 .MapRoutePreview.is-selected .MapRoutePreview__route--secondary {
-  stroke: var(--route-secondary-hover);
+  stroke: var(--route-secondary-muted);
 }
 
 .MapRoutePreview__arrows {
   display: none;
-  fill: none;
+  fill: var(--route-arrow);
   pointer-events: none;
-  stroke: var(--route-arrow);
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 3;
+  stroke: none;
+  transition: fill 120ms ease, opacity 120ms ease;
 }
 
 .MapRoutePreview--normalHasArrow .MapRoutePreview__arrows {
   display: block;
+}
+
+.MapRoutePreview--normalHasArrow:hover .MapRoutePreview__arrows--secondary,
+.MapRoutePreview--normalHasArrow.is-selected .MapRoutePreview__arrows--secondary {
+  opacity: 0.55;
+}
+
+.MapRoutePreview--normalHasArrow:hover .MapRoutePreview__arrows--primary,
+.MapRoutePreview--normalHasArrow.is-selected .MapRoutePreview__arrows--primary {
+  fill: rgba(255, 255, 255, 0.45);
 }
 
 .MapRoutePreview:focus-visible {
@@ -667,6 +678,46 @@
   stroke-linejoin: round;
   stroke-width: 2;
   width: 22px;
+}
+
+.MapRoutePreview__routeTooltip {
+  background: rgba(255, 255, 255, 0.96);
+  border-radius: 4px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  color: #171718;
+  display: grid;
+  gap: 8px;
+  left: 116px;
+  opacity: 0;
+  padding: 8px 12px;
+  pointer-events: none;
+  position: absolute;
+  top: -54px;
+  transform: translateY(4px);
+  transition: opacity 120ms ease, transform 120ms ease;
+  white-space: nowrap;
+}
+
+.MapRoutePreview__routeTooltip b {
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+.MapRoutePreview__routeTooltip small {
+  display: flex;
+  gap: 6px;
+  line-height: 18px;
+}
+
+.MapRoutePreview__routeTooltip small span:first-child {
+  color: #6c6d6f;
+}
+
+.MapRoutePreview--normalHasArrow:hover .MapRoutePreview__routeTooltip,
+.MapRoutePreview--normalHasArrow.is-selected .MapRoutePreview__routeTooltip {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .MapMarker__tooltip {
