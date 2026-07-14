@@ -537,6 +537,18 @@
   top: auto;
 }
 
+.MapRoutePreview--normalHasArrow {
+  height: 143px;
+  width: 284px;
+}
+
+.MapRoutePreview__asset {
+  display: block;
+  height: 143px;
+  max-width: none;
+  width: 284px;
+}
+
 .MapRoutePreview__networkSvg {
   display: block;
   filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.2));
@@ -631,6 +643,10 @@
 
 .MapRoutePreview:focus-visible .MapRoutePreview__networkSvg {
   filter: drop-shadow(0 0 0 rgba(36, 80, 255, 0.4)) drop-shadow(0 6px 10px rgba(15, 23, 42, 0.2));
+}
+
+.MapRoutePreview:focus-visible .MapRoutePreview__asset {
+  filter: drop-shadow(0 0 0 rgba(36, 80, 255, 0.4));
 }
 
 .MapRoutePreview__pin,

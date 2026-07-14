@@ -8,6 +8,7 @@ import informatedDefaultMarker from "../assets/informated-location/default.svg";
 import informatedDisableMarker from "../assets/informated-location/disable.svg";
 import informatedEmphasizedMarker from "../assets/informated-location/emphasized.svg";
 import informatedSelectedMarker from "../assets/informated-location/selected.svg";
+import normalRouteHasArrowDefault from "../assets/route/normal-route-has-arrow-default.svg";
 import { mapExploreDarkStyles, mapExploreVisualizationDarkStyles } from "../config/googleMapStyles";
 import { mapKey, mapPresets } from "../config/mapPresets";
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
@@ -411,7 +412,10 @@ function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVar
   route.tabIndex = 0;
   route.setAttribute("aria-label", label);
   route.setAttribute("role", "button");
-  route.innerHTML = `
+  if (family === "normalHasArrow") {
+    route.innerHTML = `<img alt="" class="MapRoutePreview__asset" src="${normalRouteHasArrowDefault}" />`;
+  } else {
+    route.innerHTML = `
     <svg aria-hidden="true" class="MapRoutePreview__networkSvg" viewBox="0 0 282 121">
       <path class="MapRoutePreview__strokeBase" d="M52 20 L106 73 L151 63 L232 43" />
       <path class="MapRoutePreview__strokeBase" d="M28 101 L97 79 L151 63 L232 43" />
@@ -442,6 +446,7 @@ function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVar
       <small><span>Text here</span><span>Text here</span></small>
     </span>
   `;
+  }
 
   route.addEventListener("click", () => {
     const canvas = route.closest(".MapCanvas");

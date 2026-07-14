@@ -237,7 +237,7 @@
               ],
               "styleRows": [
                 { "labelKey": "manual.rows.variant", "valueKey": "manual.normalRouteHasArrow.style.variantSet" },
-                { "labelKey": "manual.rows.size", "valueKey": "manual.normalRoute.style.sizes" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.normalRouteHasArrow.style.sizes" },
                 { "labelKey": "manual.rows.color", "valueKey": "manual.normalRoute.style.color" },
                 { "labelKey": "manual.rows.shadow", "valueKey": "manual.normalRoute.style.shadow" },
                 { "labelKey": "manual.rows.icon", "valueKey": "manual.normalRouteHasArrow.style.arrow" }
