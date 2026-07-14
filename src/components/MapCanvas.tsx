@@ -8,8 +8,6 @@ import informatedDefaultMarker from "../assets/informated-location/default.svg";
 import informatedDisableMarker from "../assets/informated-location/disable.svg";
 import informatedEmphasizedMarker from "../assets/informated-location/emphasized.svg";
 import informatedSelectedMarker from "../assets/informated-location/selected.svg";
-import normalRouteHasArrowDefault from "../assets/route/normal-route-has-arrow-default.svg";
-import normalRouteHasArrowHover from "../assets/route/normal-route-has-arrow-hover.svg";
 import { mapExploreDarkStyles, mapExploreVisualizationDarkStyles } from "../config/googleMapStyles";
 import { mapKey, mapPresets } from "../config/mapPresets";
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
@@ -446,14 +444,27 @@ function createCompositeRouteElement(family: RoutePreviewFamily, variant: RouteP
 
   return `
     <span class="MapRouteComposite MapRouteComposite--${family} MapRouteComposite--${progressVariant}">
-      <span class="MapRouteComposite__line" aria-hidden="true">
-        <span class="MapRouteComposite__segment MapRouteComposite__segment--completed"></span>
-        <span class="MapRouteComposite__segment MapRouteComposite__segment--active"></span>
-        <span class="MapRouteComposite__arrows"></span>
-      </span>
+      ${createRoutePrimitiveMarkup(progressVariant)}
       ${createCompositePoint(isProgress ? "normal" : pointKind, "start")}
       ${isProgress ? createCompositePoint("progress", "middle") : ""}
       ${createCompositePoint(isProgress ? "normal" : pointKind, "end")}
+    </span>
+  `;
+}
+
+function createRoutePrimitiveMarkup(variant: RoutePreviewVariant) {
+  const visualVariant = variant === "selected" ? "selected" : variant === "inProgress" ? "inProgress" : variant;
+
+  return `
+    <span class="MapRoutePrimitive MapRoutePrimitive--${visualVariant}" aria-hidden="true">
+      <span class="MapRoutePrimitive__track MapRoutePrimitive__track--completed"></span>
+      <span class="MapRoutePrimitive__track MapRoutePrimitive__track--active"></span>
+      <span class="MapRoutePrimitive__arrows"></span>
+      ${
+        visualVariant === "muted" || visualVariant === "completed"
+          ? '<span class="MapRoutePrimitive__midPoint"></span>'
+          : ""
+      }
     </span>
   `;
 }
@@ -467,10 +478,7 @@ function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVar
   if (family === "routeWithNormalLocation" || family === "routeWithInformatedLocation" || family === "routeWithProgress") {
     route.innerHTML = createCompositeRouteElement(family, variant);
   } else if (family === "normalHasArrow") {
-    route.innerHTML = `
-      <img alt="" class="MapRoutePreview__asset MapRoutePreview__asset--default" src="${normalRouteHasArrowDefault}" />
-      <img alt="" class="MapRoutePreview__asset MapRoutePreview__asset--hover" src="${normalRouteHasArrowHover}" />
-    `;
+    route.innerHTML = createRoutePrimitiveMarkup(variant);
   } else {
     route.innerHTML = `
     <svg aria-hidden="true" class="MapRoutePreview__networkSvg" viewBox="0 0 282 121">

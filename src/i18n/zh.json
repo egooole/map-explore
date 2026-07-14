@@ -299,8 +299,8 @@
       "description": "带方向箭头的普通路线，用于表达路径方向、流向或下一步移动趋势。",
       "style": {
         "variantSet": "线/带方向：默认 / 弱化 / 已完成 / hover&selected",
-        "sizes": "默认 SVG 284×143；hover&selected SVG 284×197，容器固定高度后贴底切换",
-        "arrow": "路线、箭头、起终点、目的地图标与 hover 信息浮层来自 SVG 资产，优先还原 Figma 视觉"
+        "sizes": "MCP primitive：默认 200×12，内部线体 196×8；hover&selected 200×20，内部线体 196×16",
+        "arrow": "路线内部使用方向箭头 mask；默认圆角 4px，hover&selected 圆角 8px"
       },
       "fakeMod": {
         "component": "NormalRouteHasArrow",
@@ -310,7 +310,7 @@
       "usage": {
         "extended": "适用于配送行进方向、导航下一段、车辆/包裹流向，或需要区分起终点方向的路径。"
       },
-      "code": "import normalRouteHasArrowDefault from \"../assets/route/normal-route-has-arrow-default.svg\";\nimport normalRouteHasArrowHover from \"../assets/route/normal-route-has-arrow-hover.svg\";\n\ntype NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nasync function renderNormalRouteHasArrow(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: NormalRouteVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `\n    <img alt=\"\" class=\"MapRoutePreview__asset MapRoutePreview__asset--default\" src=\"${normalRouteHasArrowDefault}\" />\n    <img alt=\"\" class=\"MapRoutePreview__asset MapRoutePreview__asset--hover\" src=\"${normalRouteHasArrowHover}\" />\n  `;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
+      "code": "type NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nfunction createHasArrowRoute(variant: NormalRouteVariant) {\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `\n    <span class=\"MapRoutePrimitive MapRoutePrimitive--${variant}\">\n      <span class=\"MapRoutePrimitive__track MapRoutePrimitive__track--active\"></span>\n      <span class=\"MapRoutePrimitive__arrows\"></span>\n    </span>\n  `;\n  return content;\n}"
     },
     "routeWithLocation": {
       "variants": {
@@ -324,7 +324,7 @@
         "primary": "用于表达一条路线及其起终点位置，使用户能同时理解路径和节点。",
         "constraints": "组合组件比单路线占用更高视觉权重，同屏展示多条时应控制数量并避免互相遮挡。"
       },
-      "code": "type RouteLocationKind = \"normal\" | \"informated\";\n\nfunction createRouteWithLocation(kind: RouteLocationKind, state: \"default\" | \"muted\" | \"completed\") {\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--routeWith${kind}Location MapRoutePreview--${state}`;\n  content.innerHTML = `\n    <span class=\"MapRouteComposite\">\n      <span class=\"MapRouteComposite__line\"><span class=\"MapRouteComposite__segment--active\" /></span>\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--start\" />\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--end\" />\n    </span>\n  `;\n  return content;\n}"
+      "code": "type RouteLocationKind = \"normal\" | \"informated\";\n\nfunction createRouteWithLocation(kind: RouteLocationKind, state: \"default\" | \"muted\" | \"completed\") {\n  const family = kind === \"normal\" ? \"routeWithNormalLocation\" : \"routeWithInformatedLocation\";\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--${family} MapRoutePreview--${state}`;\n  content.innerHTML = `\n    <span class=\"MapRouteComposite MapRouteComposite--${family} MapRouteComposite--${state}\">\n      <span class=\"MapRoutePrimitive MapRoutePrimitive--${state}\">...</span>\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--start\"></span>\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--end\"></span>\n    </span>\n  `;\n  return content;\n}"
     },
     "routeWithNormalLocation": {
       "name": "Route with normal location",

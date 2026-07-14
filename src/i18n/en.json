@@ -299,8 +299,8 @@
       "description": "Regular route with directional arrows, used to express route direction, flow, or next movement.",
       "style": {
         "variantSet": "Line / has arrow: default / muted / completed / hover&selected",
-        "sizes": "Default SVG is 284x143; hover&selected SVG is 284x197, bottom-aligned inside a fixed-height container",
-        "arrow": "Route body, arrows, endpoints, destination icon, and hover info layer come from SVG assets to preserve the Figma visual"
+        "sizes": "MCP primitive: default 200x12 with a 196x8 inner line; hover&selected 200x20 with a 196x16 inner line",
+        "arrow": "Directional arrow mask inside the route; 4px radius by default and 8px radius on hover&selected"
       },
       "fakeMod": {
         "component": "NormalRouteHasArrow",
@@ -310,7 +310,7 @@
       "usage": {
         "extended": "Use for delivery direction, the next navigation segment, vehicle/package flow, or paths where start/end direction matters."
       },
-      "code": "import normalRouteHasArrowDefault from \"../assets/route/normal-route-has-arrow-default.svg\";\nimport normalRouteHasArrowHover from \"../assets/route/normal-route-has-arrow-hover.svg\";\n\ntype NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nasync function renderNormalRouteHasArrow(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: NormalRouteVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `\n    <img alt=\"\" class=\"MapRoutePreview__asset MapRoutePreview__asset--default\" src=\"${normalRouteHasArrowDefault}\" />\n    <img alt=\"\" class=\"MapRoutePreview__asset MapRoutePreview__asset--hover\" src=\"${normalRouteHasArrowHover}\" />\n  `;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
+      "code": "type NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nfunction createHasArrowRoute(variant: NormalRouteVariant) {\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `\n    <span class=\"MapRoutePrimitive MapRoutePrimitive--${variant}\">\n      <span class=\"MapRoutePrimitive__track MapRoutePrimitive__track--active\"></span>\n      <span class=\"MapRoutePrimitive__arrows\"></span>\n    </span>\n  `;\n  return content;\n}"
     },
     "routeWithLocation": {
       "variants": {
@@ -324,7 +324,7 @@
         "primary": "Use to express a route together with its start and end locations so users can read both path and nodes.",
         "constraints": "Composite routes carry more visual weight than route-only components; limit quantity in one viewport to avoid overlap."
       },
-      "code": "type RouteLocationKind = \"normal\" | \"informated\";\n\nfunction createRouteWithLocation(kind: RouteLocationKind, state: \"default\" | \"muted\" | \"completed\") {\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--routeWith${kind}Location MapRoutePreview--${state}`;\n  content.innerHTML = `\n    <span class=\"MapRouteComposite\">\n      <span class=\"MapRouteComposite__line\"><span class=\"MapRouteComposite__segment--active\" /></span>\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--start\" />\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--end\" />\n    </span>\n  `;\n  return content;\n}"
+      "code": "type RouteLocationKind = \"normal\" | \"informated\";\n\nfunction createRouteWithLocation(kind: RouteLocationKind, state: \"default\" | \"muted\" | \"completed\") {\n  const family = kind === \"normal\" ? \"routeWithNormalLocation\" : \"routeWithInformatedLocation\";\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--${family} MapRoutePreview--${state}`;\n  content.innerHTML = `\n    <span class=\"MapRouteComposite MapRouteComposite--${family} MapRouteComposite--${state}\">\n      <span class=\"MapRoutePrimitive MapRoutePrimitive--${state}\">...</span>\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--start\"></span>\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--end\"></span>\n    </span>\n  `;\n  return content;\n}"
     },
     "routeWithNormalLocation": {
       "name": "Route with normal location",

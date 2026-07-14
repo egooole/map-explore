@@ -538,8 +538,8 @@
 }
 
 .MapRoutePreview--normalHasArrow {
-  height: 197px;
-  width: 284px;
+  height: 20px;
+  width: 200px;
 }
 
 .MapRoutePreview--routeWithNormalLocation {
@@ -565,75 +565,180 @@
   width: 100%;
 }
 
-.MapRouteComposite__line {
-  border: 2px solid #ffffff;
-  border-radius: 4px;
-  box-sizing: border-box;
+.MapRouteComposite .MapRoutePrimitive {
+  position: absolute;
+}
+
+.MapRoutePrimitive {
   display: block;
   height: 12px;
-  overflow: hidden;
-  position: absolute;
+  pointer-events: none;
+  position: relative;
   width: 200px;
 }
 
-.MapRouteComposite--routeWithNormalLocation .MapRouteComposite__line {
+.MapRoutePreview--normalHasArrow > .MapRoutePrimitive {
+  left: 0;
+  top: 4px;
+}
+
+.MapRoutePreview--normalHasArrow:hover > .MapRoutePrimitive,
+.MapRoutePreview--normalHasArrow.is-selected > .MapRoutePrimitive,
+.MapRoutePrimitive--selected {
+  height: 20px;
+  top: 0;
+}
+
+.MapRouteComposite--routeWithNormalLocation .MapRoutePrimitive {
   left: 12px;
   top: 6px;
 }
 
-.MapRouteComposite--routeWithInformatedLocation .MapRouteComposite__line {
+.MapRouteComposite--routeWithInformatedLocation .MapRoutePrimitive {
   left: 20px;
   top: 27px;
 }
 
-.MapRouteComposite--routeWithProgress .MapRouteComposite__line {
+.MapRouteComposite--routeWithProgress .MapRoutePrimitive {
   left: 22px;
   top: 26px;
 }
 
-.MapRouteComposite__segment,
-.MapRouteComposite__arrows {
-  display: block;
-  inset-block: 0;
-  position: absolute;
+.MapRoutePreview--routeWithNormalLocation:hover .MapRouteComposite .MapRoutePrimitive,
+.MapRoutePreview--routeWithNormalLocation.is-selected .MapRouteComposite .MapRoutePrimitive {
+  height: 20px;
+  top: 2px;
 }
 
-.MapRouteComposite__segment--completed {
+.MapRoutePreview--routeWithInformatedLocation:hover .MapRouteComposite .MapRoutePrimitive,
+.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRouteComposite .MapRoutePrimitive {
+  height: 20px;
+  top: 21px;
+}
+
+.MapRoutePreview--routeWithProgress:hover .MapRouteComposite .MapRoutePrimitive,
+.MapRoutePreview--routeWithProgress.is-selected .MapRouteComposite .MapRoutePrimitive {
+  height: 20px;
+  top: 22px;
+}
+
+.MapRoutePrimitive__track,
+.MapRoutePrimitive__arrows {
+  border: 2px solid #ffffff;
+  border-radius: 4px;
+  box-sizing: border-box;
+  display: block;
+  height: 8px;
+  left: 2px;
+  overflow: hidden;
+  position: absolute;
+  right: 2px;
+  top: 2px;
+}
+
+.MapRoutePreview--normalHasArrow:hover .MapRoutePrimitive__track,
+.MapRoutePreview--normalHasArrow.is-selected .MapRoutePrimitive__track,
+.MapRoutePreview--normalHasArrow:hover .MapRoutePrimitive__arrows,
+.MapRoutePreview--normalHasArrow.is-selected .MapRoutePrimitive__arrows,
+.MapRoutePreview--routeWithNormalLocation:hover .MapRoutePrimitive__track,
+.MapRoutePreview--routeWithNormalLocation.is-selected .MapRoutePrimitive__track,
+.MapRoutePreview--routeWithNormalLocation:hover .MapRoutePrimitive__arrows,
+.MapRoutePreview--routeWithNormalLocation.is-selected .MapRoutePrimitive__arrows,
+.MapRoutePreview--routeWithInformatedLocation:hover .MapRoutePrimitive__track,
+.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRoutePrimitive__track,
+.MapRoutePreview--routeWithInformatedLocation:hover .MapRoutePrimitive__arrows,
+.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRoutePrimitive__arrows,
+.MapRoutePreview--routeWithProgress:hover .MapRoutePrimitive__track,
+.MapRoutePreview--routeWithProgress.is-selected .MapRoutePrimitive__track,
+.MapRoutePreview--routeWithProgress:hover .MapRoutePrimitive__arrows,
+.MapRoutePreview--routeWithProgress.is-selected .MapRoutePrimitive__arrows,
+.MapRoutePrimitive--selected .MapRoutePrimitive__track,
+.MapRoutePrimitive--selected .MapRoutePrimitive__arrows {
+  border-radius: 8px;
+  height: 16px;
+}
+
+.MapRoutePrimitive__track--completed {
   background: #9c9ead;
   display: none;
-  left: 0;
-  right: 0;
 }
 
-.MapRouteComposite__segment--active {
+.MapRoutePrimitive__track--active {
   background: #2a3ef4;
-  left: 0;
-  right: 0;
 }
 
-.MapRouteComposite--muted .MapRouteComposite__segment--active {
+.MapRoutePrimitive--muted .MapRoutePrimitive__track--active {
   background: #c9d2fc;
 }
 
-.MapRouteComposite--completed .MapRouteComposite__segment--active {
+.MapRoutePrimitive--completed .MapRoutePrimitive__track--active {
   background: #9c9ead;
 }
 
-.MapRouteComposite--inProgress .MapRouteComposite__segment--completed {
+.MapRoutePrimitive--selected .MapRoutePrimitive__track--active,
+.MapRoutePreview--normalHasArrow:hover .MapRoutePrimitive__track--active,
+.MapRoutePreview--normalHasArrow.is-selected .MapRoutePrimitive__track--active,
+.MapRoutePreview--routeWithNormalLocation:hover .MapRoutePrimitive__track--active,
+.MapRoutePreview--routeWithNormalLocation.is-selected .MapRoutePrimitive__track--active,
+.MapRoutePreview--routeWithInformatedLocation:hover .MapRoutePrimitive__track--active,
+.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRoutePrimitive__track--active,
+.MapRoutePreview--routeWithProgress:hover .MapRoutePrimitive__track--active,
+.MapRoutePreview--routeWithProgress.is-selected .MapRoutePrimitive__track--active {
+  background: #2232c3;
+}
+
+.MapRoutePrimitive--inProgress .MapRoutePrimitive__track--completed {
   display: block;
-  right: 56px;
+  right: 54px;
 }
 
-.MapRouteComposite--inProgress .MapRouteComposite__segment--active {
-  left: 132px;
+.MapRoutePrimitive--inProgress .MapRoutePrimitive__track--active {
+  left: 134px;
 }
 
-.MapRouteComposite__arrows {
-  background-image: url("data:image/svg+xml,%3Csvg width='40' height='8' viewBox='0 0 40 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 1L13 4L5 7L8 4L5 1Z' fill='white' fill-opacity='.55'/%3E%3Cpath d='M24 1L32 4L24 7L27 4L24 1Z' fill='white' fill-opacity='.55'/%3E%3C/svg%3E");
+.MapRoutePrimitive__arrows {
+  background-color: transparent;
+  background-image: url("data:image/svg+xml,%3Csvg width='28' height='8' viewBox='0 0 28 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3 1L11 4L3 7L6.2 4L3 1Z' fill='white' fill-opacity='.62'/%3E%3Cpath d='M17 1L25 4L17 7L20.2 4L17 1Z' fill='white' fill-opacity='.62'/%3E%3C/svg%3E");
   background-repeat: repeat-x;
-  background-size: 40px 8px;
-  inset-inline: 8px;
+  background-size: 28px 8px;
+  border-color: transparent;
+  border-radius: 0;
+  left: 2px;
+  right: 2px;
   top: 2px;
+}
+
+.MapRoutePreview--normalHasArrow:hover .MapRoutePrimitive__arrows,
+.MapRoutePreview--normalHasArrow.is-selected .MapRoutePrimitive__arrows,
+.MapRoutePreview--routeWithNormalLocation:hover .MapRoutePrimitive__arrows,
+.MapRoutePreview--routeWithNormalLocation.is-selected .MapRoutePrimitive__arrows,
+.MapRoutePreview--routeWithInformatedLocation:hover .MapRoutePrimitive__arrows,
+.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRoutePrimitive__arrows,
+.MapRoutePreview--routeWithProgress:hover .MapRoutePrimitive__arrows,
+.MapRoutePreview--routeWithProgress.is-selected .MapRoutePrimitive__arrows,
+.MapRoutePrimitive--selected .MapRoutePrimitive__arrows {
+  background-size: 28px 16px;
+}
+
+.MapRoutePrimitive__midPoint {
+  background: #ffffff;
+  border: 3px solid #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+  display: block;
+  height: 24px;
+  left: 124px;
+  position: absolute;
+  top: -6px;
+  width: 24px;
+}
+
+.MapRoutePrimitive--muted .MapRoutePrimitive__midPoint {
+  background: #c9d2fc;
+}
+
+.MapRoutePrimitive--completed .MapRoutePrimitive__midPoint {
+  background: #b6bdc8;
 }
 
 .MapRouteComposite__point {
@@ -772,39 +877,6 @@
   fill: #ffffff;
   height: 22px;
   width: 22px;
-}
-
-.MapRoutePreview__asset {
-  display: block;
-  max-width: none;
-  pointer-events: none;
-  position: absolute;
-  transition: opacity 120ms ease;
-  width: 284px;
-}
-
-.MapRoutePreview__asset--default {
-  bottom: 0;
-  height: 143px;
-  left: 0;
-  opacity: 1;
-}
-
-.MapRoutePreview__asset--hover {
-  height: 197px;
-  left: 0;
-  opacity: 0;
-  top: 0;
-}
-
-.MapRoutePreview--normalHasArrow:hover .MapRoutePreview__asset--default,
-.MapRoutePreview--normalHasArrow.is-selected .MapRoutePreview__asset--default {
-  opacity: 0;
-}
-
-.MapRoutePreview--normalHasArrow:hover .MapRoutePreview__asset--hover,
-.MapRoutePreview--normalHasArrow.is-selected .MapRoutePreview__asset--hover {
-  opacity: 1;
 }
 
 .MapRoutePreview__networkSvg {
