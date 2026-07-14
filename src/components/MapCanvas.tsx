@@ -11,7 +11,17 @@ import informatedSelectedMarker from "../assets/informated-location/selected.svg
 import { mapExploreDarkStyles, mapExploreVisualizationDarkStyles } from "../config/googleMapStyles";
 import { mapKey, mapPresets } from "../config/mapPresets";
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
-import type { CustomMarkerContent, MapControlsState, MarkerPreviewFamily, MarkerPreviewState, MarkerPreviewVariant, MarkerStyle } from "../types";
+import type {
+  CustomMarkerContent,
+  MapControlsState,
+  MarkerPreviewFamily,
+  MarkerPreviewState,
+  MarkerPreviewVariant,
+  MarkerStyle,
+  RoutePreviewFamily,
+  RoutePreviewState,
+  RoutePreviewVariant,
+} from "../types";
 
 declare global {
   interface Window {
@@ -108,6 +118,8 @@ interface MapCanvasProps {
   previewFeature?: "point" | "line" | "area" | "container";
   previewMarkerFamily?: MarkerPreviewFamily;
   previewMarkers?: MarkerPreviewState[];
+  previewRouteFamily?: RoutePreviewFamily;
+  previewRoutes?: RoutePreviewState[];
 }
 
 const center: GoogleLatLng = { lat: 31.225, lng: 121.45 };
@@ -117,6 +129,13 @@ const routePositions: GoogleLatLng[] = [
   { lat: 31.207, lng: 121.317 },
   { lat: 31.223, lng: 121.445 },
   { lat: 31.236, lng: 121.502 },
+];
+
+const routePreviewPositions: GoogleLatLng[] = [
+  { lat: 31.238, lng: 121.39 },
+  { lat: 31.226, lng: 121.43 },
+  { lat: 31.213, lng: 121.47 },
+  { lat: 31.201, lng: 121.51 },
 ];
 
 const pointPreviewPositions: GoogleLatLng[] = [
@@ -391,6 +410,38 @@ function createMarkerElement(
   return marker;
 }
 
+function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVariant, label: string) {
+  const route = document.createElement("div");
+  route.className = `MapRoutePreview MapMarker--interactive MapRoutePreview--${family} MapRoutePreview--${variant}`;
+  route.tabIndex = 0;
+  route.setAttribute("aria-label", label);
+  route.setAttribute("role", "button");
+  route.innerHTML = family === "normalHasArrow" ? '<span class="MapRoutePreview__line"><i></i></span>' : '<span class="MapRoutePreview__line"></span>';
+
+  route.addEventListener("click", () => {
+    const canvas = route.closest(".MapCanvas");
+    canvas?.querySelectorAll(".MapRoutePreview.is-selected").forEach((selectedRoute) => {
+      if (selectedRoute !== route) {
+        selectedRoute.classList.remove("is-selected");
+      }
+    });
+    route.classList.toggle("is-selected");
+  });
+  route.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      route.click();
+    }
+  });
+
+  const tooltip = document.createElement("div");
+  tooltip.className = "MapMarker__tooltip";
+  tooltip.textContent = label;
+  route.appendChild(tooltip);
+
+  return route;
+}
+
 function resolvePreviewCenter(previewDistribution: MapCanvasProps["previewDistribution"]) {
   return previewDistribution === "china" || previewDistribution === "chinaCluster" ? chinaCenter : center;
 }
@@ -528,6 +579,8 @@ export function MapCanvas({
   previewFeature,
   previewMarkerFamily = "normal",
   previewMarkers,
+  previewRouteFamily,
+  previewRoutes,
 }: MapCanvasProps) {
   const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement | null>(null);
@@ -535,6 +588,7 @@ export function MapCanvas({
   const polylineRef = useRef<GooglePolyline | null>(null);
   const polygonRef = useRef<GooglePolygon | null>(null);
   const markersRef = useRef<MapMarkerHandle[]>([]);
+  const routePreviewsRef = useRef<MapMarkerHandle[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "missing-key" | "error">("idle");
   const [previewZoom, setPreviewZoom] = useState(controls.zoom);
   const preset = mapPresets[mapCategory][lang];
@@ -630,7 +684,8 @@ export function MapCanvas({
     });
 
     const shouldShowMarkers = !previewFeature || previewFeature === "point" || previewFeature === "container";
-    const shouldShowLine = !previewFeature || previewFeature === "line" || previewFeature === "container";
+    const shouldShowRoutePreview = previewFeature === "line" && Boolean(previewRouteFamily && previewRoutes?.length);
+    const shouldShowLine = (!previewFeature || previewFeature === "line" || previewFeature === "container") && !shouldShowRoutePreview;
     const shouldShowArea = previewFeature === "area" || previewFeature === "container";
 
     if (!polylineRef.current) {
@@ -680,6 +735,30 @@ export function MapCanvas({
 
     markersRef.current.forEach((marker) => marker.remove());
     markersRef.current = [];
+    routePreviewsRef.current.forEach((route) => route.remove());
+    routePreviewsRef.current = [];
+
+    const renderRoutePreviews = async () => {
+      if (!shouldShowRoutePreview || !previewRouteFamily || !previewRoutes?.length) {
+        return;
+      }
+
+      const routeHandles = await Promise.all(
+        previewRoutes.map((route, index) => {
+          const routeElement = createRouteElement(previewRouteFamily, route.id, route.label);
+          return activeMapId
+            ? createAdvancedMarker(googleMaps, map, routePreviewPositions[index % routePreviewPositions.length], routeElement, "center")
+            : Promise.resolve(createOverlayMarker(googleMaps, map, routePreviewPositions[index % routePreviewPositions.length], routeElement, "center"));
+        }),
+      );
+
+      if (cancelled) {
+        routeHandles.forEach((route) => route.remove());
+        return;
+      }
+
+      routePreviewsRef.current = routeHandles;
+    };
 
     const renderMarkers = async () => {
       if (!shouldShowMarkers) {
@@ -740,6 +819,12 @@ export function MapCanvas({
       );
     };
 
+    renderRoutePreviews().catch(() => {
+      if (!cancelled) {
+        setStatus("error");
+      }
+    });
+
     renderMarkers().catch(() => {
       if (!cancelled) {
         setStatus("error");
@@ -750,6 +835,8 @@ export function MapCanvas({
       cancelled = true;
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
+      routePreviewsRef.current.forEach((route) => route.remove());
+      routePreviewsRef.current = [];
     };
   }, [
     controls.markerStyle,
@@ -763,6 +850,8 @@ export function MapCanvas({
     previewFeature,
     previewMarkerFamily,
     previewMarkers,
+    previewRouteFamily,
+    previewRoutes,
     renderPreviewZoom,
     routeColor,
     status,
@@ -774,6 +863,8 @@ export function MapCanvas({
       polygonRef.current?.setMap(null);
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
+      routePreviewsRef.current.forEach((route) => route.remove());
+      routePreviewsRef.current = [];
     };
   }, []);
 

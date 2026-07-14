@@ -191,24 +191,70 @@
           "labelKey": "manual.categories.line",
           "components": [
             {
-              "id": "entity-line-placeholder-01",
-              "nameKey": "manual.placeholders.componentName",
-              "descriptionKey": "manual.placeholders.componentDescription",
+              "id": "entity-line-normal-route-no-arrow",
+              "nameKey": "manual.normalRouteNoArrow.name",
+              "descriptionKey": "manual.normalRouteNoArrow.description",
               "previewType": "line",
+              "routeFamily": "normalNoArrow",
+              "routeVariants": [
+                { "id": "default", "labelKey": "manual.normalRoute.variants.default" },
+                { "id": "muted", "labelKey": "manual.normalRoute.variants.muted" },
+                { "id": "completed", "labelKey": "manual.normalRoute.variants.completed" },
+                { "id": "selected", "labelKey": "manual.normalRoute.variants.selected" }
+              ],
               "styleRows": [
-                { "labelKey": "manual.content.style", "valueKey": "manual.placeholders.pending" }
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.normalRouteNoArrow.style.variantSet" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.normalRoute.style.sizes" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.normalRoute.style.color" },
+                { "labelKey": "manual.rows.shadow", "valueKey": "manual.normalRoute.style.shadow" }
               ],
               "fakeModRows": [
-                { "labelKey": "manual.content.fakeMod", "valueKey": "manual.placeholders.pending" }
+                { "labelKey": "manual.rows.component", "valueKey": "manual.normalRouteNoArrow.fakeMod.component" },
+                { "labelKey": "manual.rows.property", "valueKey": "manual.normalRouteNoArrow.fakeMod.property" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.normalRouteNoArrow.fakeMod.figmaNodes" }
               ],
               "code": {
                 "language": "tsx",
-                "valueKey": "manual.placeholders.code"
+                "valueKey": "manual.normalRouteNoArrow.code"
               },
               "usage": {
-                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.placeholders.pendingBullet"] },
-                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.placeholders.pendingBullet"] },
-                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.placeholders.pendingBullet"] }
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.normalRoute.usage.primary"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.normalRouteNoArrow.usage.extended"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.normalRoute.usage.constraints"] }
+              }
+            },
+            {
+              "id": "entity-line-normal-route-has-arrow",
+              "nameKey": "manual.normalRouteHasArrow.name",
+              "descriptionKey": "manual.normalRouteHasArrow.description",
+              "previewType": "line",
+              "routeFamily": "normalHasArrow",
+              "routeVariants": [
+                { "id": "default", "labelKey": "manual.normalRoute.variants.default" },
+                { "id": "muted", "labelKey": "manual.normalRoute.variants.muted" },
+                { "id": "completed", "labelKey": "manual.normalRoute.variants.completed" },
+                { "id": "selected", "labelKey": "manual.normalRoute.variants.selected" }
+              ],
+              "styleRows": [
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.normalRouteHasArrow.style.variantSet" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.normalRoute.style.sizes" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.normalRoute.style.color" },
+                { "labelKey": "manual.rows.shadow", "valueKey": "manual.normalRoute.style.shadow" },
+                { "labelKey": "manual.rows.icon", "valueKey": "manual.normalRouteHasArrow.style.arrow" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.rows.component", "valueKey": "manual.normalRouteHasArrow.fakeMod.component" },
+                { "labelKey": "manual.rows.property", "valueKey": "manual.normalRouteHasArrow.fakeMod.property" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.normalRouteHasArrow.fakeMod.figmaNodes" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.normalRouteHasArrow.code"
+              },
+              "usage": {
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.normalRoute.usage.primary"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.normalRouteHasArrow.usage.extended"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.normalRoute.usage.constraints"] }
               }
             }
           ]

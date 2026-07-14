@@ -3,7 +3,14 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { createPreviewMarkers, getPreviewZoom } from "../config/manualPreview";
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
-import type { CustomMarkerContent, MapControlsState, MarkerPreviewFamily, MarkerPreviewVariant } from "../types";
+import type {
+  CustomMarkerContent,
+  MapControlsState,
+  MarkerPreviewFamily,
+  MarkerPreviewVariant,
+  RoutePreviewFamily,
+  RoutePreviewVariant,
+} from "../types";
 import { MapCanvas } from "./MapCanvas";
 
 export type ManualCategoryId = "point" | "line" | "area" | "container";
@@ -26,6 +33,11 @@ export interface ManualMarkerVariant {
   labelKey: string;
 }
 
+export interface ManualRouteVariant {
+  id: RoutePreviewVariant;
+  labelKey: string;
+}
+
 export interface ManualComponentSpec {
   id: string;
   nameKey: string;
@@ -34,6 +46,8 @@ export interface ManualComponentSpec {
   previewDistribution?: ManualPreviewDistribution;
   markerFamily?: MarkerPreviewFamily;
   markerVariants?: ManualMarkerVariant[];
+  routeFamily?: RoutePreviewFamily;
+  routeVariants?: ManualRouteVariant[];
   styleRows: ManualInfoRow[];
   fakeModRows: ManualInfoRow[];
   code: {
@@ -147,6 +161,8 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }:
             previewDistribution={spec.previewDistribution}
             previewMarkerFamily={spec.markerFamily}
             previewMarkers={previewMarkers}
+            previewRouteFamily={spec.routeFamily}
+            previewRoutes={spec.routeVariants?.map((variant) => ({ id: variant.id, label: t(variant.labelKey) }))}
           />
         </div>
 

@@ -4,7 +4,7 @@ import type { ManualCategoryId, ManualComponentSpec } from "../components/Compon
 import { MapCanvas } from "../components/MapCanvas";
 import { createDefaultControls, ParamPanel } from "../components/ParamPanel";
 import componentSpecs from "../config/componentSpecs.json";
-import { createPreviewMarkers, getPreviewZoom } from "../config/manualPreview";
+import { createPreviewMarkers, createPreviewRoutes, getPreviewZoom } from "../config/manualPreview";
 import { useWorkbenchStore } from "../store/workbenchStore";
 import type { MapCategory } from "../store/workbenchStore";
 
@@ -36,6 +36,10 @@ export function MapBrowseScene() {
   const activeComponent = activeCategory?.components.find((component) => component.id === activeComponentId) ?? activeCategory?.components[0];
   const previewMarkers = useMemo(
     () => (activeComponent ? createPreviewMarkers(activeComponent, t) : undefined),
+    [activeComponent, t],
+  );
+  const previewRoutes = useMemo(
+    () => (activeComponent ? createPreviewRoutes(activeComponent, t) : undefined),
     [activeComponent, t],
   );
 
@@ -75,6 +79,8 @@ export function MapBrowseScene() {
         previewFeature={activeComponent?.previewType}
         previewMarkerFamily={activeComponent?.markerFamily}
         previewMarkers={previewMarkers}
+        previewRouteFamily={activeComponent?.routeFamily}
+        previewRoutes={previewRoutes}
       />
       <aside className="BrowseInspector">
         <section className="BrowseComponentPicker" aria-label={t("browse.components.aria")}>

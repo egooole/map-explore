@@ -1,5 +1,5 @@
 import type { ManualComponentSpec, ManualMarkerVariant } from "../components/ComponentCard";
-import type { MarkerPreviewState, MarkerPreviewVariant } from "../types";
+import type { MarkerPreviewState, MarkerPreviewVariant, RoutePreviewState } from "../types";
 
 const pointPreviewPattern: MarkerPreviewVariant[] = [
   "default",
@@ -82,6 +82,13 @@ export function createPreviewMarkers(spec: ManualComponentSpec, translate: (key:
     .map((variant) => markersById.get(variant))
     .filter((marker): marker is ManualMarkerVariant => Boolean(marker))
     .map((marker) => ({ id: marker.id, label: translate(marker.labelKey) }));
+}
+
+export function createPreviewRoutes(spec: ManualComponentSpec, translate: (key: string) => string): RoutePreviewState[] | undefined {
+  return spec.routeVariants?.map((variant) => ({
+    id: variant.id,
+    label: translate(variant.labelKey),
+  }));
 }
 
 export function getPreviewZoom(spec: ManualComponentSpec) {

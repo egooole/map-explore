@@ -261,6 +261,56 @@
       },
       "code": "type CustomLocationContent = \"letter\" | \"number\" | \"warehouse\" | \"shop\" | \"user\";\n\nasync function renderCustomLocation(map: google.maps.Map, position: google.maps.LatLngLiteral, contentType: CustomLocationContent) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = \"MapMarker MapMarker--advanced MapMarker--custom-default\";\n  content.dataset.content = contentType;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
+    "normalRoute": {
+      "variants": {
+        "default": "Default",
+        "muted": "Muted",
+        "completed": "Completed",
+        "selected": "Hover & Selected"
+      },
+      "style": {
+        "sizes": "200x12 base state with 8px route body; 200x20 hover/selected state with 16px route body",
+        "color": "Default #2A3EF4; muted #C9D2FC; completed #9C9EAD; hover/selected #2232C3",
+        "shadow": "2px white stroke plus 4px/8px radius for legibility on dense maps"
+      },
+      "usage": {
+        "primary": "Use for regular route segments in delivery, navigation, inspection, or trace replay flows.",
+        "constraints": "Avoid stacking many highlighted routes in one viewport; reserve hover/selected for the focused route."
+      }
+    },
+    "normalRouteNoArrow": {
+      "name": "Normal route / No arrow",
+      "description": "Regular route without directional arrows, used when path presence matters more than direction.",
+      "style": {
+        "variantSet": "Line / no arrow: default / muted / completed / hover&selected"
+      },
+      "fakeMod": {
+        "component": "NormalRouteNoArrow",
+        "property": "Property 1 = Line / No arrow / {state}",
+        "figmaNodes": "3079:139806 / 139808 / 139810 / 139812"
+      },
+      "usage": {
+        "extended": "Use for historical traces, planned paths, boundary connections, or route displays where direction is not important."
+      },
+      "code": "type NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nasync function renderNormalRouteNoArrow(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: NormalRouteVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalNoArrow MapRoutePreview--${variant}`;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
+    },
+    "normalRouteHasArrow": {
+      "name": "Normal route / Has arrow",
+      "description": "Regular route with directional arrows, used to express route direction, flow, or next movement.",
+      "style": {
+        "variantSet": "Line / has arrow: default / muted / completed / hover&selected",
+        "arrow": "Repeated arrow mask inside the route body; arrow color follows the route state"
+      },
+      "fakeMod": {
+        "component": "NormalRouteHasArrow",
+        "property": "Property 1 = Line / Has arrow / {state}",
+        "figmaNodes": "3079:139822 / 139833 / 139845 / 139856"
+      },
+      "usage": {
+        "extended": "Use for delivery direction, the next navigation segment, vehicle/package flow, or paths where start/end direction matters."
+      },
+      "code": "type NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nasync function renderNormalRouteHasArrow(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: NormalRouteVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = '<span class=\"MapRoutePreview__line\"><i /></span>';\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
+    },
     "sections": {
       "spec": "Style",
       "content": "Content",
