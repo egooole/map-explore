@@ -36,8 +36,6 @@ declare global {
 type GoogleMapsGlobal = {
   maps: {
     ControlPosition: Record<string, number>;
-    DirectionsService: new () => GoogleDirectionsService;
-    DirectionsStatus: { OK: string };
     importLibrary: (library: "marker") => Promise<GoogleMarkerLibrary>;
     Map: new (element: HTMLElement, options: Record<string, unknown>) => GoogleMap;
     OverlayView: typeof GoogleOverlayView;
@@ -46,7 +44,6 @@ type GoogleMapsGlobal = {
     Polyline: new (options: Record<string, unknown>) => GooglePolyline;
     Size: new (width: number, height: number) => unknown;
     SymbolPath: { FORWARD_CLOSED_ARROW: unknown };
-    TravelMode: { DRIVING: string };
   };
 };
 
@@ -111,28 +108,6 @@ interface GoogleLatLngValue {
 }
 
 type GoogleLatLng = GoogleLatLngLiteral | GoogleLatLngValue;
-
-interface GoogleDirectionsService {
-  route: (
-    request: Record<string, unknown>,
-    callback: (result: GoogleDirectionsResult | null, status: string) => void,
-  ) => void;
-}
-
-interface GoogleDirectionsLeg {
-  end_location: GoogleLatLng;
-  start_location: GoogleLatLng;
-}
-
-interface GoogleDirectionsRoute {
-  bounds?: unknown;
-  legs?: GoogleDirectionsLeg[];
-  overview_path?: GoogleLatLng[];
-}
-
-interface GoogleDirectionsResult {
-  routes?: GoogleDirectionsRoute[];
-}
 
 interface MapMarkerHandle {
   remove: () => void;
@@ -199,6 +174,125 @@ function clearDynamicRouteLayer(layer: DynamicRouteLayer) {
 
 function normalizeRouteNodeValue(value: string) {
   return value.trim();
+}
+
+interface RoutesApiLatLng {
+  latitude: number;
+  longitude: number;
+}
+
+interface RoutesApiResponse {
+  routes?: Array<{
+    polyline?: {
+      encodedPolyline?: string;
+    };
+    viewport?: {
+      high?: RoutesApiLatLng;
+      low?: RoutesApiLatLng;
+    };
+  }>;
+}
+
+interface ComputedRoute {
+  bounds?: {
+    east: number;
+    north: number;
+    south: number;
+    west: number;
+  };
+  path: GoogleLatLngLiteral[];
+}
+
+function decodeEncodedPolyline(encodedPolyline: string): GoogleLatLngLiteral[] {
+  const path: GoogleLatLngLiteral[] = [];
+  let index = 0;
+  let lat = 0;
+  let lng = 0;
+
+  while (index < encodedPolyline.length) {
+    let result = 0;
+    let shift = 0;
+    let byte = 0;
+
+    do {
+      byte = encodedPolyline.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+
+    lat += result & 1 ? ~(result >> 1) : result >> 1;
+    result = 0;
+    shift = 0;
+
+    do {
+      byte = encodedPolyline.charCodeAt(index++) - 63;
+      result |= (byte & 0x1f) << shift;
+      shift += 5;
+    } while (byte >= 0x20);
+
+    lng += result & 1 ? ~(result >> 1) : result >> 1;
+    path.push({ lat: lat / 1e5, lng: lng / 1e5 });
+  }
+
+  return path;
+}
+
+async function computeRouteWithRoutesApi(start: string, middle: string, end: string): Promise<ComputedRoute> {
+  if (!mapKey) {
+    throw new Error("missing-map-key");
+  }
+
+  const response = await fetch("https://routes.googleapis.com/directions/v2:computeRoutes", {
+    body: JSON.stringify({
+      computeAlternativeRoutes: false,
+      destination: { address: end },
+      intermediates: middle ? [{ address: middle }] : [],
+      origin: { address: start },
+      polylineEncoding: "ENCODED_POLYLINE",
+      polylineQuality: "HIGH_QUALITY",
+      routingPreference: "TRAFFIC_UNAWARE",
+      travelMode: "DRIVE",
+    }),
+    headers: {
+      "Content-Type": "application/json",
+      "X-Goog-Api-Key": mapKey,
+      "X-Goog-FieldMask": "routes.polyline.encodedPolyline,routes.viewport",
+    },
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    throw new Error(`routes-api-${response.status}`);
+  }
+
+  const data = (await response.json()) as RoutesApiResponse;
+  const route = data.routes?.[0];
+  const encodedPolyline = route?.polyline?.encodedPolyline;
+
+  if (!encodedPolyline) {
+    throw new Error("routes-api-empty");
+  }
+
+  const path = decodeEncodedPolyline(encodedPolyline);
+  if (path.length === 0) {
+    throw new Error("routes-api-empty-path");
+  }
+
+  const high = route.viewport?.high;
+  const low = route.viewport?.low;
+
+  return {
+    bounds:
+      high && low
+        ? {
+            east: high.longitude,
+            north: high.latitude,
+            south: low.latitude,
+            west: low.longitude,
+          }
+        : undefined,
+    path,
+  };
 }
 
 const pointPreviewPositions: GoogleLatLng[] = [
@@ -1074,134 +1168,121 @@ export function MapCanvas({
     const middle = dynamicRouteNodes.find((node) => node.id === "middle")?.value ?? "";
     const end = dynamicRouteNodes.find((node) => node.id === "end")?.value ?? "";
     const shouldShowArrows = dynamicRouteFamily !== "normalNoArrow";
-    const directionsService = new googleMaps.maps.DirectionsService();
 
     clearDynamicRouteLayer(dynamicRouteRef.current);
     setRouteStatus("loading");
 
-    directionsService.route(
-      {
-        destination: end,
-        origin: start,
-        travelMode: googleMaps.maps.TravelMode.DRIVING,
-        waypoints: middle ? [{ location: middle, stopover: true }] : [],
-      },
-      (result, routeRequestStatus) => {
-        void (async () => {
-          if (cancelled) {
-            return;
-          }
+    void (async () => {
+      try {
+        const computedRoute = await computeRouteWithRoutesApi(start, middle, end);
+        if (cancelled) {
+          return;
+        }
 
-          const route = result?.routes?.[0];
-          const path = route?.overview_path ?? [];
+        const path = computedRoute.path;
+        const layer = dynamicRouteRef.current;
+        clearDynamicRouteLayer(layer);
 
-          if (!route || routeRequestStatus !== googleMaps.maps.DirectionsStatus.OK || path.length === 0) {
-            setRouteStatus("error");
-            return;
-          }
-
-          const directionsRoute = route;
-          const layer = dynamicRouteRef.current;
-          clearDynamicRouteLayer(layer);
-
-          let selected = false;
-          const routeIcons = (focused: boolean) =>
-            shouldShowArrows
-              ? [
-                  {
-                    icon: {
-                      fillColor: focused ? "#768bff" : "#768bff",
-                      fillOpacity: focused ? 0.95 : 0.72,
-                      path: googleMaps.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                      scale: focused ? 3.2 : 2.8,
-                      strokeColor: focused ? "#768bff" : "#768bff",
-                      strokeOpacity: focused ? 0.95 : 0.72,
-                      strokeWeight: 1,
-                    },
-                    offset: "32px",
-                    repeat: focused ? "52px" : "56px",
+        let selected = false;
+        const routeIcons = (focused: boolean) =>
+          shouldShowArrows
+            ? [
+                {
+                  icon: {
+                    fillColor: focused ? "#768bff" : "#768bff",
+                    fillOpacity: focused ? 0.95 : 0.72,
+                    path: googleMaps.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                    scale: focused ? 3.2 : 2.8,
+                    strokeColor: focused ? "#768bff" : "#768bff",
+                    strokeOpacity: focused ? 0.95 : 0.72,
+                    strokeWeight: 1,
                   },
-                ]
-              : [];
-          const setFocused = (focused: boolean) => {
-            layer.outline?.setOptions({
-              strokeWeight: focused ? 20 : 12,
-            });
-            layer.route?.setOptions({
-              icons: routeIcons(focused),
-              strokeColor: focused ? "#2232c3" : "#2a3ef4",
-              strokeWeight: focused ? 16 : 8,
-              zIndex: focused ? 42 : 41,
-            });
-          };
-
-          layer.outline = new googleMaps.maps.Polyline({
-            clickable: false,
-            geodesic: true,
-            map,
-            path,
-            strokeColor: "#ffffff",
-            strokeOpacity: 1,
-            strokeWeight: 12,
-            zIndex: 40,
+                  offset: "32px",
+                  repeat: focused ? "52px" : "56px",
+                },
+              ]
+            : [];
+        const setFocused = (focused: boolean) => {
+          layer.outline?.setOptions({
+            strokeWeight: focused ? 20 : 12,
           });
-          layer.route = new googleMaps.maps.Polyline({
-            clickable: true,
-            geodesic: true,
-            icons: routeIcons(false),
-            map,
-            path,
-            strokeColor: "#2a3ef4",
-            strokeOpacity: 0.98,
-            strokeWeight: 8,
-            zIndex: 41,
+          layer.route?.setOptions({
+            icons: routeIcons(focused),
+            strokeColor: focused ? "#2232c3" : "#2a3ef4",
+            strokeWeight: focused ? 16 : 8,
+            zIndex: focused ? 42 : 41,
           });
-          layer.listeners = [
-            layer.route.addListener("mouseover", () => setFocused(true)),
-            layer.route.addListener("mouseout", () => {
-              if (!selected) {
-                setFocused(false);
-              }
-            }),
-            layer.route.addListener("click", () => {
-              selected = !selected;
-              setFocused(selected);
-            }),
-          ];
+        };
 
-          const legs = directionsRoute.legs ?? [];
-          const routeMarkerPositions = legs.length
-            ? [legs[0].start_location, ...legs.map((leg) => leg.end_location)]
-            : [path[0], path[Math.floor(path.length / 2)], path[path.length - 1]];
-          const routeMarkerLabels = dynamicRouteNodes.filter((node) => node.value).map((node) => node.value);
-          const markerHandles = await Promise.all(
-            routeMarkerPositions.map((position, index) => {
-              const markerElement = createMarkerElement(
-                controls.markerStyle,
-                routeMarkerLabels[index] ?? markerLabels[index] ?? t("map.destination"),
-                index === 0 ? "default" : index === routeMarkerPositions.length - 1 ? "emphasized" : "completed",
-                "normal",
-              );
-              return activeMapId
-                ? createAdvancedMarker(googleMaps, map, position, markerElement)
-                : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement));
-            }),
-          );
+        layer.outline = new googleMaps.maps.Polyline({
+          clickable: false,
+          geodesic: true,
+          map,
+          path,
+          strokeColor: "#ffffff",
+          strokeOpacity: 1,
+          strokeWeight: 12,
+          zIndex: 40,
+        });
+        layer.route = new googleMaps.maps.Polyline({
+          clickable: true,
+          geodesic: true,
+          icons: routeIcons(false),
+          map,
+          path,
+          strokeColor: "#2a3ef4",
+          strokeOpacity: 0.98,
+          strokeWeight: 8,
+          zIndex: 41,
+        });
+        layer.listeners = [
+          layer.route.addListener("mouseover", () => setFocused(true)),
+          layer.route.addListener("mouseout", () => {
+            if (!selected) {
+              setFocused(false);
+            }
+          }),
+          layer.route.addListener("click", () => {
+            selected = !selected;
+            setFocused(selected);
+          }),
+        ];
 
-          if (cancelled) {
-            markerHandles.forEach((marker) => marker.remove());
-            clearDynamicRouteLayer(layer);
-            return;
-          }
+        const routeMarkerPositions = middle
+          ? [path[0], path[Math.floor(path.length / 2)], path[path.length - 1]]
+          : [path[0], path[path.length - 1]];
+        const routeMarkerLabels = dynamicRouteNodes.filter((node) => node.value).map((node) => node.value);
+        const markerHandles = await Promise.all(
+          routeMarkerPositions.map((position, index) => {
+            const markerElement = createMarkerElement(
+              controls.markerStyle,
+              routeMarkerLabels[index] ?? markerLabels[index] ?? t("map.destination"),
+              index === 0 ? "default" : index === routeMarkerPositions.length - 1 ? "emphasized" : "completed",
+              "normal",
+            );
+            return activeMapId
+              ? createAdvancedMarker(googleMaps, map, position, markerElement)
+              : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement));
+          }),
+        );
 
-          layer.markers = markerHandles;
-          if (directionsRoute.bounds) {
-            map.fitBounds(directionsRoute.bounds, 72);
-          }
-          setRouteStatus("idle");
-        })();
-      },
-    );
+        if (cancelled) {
+          markerHandles.forEach((marker) => marker.remove());
+          clearDynamicRouteLayer(layer);
+          return;
+        }
+
+        layer.markers = markerHandles;
+        if (computedRoute.bounds) {
+          map.fitBounds(computedRoute.bounds, 72);
+        }
+        setRouteStatus("idle");
+      } catch {
+        if (!cancelled) {
+          setRouteStatus("error");
+        }
+      }
+    })();
 
     return () => {
       cancelled = true;
