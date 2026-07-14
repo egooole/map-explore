@@ -90,7 +90,8 @@
     "googleKeyMissing": "VITE_MAP_KEY is missing, so Google Maps cannot load",
     "loadError": "Google Maps failed to load. Check the API key or network",
     "routeLoading": "Generating route...",
-    "routeError": "Route generation failed. Check the places or Directions API settings"
+    "routeError": "Route generation failed. Check the places or Routes API settings",
+    "routeApiBlocked": "Routes API is blocked by this API key. Allow Routes API in API restrictions"
   },
   "useCase": {
     "deliveredRange": "Estimated delivery Mar 28-30",

@@ -203,6 +203,15 @@ interface ComputedRoute {
   path: GoogleLatLngLiteral[];
 }
 
+class RouteRequestError extends Error {
+  code: "api-blocked" | "generic";
+
+  constructor(code: RouteRequestError["code"]) {
+    super(code);
+    this.code = code;
+  }
+}
+
 function decodeEncodedPolyline(encodedPolyline: string): GoogleLatLngLiteral[] {
   const path: GoogleLatLngLiteral[] = [];
   let index = 0;
@@ -262,7 +271,11 @@ async function computeRouteWithRoutesApi(start: string, middle: string, end: str
   });
 
   if (!response.ok) {
-    throw new Error(`routes-api-${response.status}`);
+    const errorText = await response.text();
+    if (errorText.includes("API_KEY_SERVICE_BLOCKED") || errorText.includes("Routes.ComputeRoutes are blocked")) {
+      throw new RouteRequestError("api-blocked");
+    }
+    throw new RouteRequestError("generic");
   }
 
   const data = (await response.json()) as RoutesApiResponse;
@@ -860,7 +873,7 @@ export function MapCanvas({
   const markersRef = useRef<MapMarkerHandle[]>([]);
   const routePreviewsRef = useRef<MapMarkerHandle[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "missing-key" | "error">("idle");
-  const [routeStatus, setRouteStatus] = useState<"idle" | "loading" | "error">("idle");
+  const [routeStatus, setRouteStatus] = useState<"idle" | "loading" | "error" | "api-blocked">("idle");
   const [previewZoom, setPreviewZoom] = useState(controls.zoom);
   const [debouncedRouteNodes, setDebouncedRouteNodes] = useState(controls.routeNodes);
   const preset = mapPresets[mapCategory][lang];
@@ -1277,9 +1290,9 @@ export function MapCanvas({
           map.fitBounds(computedRoute.bounds, 72);
         }
         setRouteStatus("idle");
-      } catch {
+      } catch (error) {
         if (!cancelled) {
-          setRouteStatus("error");
+          setRouteStatus(error instanceof RouteRequestError && error.code === "api-blocked" ? "api-blocked" : "error");
         }
       }
     })();
@@ -1322,6 +1335,9 @@ export function MapCanvas({
       ) : null}
       {status === "ready" && routeStatus === "error" ? (
         <div className="MapCanvas__routeState MapCanvas__routeState--error">{t("map.routeError")}</div>
+      ) : null}
+      {status === "ready" && routeStatus === "api-blocked" ? (
+        <div className="MapCanvas__routeState MapCanvas__routeState--error">{t("map.routeApiBlocked")}</div>
       ) : null}
       <div className="MapCanvas__meta">
         <span>{t(`map.${mapCategory}`)}</span>

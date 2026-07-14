@@ -90,7 +90,8 @@
     "googleKeyMissing": "缺少 VITE_MAP_KEY，无法加载 Google Maps",
     "loadError": "Google Maps 加载失败，请检查 API Key 或网络",
     "routeLoading": "正在生成路线...",
-    "routeError": "路线生成失败，请检查地点或 Directions API 配置"
+    "routeError": "路线生成失败，请检查地点或 Routes API 配置",
+    "routeApiBlocked": "Routes API 被当前 API key 阻止，请在 API restrictions 中允许 Routes API"
   },
   "useCase": {
     "deliveredRange": "预计送达 3 月 28-30 日",
