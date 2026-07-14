@@ -538,8 +538,8 @@
 }
 
 .MapRoutePreview--normalHasArrow {
-  height: 121px;
-  width: 282px;
+  height: 197px;
+  width: 284px;
 }
 
 .MapRoutePreview--routeWithNormalLocation {
@@ -885,6 +885,39 @@
   height: 121px;
   overflow: visible;
   width: 282px;
+}
+
+.MapRoutePreview--normalHasArrow .MapRoutePreview__asset {
+  display: block;
+  filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.2));
+  inset-inline: 0;
+  pointer-events: none;
+  position: absolute;
+}
+
+.MapRoutePreview--normalHasArrow .MapRoutePreview__asset img {
+  display: block;
+  height: auto;
+  width: 100%;
+}
+
+.MapRoutePreview--normalHasArrow .MapRoutePreview__asset--default {
+  bottom: 0;
+}
+
+.MapRoutePreview--normalHasArrow .MapRoutePreview__asset--hover {
+  opacity: 0;
+  top: 0;
+}
+
+.MapRoutePreview--normalHasArrow:hover .MapRoutePreview__asset--default,
+.MapRoutePreview--normalHasArrow.is-selected .MapRoutePreview__asset--default {
+  opacity: 0;
+}
+
+.MapRoutePreview--normalHasArrow:hover .MapRoutePreview__asset--hover,
+.MapRoutePreview--normalHasArrow.is-selected .MapRoutePreview__asset--hover {
+  opacity: 1;
 }
 
 .MapRoutePreview--muted {

@@ -8,6 +8,8 @@ import informatedDefaultMarker from "../assets/informated-location/default.svg";
 import informatedDisableMarker from "../assets/informated-location/disable.svg";
 import informatedEmphasizedMarker from "../assets/informated-location/emphasized.svg";
 import informatedSelectedMarker from "../assets/informated-location/selected.svg";
+import normalRouteHasArrowDefault from "../assets/route/normal-route-has-arrow-default.svg";
+import normalRouteHasArrowHover from "../assets/route/normal-route-has-arrow-hover.svg";
 import { mapExploreDarkStyles, mapExploreVisualizationDarkStyles } from "../config/googleMapStyles";
 import { mapKey, mapPresets } from "../config/mapPresets";
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
@@ -475,7 +477,20 @@ function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVar
   route.tabIndex = 0;
   route.setAttribute("aria-label", label);
   route.setAttribute("role", "button");
-  if (family === "routeWithNormalLocation" || family === "routeWithInformatedLocation" || family === "routeWithProgress") {
+  if (family === "normalHasArrow") {
+    route.innerHTML = `
+      <span class="MapRoutePreview__asset MapRoutePreview__asset--default" aria-hidden="true">
+        <img src="${normalRouteHasArrowDefault}" alt="" />
+      </span>
+      <span class="MapRoutePreview__asset MapRoutePreview__asset--hover" aria-hidden="true">
+        <img src="${normalRouteHasArrowHover}" alt="" />
+      </span>
+    `;
+  } else if (
+    family === "routeWithNormalLocation" ||
+    family === "routeWithInformatedLocation" ||
+    family === "routeWithProgress"
+  ) {
     route.innerHTML = createCompositeRouteElement(family, variant);
   } else {
     route.innerHTML = `
