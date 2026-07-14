@@ -542,6 +542,238 @@
   width: 284px;
 }
 
+.MapRoutePreview--routeWithNormalLocation {
+  height: 24px;
+  width: 220px;
+}
+
+.MapRoutePreview--routeWithInformatedLocation {
+  height: 40px;
+  width: 240px;
+}
+
+.MapRoutePreview--routeWithProgress {
+  height: 64px;
+  width: 246px;
+}
+
+.MapRouteComposite {
+  display: block;
+  height: 100%;
+  inset: 0;
+  position: absolute;
+  width: 100%;
+}
+
+.MapRouteComposite__line {
+  border: 2px solid #ffffff;
+  border-radius: 4px;
+  box-sizing: border-box;
+  display: block;
+  height: 12px;
+  overflow: hidden;
+  position: absolute;
+  width: 200px;
+}
+
+.MapRouteComposite--routeWithNormalLocation .MapRouteComposite__line {
+  left: 12px;
+  top: 6px;
+}
+
+.MapRouteComposite--routeWithInformatedLocation .MapRouteComposite__line {
+  left: 20px;
+  top: 27px;
+}
+
+.MapRouteComposite--routeWithProgress .MapRouteComposite__line {
+  left: 22px;
+  top: 26px;
+}
+
+.MapRouteComposite__segment,
+.MapRouteComposite__arrows {
+  display: block;
+  inset-block: 0;
+  position: absolute;
+}
+
+.MapRouteComposite__segment--completed {
+  background: #9c9ead;
+  display: none;
+  left: 0;
+  right: 0;
+}
+
+.MapRouteComposite__segment--active {
+  background: #2a3ef4;
+  left: 0;
+  right: 0;
+}
+
+.MapRouteComposite--muted .MapRouteComposite__segment--active {
+  background: #c9d2fc;
+}
+
+.MapRouteComposite--completed .MapRouteComposite__segment--active {
+  background: #9c9ead;
+}
+
+.MapRouteComposite--inProgress .MapRouteComposite__segment--completed {
+  display: block;
+  right: 56px;
+}
+
+.MapRouteComposite--inProgress .MapRouteComposite__segment--active {
+  left: 132px;
+}
+
+.MapRouteComposite__arrows {
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='8' viewBox='0 0 40 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5 1L13 4L5 7L8 4L5 1Z' fill='white' fill-opacity='.55'/%3E%3Cpath d='M24 1L32 4L24 7L27 4L24 1Z' fill='white' fill-opacity='.55'/%3E%3C/svg%3E");
+  background-repeat: repeat-x;
+  background-size: 40px 8px;
+  inset-inline: 8px;
+  top: 2px;
+}
+
+.MapRouteComposite__point {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  position: absolute;
+  z-index: 1;
+}
+
+.MapRouteComposite__point--normal {
+  height: 24px;
+  width: 24px;
+}
+
+.MapRouteComposite__point--normal > span {
+  background: #2450ff;
+  border: 4px solid #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.22);
+  display: block;
+  height: 24px;
+  width: 24px;
+}
+
+.MapRouteComposite--completed .MapRouteComposite__point--normal > span,
+.MapRouteComposite--inProgress .MapRouteComposite__point--start > span {
+  background: #b6bdc8;
+}
+
+.MapRouteComposite--muted .MapRouteComposite__point--normal > span {
+  background: #c9d2fc;
+}
+
+.MapRoutePreview--routeWithNormalLocation:hover .MapRouteComposite__point--normal > span,
+.MapRoutePreview--routeWithNormalLocation.is-selected .MapRouteComposite__point--normal > span,
+.MapRoutePreview--routeWithProgress:hover .MapRouteComposite__point--end > span,
+.MapRoutePreview--routeWithProgress.is-selected .MapRouteComposite__point--end > span {
+  background: #2450ff;
+  height: 40px;
+  width: 40px;
+}
+
+.MapRouteComposite--routeWithNormalLocation .MapRouteComposite__point--start {
+  left: 0;
+  top: 0;
+}
+
+.MapRouteComposite--routeWithNormalLocation .MapRouteComposite__point--end {
+  left: 196px;
+  top: 0;
+}
+
+.MapRouteComposite__point--informated {
+  height: 40px;
+  width: 40px;
+}
+
+.MapRouteComposite__point--informated > .MapMarker__asset {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  display: block;
+  height: 62px;
+  position: relative;
+  width: 59px;
+}
+
+.MapRoutePreview--routeWithInformatedLocation:hover .MapRouteComposite__point--informated > .MapMarker__asset,
+.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRouteComposite__point--informated > .MapMarker__asset {
+  height: 99px;
+  width: 95px;
+}
+
+.MapRoutePreview--routeWithInformatedLocation:hover .MapRouteComposite__point--informated .MapMarker__assetBase,
+.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRouteComposite__point--informated .MapMarker__assetBase {
+  display: none;
+}
+
+.MapRoutePreview--routeWithInformatedLocation:hover .MapRouteComposite__point--informated .MapMarker__assetSelected,
+.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRouteComposite__point--informated .MapMarker__assetSelected {
+  display: block;
+}
+
+.MapRouteComposite--routeWithInformatedLocation .MapRouteComposite__point--start {
+  left: 0;
+  top: 0;
+}
+
+.MapRouteComposite--routeWithInformatedLocation .MapRouteComposite__point--end {
+  left: 200px;
+  top: 0;
+}
+
+.MapRouteComposite--routeWithProgress .MapRouteComposite__point--start {
+  left: 12px;
+  top: 20px;
+}
+
+.MapRouteComposite--routeWithProgress .MapRouteComposite__point--end {
+  left: 210px;
+  top: 20px;
+}
+
+.MapRouteComposite__point--progress {
+  height: 64px;
+  left: 122px;
+  top: 0;
+  width: 64px;
+}
+
+.MapRouteComposite__progressHalo {
+  background: rgba(42, 62, 244, 0.18);
+  border-radius: 999px;
+  display: block;
+  height: 64px;
+  position: absolute;
+  width: 64px;
+}
+
+.MapRouteComposite__progressPin {
+  align-items: center;
+  background: #2a3ef4;
+  border: 4px solid #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.22);
+  display: flex;
+  height: 40px;
+  justify-content: center;
+  position: relative;
+  width: 40px;
+}
+
+.MapRouteComposite__progressPin svg {
+  display: block;
+  fill: #ffffff;
+  height: 22px;
+  width: 22px;
+}
+
 .MapRoutePreview__asset {
   display: block;
   max-width: none;

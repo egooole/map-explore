@@ -312,6 +312,73 @@
       },
       "code": "import normalRouteHasArrowDefault from \"../assets/route/normal-route-has-arrow-default.svg\";\nimport normalRouteHasArrowHover from \"../assets/route/normal-route-has-arrow-hover.svg\";\n\ntype NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nasync function renderNormalRouteHasArrow(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: NormalRouteVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `\n    <img alt=\"\" class=\"MapRoutePreview__asset MapRoutePreview__asset--default\" src=\"${normalRouteHasArrowDefault}\" />\n    <img alt=\"\" class=\"MapRoutePreview__asset MapRoutePreview__asset--hover\" src=\"${normalRouteHasArrowHover}\" />\n  `;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
+    "routeWithLocation": {
+      "variants": {
+        "inProgress": "In progress"
+      },
+      "style": {
+        "color": "Default #2A3EF4; muted #C9D2FC; completed #9C9EAD; in-progress uses a gray completed segment plus a blue active segment",
+        "shadow": "Both points and route keep white strokes, with directional arrow masks inside the route for map legibility"
+      },
+      "usage": {
+        "primary": "Use to express a route together with its start and end locations so users can read both path and nodes.",
+        "constraints": "Composite routes carry more visual weight than route-only components; limit quantity in one viewport to avoid overlap."
+      },
+      "code": "type RouteLocationKind = \"normal\" | \"informated\";\n\nfunction createRouteWithLocation(kind: RouteLocationKind, state: \"default\" | \"muted\" | \"completed\") {\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--routeWith${kind}Location MapRoutePreview--${state}`;\n  content.innerHTML = `\n    <span class=\"MapRouteComposite\">\n      <span class=\"MapRouteComposite__line\"><span class=\"MapRouteComposite__segment--active\" /></span>\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--start\" />\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--end\" />\n    </span>\n  `;\n  return content;\n}"
+    },
+    "routeWithNormalLocation": {
+      "name": "Route with normal location",
+      "description": "A directional route combined with Normal points at both ends for basic origin-destination paths.",
+      "style": {
+        "variantSet": "Line / no info: default / muted / completed / hover&selected",
+        "sizes": "Composite bounds 220x24; route 200x12; endpoint Normal points 24x24"
+      },
+      "fakeMod": {
+        "component": "RouteWithNormalLocation",
+        "property": "Property 1 = Line / No info / {state}",
+        "figmaNodes": "3079:139876 / 139880 / 139884 / 139888"
+      },
+      "usage": {
+        "extended": "Use when both origin and destination are plain location points and no extra business icon is needed."
+      }
+    },
+    "routeWithInformatedLocation": {
+      "name": "Route with informated location",
+      "description": "A directional route combined with Informated location points at both ends for business-entity paths.",
+      "style": {
+        "variantSet": "Line / with info: default / muted / completed / hover&selected",
+        "sizes": "Composite bounds 240x40; route 200x12; endpoint Informated location points 40x40",
+        "icon": "Both endpoints reuse warehouse information points and can later swap into other business icon slots"
+      },
+      "fakeMod": {
+        "component": "RouteWithInformatedLocation",
+        "property": "Property 1 = Line / With info / {state}",
+        "figmaNodes": "3079:139901 / 139905 / 139909 / 139913"
+      },
+      "usage": {
+        "extended": "Use for warehouse-to-warehouse, station-to-station, store-to-station, or other routes between explicit business nodes."
+      }
+    },
+    "routeWithProgress": {
+      "name": "Route with progress",
+      "description": "A route that expresses progress with completed, active, and current-location states.",
+      "style": {
+        "variantSet": "Line / progress: default / in progress / completed / hover&selected",
+        "sizes": "Composite bounds 246x64; route 200x12; endpoints 24x24; current logistics point 64x64",
+        "color": "Completed segment uses #9C9EAD; active segment uses #2A3EF4; current node uses a blue pin with a light blue halo",
+        "icon": "The middle current node has a logistics-location icon slot; it currently uses a direction glyph placeholder until the final SVG is provided"
+      },
+      "fakeMod": {
+        "component": "RouteWithProgress",
+        "property": "Property 1 = Line / Progress / {state}",
+        "figmaNodes": "3079:139924 / 139928 / 139949 / 139954 / 139958 / 139978"
+      },
+      "usage": {
+        "primary": "Use in logistics, navigation, or inspection routes to show current location and completion progress.",
+        "extended": "The completed segment, active segment, and current node can later be driven by real business progress."
+      },
+      "code": "type RouteProgressState = \"default\" | \"inProgress\" | \"completed\";\n\nasync function renderRouteWithProgress(map: google.maps.Map, position: google.maps.LatLngLiteral, state: RouteProgressState) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--routeWithProgress MapRoutePreview--${state}`;\n  content.innerHTML = `<span class=\"MapRouteComposite MapRouteComposite--${state}\">...</span>`;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
+    },
     "sections": {
       "spec": "Style",
       "content": "Content",

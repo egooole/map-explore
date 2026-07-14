@@ -407,13 +407,66 @@ function createMarkerElement(
   return marker;
 }
 
+function createCompositePoint(kind: "normal" | "informated" | "progress", position: "start" | "middle" | "end") {
+  if (kind === "informated") {
+    return `
+      <span class="MapRouteComposite__point MapRouteComposite__point--informated MapRouteComposite__point--${position}">
+        <span class="MapMarker__asset">
+          <img alt="" class="MapMarker__assetBase" src="${informatedDefaultMarker}" />
+          <img alt="" class="MapMarker__assetSelected" src="${informatedSelectedMarker}" />
+        </span>
+      </span>
+    `;
+  }
+
+  if (kind === "progress") {
+    return `
+      <span class="MapRouteComposite__point MapRouteComposite__point--progress MapRouteComposite__point--${position}" aria-hidden="true">
+        <span class="MapRouteComposite__progressHalo"></span>
+        <span class="MapRouteComposite__progressPin">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4.5 11.1 19.2 4.7 12.8 19.5 10.4 13.7 4.5 11.1Z" />
+          </svg>
+        </span>
+      </span>
+    `;
+  }
+
+  return `
+    <span class="MapRouteComposite__point MapRouteComposite__point--normal MapRouteComposite__point--${position}">
+      <span><i></i></span>
+    </span>
+  `;
+}
+
+function createCompositeRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVariant) {
+  const pointKind = family === "routeWithInformatedLocation" ? "informated" : "normal";
+  const isProgress = family === "routeWithProgress";
+  const progressVariant = isProgress && variant === "default" ? "inProgress" : variant;
+
+  return `
+    <span class="MapRouteComposite MapRouteComposite--${family} MapRouteComposite--${progressVariant}">
+      <span class="MapRouteComposite__line" aria-hidden="true">
+        <span class="MapRouteComposite__segment MapRouteComposite__segment--completed"></span>
+        <span class="MapRouteComposite__segment MapRouteComposite__segment--active"></span>
+        <span class="MapRouteComposite__arrows"></span>
+      </span>
+      ${createCompositePoint(isProgress ? "normal" : pointKind, "start")}
+      ${isProgress ? createCompositePoint("progress", "middle") : ""}
+      ${createCompositePoint(isProgress ? "normal" : pointKind, "end")}
+    </span>
+  `;
+}
+
 function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVariant, label: string) {
   const route = document.createElement("div");
   route.className = `MapRoutePreview MapRoutePreview--network MapMarker--interactive MapRoutePreview--${family} MapRoutePreview--${variant}`;
   route.tabIndex = 0;
   route.setAttribute("aria-label", label);
   route.setAttribute("role", "button");
-  if (family === "normalHasArrow") {
+  if (family === "routeWithNormalLocation" || family === "routeWithInformatedLocation" || family === "routeWithProgress") {
+    route.innerHTML = createCompositeRouteElement(family, variant);
+  } else if (family === "normalHasArrow") {
     route.innerHTML = `
       <img alt="" class="MapRoutePreview__asset MapRoutePreview__asset--default" src="${normalRouteHasArrowDefault}" />
       <img alt="" class="MapRoutePreview__asset MapRoutePreview__asset--hover" src="${normalRouteHasArrowHover}" />

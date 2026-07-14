@@ -312,6 +312,73 @@
       },
       "code": "import normalRouteHasArrowDefault from \"../assets/route/normal-route-has-arrow-default.svg\";\nimport normalRouteHasArrowHover from \"../assets/route/normal-route-has-arrow-hover.svg\";\n\ntype NormalRouteVariant = \"default\" | \"muted\" | \"completed\" | \"selected\";\n\nasync function renderNormalRouteHasArrow(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: NormalRouteVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--normalHasArrow MapRoutePreview--${variant}`;\n  content.innerHTML = `\n    <img alt=\"\" class=\"MapRoutePreview__asset MapRoutePreview__asset--default\" src=\"${normalRouteHasArrowDefault}\" />\n    <img alt=\"\" class=\"MapRoutePreview__asset MapRoutePreview__asset--hover\" src=\"${normalRouteHasArrowHover}\" />\n  `;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
+    "routeWithLocation": {
+      "variants": {
+        "inProgress": "进行中"
+      },
+      "style": {
+        "color": "默认 #2A3EF4；弱化 #C9D2FC；已完成 #9C9EAD；进行中使用灰色已完成段 + 蓝色活跃段",
+        "shadow": "点位与路线均保留白色描边，路线内部使用方向箭头 mask，保证在底图上可读"
+      },
+      "usage": {
+        "primary": "用于表达一条路线及其起终点位置，使用户能同时理解路径和节点。",
+        "constraints": "组合组件比单路线占用更高视觉权重，同屏展示多条时应控制数量并避免互相遮挡。"
+      },
+      "code": "type RouteLocationKind = \"normal\" | \"informated\";\n\nfunction createRouteWithLocation(kind: RouteLocationKind, state: \"default\" | \"muted\" | \"completed\") {\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--routeWith${kind}Location MapRoutePreview--${state}`;\n  content.innerHTML = `\n    <span class=\"MapRouteComposite\">\n      <span class=\"MapRouteComposite__line\"><span class=\"MapRouteComposite__segment--active\" /></span>\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--start\" />\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--end\" />\n    </span>\n  `;\n  return content;\n}"
+    },
+    "routeWithNormalLocation": {
+      "name": "Route with normal location",
+      "description": "由带方向路线和两端 Normal 点组成，用于表达基础起终点路径。",
+      "style": {
+        "variantSet": "线/不带信息：默认 / 弱化 / 已完成 / hover&selected",
+        "sizes": "组合外框 220×24；路线 200×12；两端 Normal 点 24×24"
+      },
+      "fakeMod": {
+        "component": "RouteWithNormalLocation",
+        "property": "Property 1 = 线/不带信息/{state}",
+        "figmaNodes": "3079:139876 / 139880 / 139884 / 139888"
+      },
+      "usage": {
+        "extended": "适用于起点和终点都是普通定位点、不需要额外业务图标说明的路径。"
+      }
+    },
+    "routeWithInformatedLocation": {
+      "name": "Route with informated location",
+      "description": "由带方向路线和两端 Informated location 组成，用于表达业务实体之间的路径。",
+      "style": {
+        "variantSet": "线/带信息：默认 / 弱化 / 已完成 / hover&selected",
+        "sizes": "组合外框 240×40；路线 200×12；两端 Informated location 点 40×40",
+        "icon": "两端复用仓库图标信息点，可后续替换为不同业务图标槽"
+      },
+      "fakeMod": {
+        "component": "RouteWithInformatedLocation",
+        "property": "Property 1 = 线/带信息/{state}",
+        "figmaNodes": "3079:139901 / 139905 / 139909 / 139913"
+      },
+      "usage": {
+        "extended": "适用于仓库到仓库、站点到站点、门店到站点等明确业务节点之间的路线。"
+      }
+    },
+    "routeWithProgress": {
+      "name": "Route with progress",
+      "description": "在路线中表达进度位置，可展示已完成段、进行段和当前物流位置。",
+      "style": {
+        "variantSet": "线/带进度：默认 / 进行中 / 已完成 / hover&selected",
+        "sizes": "组合外框 246×64；路线 200×12；两端点 24×24；当前物流位置 64×64",
+        "color": "已完成段使用 #9C9EAD；活跃段使用 #2A3EF4；当前节点使用蓝色定位点和浅蓝光晕",
+        "icon": "中间当前节点预留物流位置图标槽，目前使用方向箭头占位，后续可替换正式 SVG"
+      },
+      "fakeMod": {
+        "component": "RouteWithProgress",
+        "property": "Property 1 = 线/带进度/{state}",
+        "figmaNodes": "3079:139924 / 139928 / 139949 / 139954 / 139958 / 139978"
+      },
+      "usage": {
+        "primary": "用于物流、导航或巡检路线中展示当前位置和完成进度。",
+        "extended": "可根据实际进度调整已完成段、活跃段和当前节点的位置，支持后续接入真实业务进度。"
+      },
+      "code": "type RouteProgressState = \"default\" | \"inProgress\" | \"completed\";\n\nasync function renderRouteWithProgress(map: google.maps.Map, position: google.maps.LatLngLiteral, state: RouteProgressState) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--routeWithProgress MapRoutePreview--${state}`;\n  content.innerHTML = `<span class=\"MapRouteComposite MapRouteComposite--${state}\">...</span>`;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
+    },
     "sections": {
       "spec": "样式",
       "content": "内容",

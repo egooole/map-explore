@@ -256,6 +256,107 @@
                 "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.normalRouteHasArrow.usage.extended"] },
                 "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.normalRoute.usage.constraints"] }
               }
+            },
+            {
+              "id": "entity-line-route-with-normal-location",
+              "nameKey": "manual.routeWithNormalLocation.name",
+              "descriptionKey": "manual.routeWithNormalLocation.description",
+              "previewType": "line",
+              "routeFamily": "routeWithNormalLocation",
+              "routeVariants": [
+                { "id": "default", "labelKey": "manual.normalRoute.variants.default" },
+                { "id": "muted", "labelKey": "manual.normalRoute.variants.muted" },
+                { "id": "completed", "labelKey": "manual.normalRoute.variants.completed" },
+                { "id": "selected", "labelKey": "manual.normalRoute.variants.selected" }
+              ],
+              "styleRows": [
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.routeWithNormalLocation.style.variantSet" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.routeWithNormalLocation.style.sizes" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.routeWithLocation.style.color" },
+                { "labelKey": "manual.rows.shadow", "valueKey": "manual.routeWithLocation.style.shadow" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.rows.component", "valueKey": "manual.routeWithNormalLocation.fakeMod.component" },
+                { "labelKey": "manual.rows.property", "valueKey": "manual.routeWithNormalLocation.fakeMod.property" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.routeWithNormalLocation.fakeMod.figmaNodes" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.routeWithLocation.code"
+              },
+              "usage": {
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.routeWithLocation.usage.primary"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.routeWithNormalLocation.usage.extended"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.routeWithLocation.usage.constraints"] }
+              }
+            },
+            {
+              "id": "entity-line-route-with-informated-location",
+              "nameKey": "manual.routeWithInformatedLocation.name",
+              "descriptionKey": "manual.routeWithInformatedLocation.description",
+              "previewType": "line",
+              "routeFamily": "routeWithInformatedLocation",
+              "routeVariants": [
+                { "id": "default", "labelKey": "manual.normalRoute.variants.default" },
+                { "id": "muted", "labelKey": "manual.normalRoute.variants.muted" },
+                { "id": "completed", "labelKey": "manual.normalRoute.variants.completed" },
+                { "id": "selected", "labelKey": "manual.normalRoute.variants.selected" }
+              ],
+              "styleRows": [
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.routeWithInformatedLocation.style.variantSet" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.routeWithInformatedLocation.style.sizes" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.routeWithLocation.style.color" },
+                { "labelKey": "manual.rows.icon", "valueKey": "manual.routeWithInformatedLocation.style.icon" },
+                { "labelKey": "manual.rows.shadow", "valueKey": "manual.routeWithLocation.style.shadow" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.rows.component", "valueKey": "manual.routeWithInformatedLocation.fakeMod.component" },
+                { "labelKey": "manual.rows.property", "valueKey": "manual.routeWithInformatedLocation.fakeMod.property" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.routeWithInformatedLocation.fakeMod.figmaNodes" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.routeWithLocation.code"
+              },
+              "usage": {
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.routeWithLocation.usage.primary"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.routeWithInformatedLocation.usage.extended"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.routeWithLocation.usage.constraints"] }
+              }
+            },
+            {
+              "id": "entity-line-route-with-progress",
+              "nameKey": "manual.routeWithProgress.name",
+              "descriptionKey": "manual.routeWithProgress.description",
+              "previewType": "line",
+              "routeFamily": "routeWithProgress",
+              "routeVariants": [
+                { "id": "inProgress", "labelKey": "manual.routeWithLocation.variants.inProgress" },
+                { "id": "default", "labelKey": "manual.normalRoute.variants.default" },
+                { "id": "completed", "labelKey": "manual.normalRoute.variants.completed" },
+                { "id": "selected", "labelKey": "manual.normalRoute.variants.selected" }
+              ],
+              "styleRows": [
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.routeWithProgress.style.variantSet" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.routeWithProgress.style.sizes" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.routeWithProgress.style.color" },
+                { "labelKey": "manual.rows.icon", "valueKey": "manual.routeWithProgress.style.icon" },
+                { "labelKey": "manual.rows.shadow", "valueKey": "manual.routeWithLocation.style.shadow" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.rows.component", "valueKey": "manual.routeWithProgress.fakeMod.component" },
+                { "labelKey": "manual.rows.property", "valueKey": "manual.routeWithProgress.fakeMod.property" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.routeWithProgress.fakeMod.figmaNodes" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.routeWithProgress.code"
+              },
+              "usage": {
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.routeWithProgress.usage.primary"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.routeWithProgress.usage.extended"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.routeWithLocation.usage.constraints"] }
+              }
             }
           ]
         },
