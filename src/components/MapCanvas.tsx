@@ -36,6 +36,8 @@ declare global {
 type GoogleMapsGlobal = {
   maps: {
     ControlPosition: Record<string, number>;
+    DirectionsService: new () => GoogleDirectionsService;
+    DirectionsStatus: { OK: string };
     importLibrary: (library: "marker") => Promise<GoogleMarkerLibrary>;
     Map: new (element: HTMLElement, options: Record<string, unknown>) => GoogleMap;
     OverlayView: typeof GoogleOverlayView;
@@ -43,6 +45,8 @@ type GoogleMapsGlobal = {
     Polygon: new (options: Record<string, unknown>) => GooglePolygon;
     Polyline: new (options: Record<string, unknown>) => GooglePolyline;
     Size: new (width: number, height: number) => unknown;
+    SymbolPath: { FORWARD_CLOSED_ARROW: unknown };
+    TravelMode: { DRIVING: string };
   };
 };
 
@@ -61,6 +65,7 @@ interface GoogleMapsListener {
 }
 
 interface GooglePolyline {
+  addListener: (eventName: "click" | "mouseout" | "mouseover", handler: () => void) => GoogleMapsListener;
   setMap: (map: GoogleMap | null) => void;
   setOptions: (options: Record<string, unknown>) => void;
 }
@@ -95,9 +100,38 @@ declare class GoogleOverlayView {
   setMap(map: GoogleMap | null): void;
 }
 
-interface GoogleLatLng {
+interface GoogleLatLngLiteral {
   lat: number;
   lng: number;
+}
+
+interface GoogleLatLngValue {
+  lat: () => number;
+  lng: () => number;
+}
+
+type GoogleLatLng = GoogleLatLngLiteral | GoogleLatLngValue;
+
+interface GoogleDirectionsService {
+  route: (
+    request: Record<string, unknown>,
+    callback: (result: GoogleDirectionsResult | null, status: string) => void,
+  ) => void;
+}
+
+interface GoogleDirectionsLeg {
+  end_location: GoogleLatLng;
+  start_location: GoogleLatLng;
+}
+
+interface GoogleDirectionsRoute {
+  bounds?: unknown;
+  legs?: GoogleDirectionsLeg[];
+  overview_path?: GoogleLatLng[];
+}
+
+interface GoogleDirectionsResult {
+  routes?: GoogleDirectionsRoute[];
 }
 
 interface MapMarkerHandle {
@@ -110,11 +144,19 @@ interface PreviewMarkerItem {
   position: GoogleLatLng;
 }
 
+interface DynamicRouteLayer {
+  listeners: GoogleMapsListener[];
+  markers: MapMarkerHandle[];
+  outline: GooglePolyline | null;
+  route: GooglePolyline | null;
+}
+
 interface MapCanvasProps {
   mapCategory: MapCategory;
   lang: WorkbenchLanguage;
   controls: MapControlsState;
   compact?: boolean;
+  dynamicRouteFamily?: RoutePreviewFamily;
   mapTheme?: MapTheme;
   previewDistribution?: "local" | "china" | "chinaCluster";
   previewFeature?: "point" | "line" | "area" | "container";
@@ -124,16 +166,40 @@ interface MapCanvasProps {
   previewRoutes?: RoutePreviewState[];
 }
 
-const center: GoogleLatLng = { lat: 31.225, lng: 121.45 };
-const chinaCenter: GoogleLatLng = { lat: 35.8, lng: 103.8 };
+const center: GoogleLatLngLiteral = { lat: 31.225, lng: 121.45 };
+const chinaCenter: GoogleLatLngLiteral = { lat: 35.8, lng: 103.8 };
 
-const routePositions: GoogleLatLng[] = [
+const routePositions: GoogleLatLngLiteral[] = [
   { lat: 31.207, lng: 121.317 },
   { lat: 31.223, lng: 121.445 },
   { lat: 31.236, lng: 121.502 },
 ];
 
-const routePreviewPosition: GoogleLatLng = { lat: 31.223, lng: 121.46 };
+const routePreviewPosition: GoogleLatLngLiteral = { lat: 31.223, lng: 121.46 };
+
+function createEmptyDynamicRouteLayer(): DynamicRouteLayer {
+  return {
+    listeners: [],
+    markers: [],
+    outline: null,
+    route: null,
+  };
+}
+
+function clearDynamicRouteLayer(layer: DynamicRouteLayer) {
+  layer.listeners.forEach((listener) => listener.remove());
+  layer.listeners = [];
+  layer.markers.forEach((marker) => marker.remove());
+  layer.markers = [];
+  layer.outline?.setMap(null);
+  layer.route?.setMap(null);
+  layer.outline = null;
+  layer.route = null;
+}
+
+function normalizeRouteNodeValue(value: string) {
+  return value.trim();
+}
 
 const pointPreviewPositions: GoogleLatLng[] = [
   { lat: 31.235, lng: 121.391 },
@@ -200,7 +266,7 @@ const chinaClusterPreviewPositions: GoogleLatLng[] = [
   { lat: 43.78, lng: 87.62 },
 ];
 
-const chinaRegionalClusterPreviewPositions: Array<GoogleLatLng & { count: number }> = [
+const chinaRegionalClusterPreviewPositions: Array<GoogleLatLngLiteral & { count: number }> = [
   { count: 10, lat: 39.9, lng: 116.4 },
   { count: 32, lat: 36.67, lng: 117.05 },
   { count: 7, lat: 41.82, lng: 123.43 },
@@ -227,7 +293,7 @@ const chinaRegionalClusterPreviewPositions: Array<GoogleLatLng & { count: number
   { count: 16, lat: 20.04, lng: 110.2 },
 ];
 
-const chinaMicroClusterPreviewPositions: Array<GoogleLatLng & { count: number }> = [
+const chinaMicroClusterPreviewPositions: Array<GoogleLatLngLiteral & { count: number }> = [
   { count: 3, lat: 39.9, lng: 116.4 },
   { count: 7, lat: 39.13, lng: 117.2 },
   { count: 12, lat: 36.67, lng: 117.05 },
@@ -682,6 +748,7 @@ export function MapCanvas({
   lang,
   controls,
   compact = false,
+  dynamicRouteFamily,
   mapTheme = "light",
   previewDistribution = "local",
   previewFeature,
@@ -695,10 +762,13 @@ export function MapCanvas({
   const mapRef = useRef<GoogleMap | null>(null);
   const polylineRef = useRef<GooglePolyline | null>(null);
   const polygonRef = useRef<GooglePolygon | null>(null);
+  const dynamicRouteRef = useRef<DynamicRouteLayer>(createEmptyDynamicRouteLayer());
   const markersRef = useRef<MapMarkerHandle[]>([]);
   const routePreviewsRef = useRef<MapMarkerHandle[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "missing-key" | "error">("idle");
+  const [routeStatus, setRouteStatus] = useState<"idle" | "loading" | "error">("idle");
   const [previewZoom, setPreviewZoom] = useState(controls.zoom);
+  const [debouncedRouteNodes, setDebouncedRouteNodes] = useState(controls.routeNodes);
   const preset = mapPresets[mapCategory][lang];
   const darkStyles = mapCategory === "visualization" ? mapExploreVisualizationDarkStyles : mapExploreDarkStyles;
   const activeStyles = mapTheme === "dark" ? darkStyles : preset.mapId ? undefined : preset.styles;
@@ -707,6 +777,22 @@ export function MapCanvas({
   const markerLabels = useMemo(() => [t("map.warehouse"), t("map.hub"), t("map.destination")], [t]);
   const isCumulativePreview = previewMarkerFamily === "cumulative" && previewDistribution === "chinaCluster";
   const renderPreviewZoom = isCumulativePreview ? previewZoom : undefined;
+  const dynamicRouteNodes = useMemo(
+    () => debouncedRouteNodes.map((node) => ({ ...node, value: normalizeRouteNodeValue(node.value) })),
+    [debouncedRouteNodes],
+  );
+  const canRenderDynamicRoute =
+    Boolean(dynamicRouteFamily) &&
+    Boolean(dynamicRouteNodes.find((node) => node.id === "start")?.value) &&
+    Boolean(dynamicRouteNodes.find((node) => node.id === "end")?.value);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedRouteNodes(controls.routeNodes);
+    }, 450);
+
+    return () => window.clearTimeout(timer);
+  }, [controls.routeNodes]);
 
   useEffect(() => {
     let cancelled = false;
@@ -792,8 +878,12 @@ export function MapCanvas({
     });
 
     const shouldShowMarkers = !previewFeature || previewFeature === "point" || previewFeature === "container";
-    const shouldShowRoutePreview = previewFeature === "line" && Boolean(previewRouteFamily && previewRoutes?.length);
-    const shouldShowLine = (!previewFeature || previewFeature === "line" || previewFeature === "container") && !shouldShowRoutePreview;
+    const shouldShowRoutePreview =
+      !canRenderDynamicRoute && previewFeature === "line" && Boolean(previewRouteFamily && previewRoutes?.length);
+    const shouldShowLine =
+      (!previewFeature || previewFeature === "line" || previewFeature === "container") &&
+      !shouldShowRoutePreview &&
+      !canRenderDynamicRoute;
     const shouldShowArea = previewFeature === "area" || previewFeature === "container";
 
     if (!polylineRef.current) {
@@ -948,6 +1038,7 @@ export function MapCanvas({
   }, [
     controls.markerStyle,
     controls.showMapUi,
+    canRenderDynamicRoute,
     mapCategory,
     markerLabels,
     activeMapId,
@@ -965,7 +1056,171 @@ export function MapCanvas({
   ]);
 
   useEffect(() => {
+    if (!window.google?.maps || !mapRef.current || status !== "ready") {
+      return;
+    }
+
+    const googleMaps = window.google;
+    const map = mapRef.current;
+
+    if (!canRenderDynamicRoute || !dynamicRouteFamily) {
+      clearDynamicRouteLayer(dynamicRouteRef.current);
+      setRouteStatus("idle");
+      return;
+    }
+
+    let cancelled = false;
+    const start = dynamicRouteNodes.find((node) => node.id === "start")?.value ?? "";
+    const middle = dynamicRouteNodes.find((node) => node.id === "middle")?.value ?? "";
+    const end = dynamicRouteNodes.find((node) => node.id === "end")?.value ?? "";
+    const shouldShowArrows = dynamicRouteFamily !== "normalNoArrow";
+    const directionsService = new googleMaps.maps.DirectionsService();
+
+    clearDynamicRouteLayer(dynamicRouteRef.current);
+    setRouteStatus("loading");
+
+    directionsService.route(
+      {
+        destination: end,
+        origin: start,
+        travelMode: googleMaps.maps.TravelMode.DRIVING,
+        waypoints: middle ? [{ location: middle, stopover: true }] : [],
+      },
+      (result, routeRequestStatus) => {
+        void (async () => {
+          if (cancelled) {
+            return;
+          }
+
+          const route = result?.routes?.[0];
+          const path = route?.overview_path ?? [];
+
+          if (!route || routeRequestStatus !== googleMaps.maps.DirectionsStatus.OK || path.length === 0) {
+            setRouteStatus("error");
+            return;
+          }
+
+          const directionsRoute = route;
+          const layer = dynamicRouteRef.current;
+          clearDynamicRouteLayer(layer);
+
+          let selected = false;
+          const routeIcons = (focused: boolean) =>
+            shouldShowArrows
+              ? [
+                  {
+                    icon: {
+                      fillColor: focused ? "#768bff" : "#768bff",
+                      fillOpacity: focused ? 0.95 : 0.72,
+                      path: googleMaps.maps.SymbolPath.FORWARD_CLOSED_ARROW,
+                      scale: focused ? 3.2 : 2.8,
+                      strokeColor: focused ? "#768bff" : "#768bff",
+                      strokeOpacity: focused ? 0.95 : 0.72,
+                      strokeWeight: 1,
+                    },
+                    offset: "32px",
+                    repeat: focused ? "52px" : "56px",
+                  },
+                ]
+              : [];
+          const setFocused = (focused: boolean) => {
+            layer.outline?.setOptions({
+              strokeWeight: focused ? 20 : 12,
+            });
+            layer.route?.setOptions({
+              icons: routeIcons(focused),
+              strokeColor: focused ? "#2232c3" : "#2a3ef4",
+              strokeWeight: focused ? 16 : 8,
+              zIndex: focused ? 42 : 41,
+            });
+          };
+
+          layer.outline = new googleMaps.maps.Polyline({
+            clickable: false,
+            geodesic: true,
+            map,
+            path,
+            strokeColor: "#ffffff",
+            strokeOpacity: 1,
+            strokeWeight: 12,
+            zIndex: 40,
+          });
+          layer.route = new googleMaps.maps.Polyline({
+            clickable: true,
+            geodesic: true,
+            icons: routeIcons(false),
+            map,
+            path,
+            strokeColor: "#2a3ef4",
+            strokeOpacity: 0.98,
+            strokeWeight: 8,
+            zIndex: 41,
+          });
+          layer.listeners = [
+            layer.route.addListener("mouseover", () => setFocused(true)),
+            layer.route.addListener("mouseout", () => {
+              if (!selected) {
+                setFocused(false);
+              }
+            }),
+            layer.route.addListener("click", () => {
+              selected = !selected;
+              setFocused(selected);
+            }),
+          ];
+
+          const legs = directionsRoute.legs ?? [];
+          const routeMarkerPositions = legs.length
+            ? [legs[0].start_location, ...legs.map((leg) => leg.end_location)]
+            : [path[0], path[Math.floor(path.length / 2)], path[path.length - 1]];
+          const routeMarkerLabels = dynamicRouteNodes.filter((node) => node.value).map((node) => node.value);
+          const markerHandles = await Promise.all(
+            routeMarkerPositions.map((position, index) => {
+              const markerElement = createMarkerElement(
+                controls.markerStyle,
+                routeMarkerLabels[index] ?? markerLabels[index] ?? t("map.destination"),
+                index === 0 ? "default" : index === routeMarkerPositions.length - 1 ? "emphasized" : "completed",
+                "normal",
+              );
+              return activeMapId
+                ? createAdvancedMarker(googleMaps, map, position, markerElement)
+                : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement));
+            }),
+          );
+
+          if (cancelled) {
+            markerHandles.forEach((marker) => marker.remove());
+            clearDynamicRouteLayer(layer);
+            return;
+          }
+
+          layer.markers = markerHandles;
+          if (directionsRoute.bounds) {
+            map.fitBounds(directionsRoute.bounds, 72);
+          }
+          setRouteStatus("idle");
+        })();
+      },
+    );
+
     return () => {
+      cancelled = true;
+      clearDynamicRouteLayer(dynamicRouteRef.current);
+    };
+  }, [
+    activeMapId,
+    canRenderDynamicRoute,
+    controls.markerStyle,
+    dynamicRouteFamily,
+    dynamicRouteNodes,
+    markerLabels,
+    status,
+    t,
+  ]);
+
+  useEffect(() => {
+    return () => {
+      clearDynamicRouteLayer(dynamicRouteRef.current);
       polylineRef.current?.setMap(null);
       polygonRef.current?.setMap(null);
       markersRef.current.forEach((marker) => marker.remove());
@@ -981,6 +1236,12 @@ export function MapCanvas({
       {status === "loading" ? <div className="MapCanvas__state">{t("map.loading")}</div> : null}
       {status === "missing-key" ? <div className="MapCanvas__state">{t("map.googleKeyMissing")}</div> : null}
       {status === "error" ? <div className="MapCanvas__state">{t("map.loadError")}</div> : null}
+      {status === "ready" && routeStatus === "loading" ? (
+        <div className="MapCanvas__routeState">{t("map.routeLoading")}</div>
+      ) : null}
+      {status === "ready" && routeStatus === "error" ? (
+        <div className="MapCanvas__routeState MapCanvas__routeState--error">{t("map.routeError")}</div>
+      ) : null}
       <div className="MapCanvas__meta">
         <span>{t(`map.${mapCategory}`)}</span>
         <span>{t(`map.${lang}`)}</span>

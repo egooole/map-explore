@@ -42,6 +42,7 @@ export function MapBrowseScene() {
     () => (activeComponent ? createPreviewRoutes(activeComponent, t) : undefined),
     [activeComponent, t],
   );
+  const dynamicRouteFamily = activeComponent?.previewType === "line" ? activeComponent.routeFamily : undefined;
 
   useEffect(() => {
     if (!activeMapType.categories.some((category) => category.id === activeCategoryId)) {
@@ -72,6 +73,7 @@ export function MapBrowseScene() {
     <section className="MapBrowseScene">
       <MapCanvas
         controls={controls}
+        dynamicRouteFamily={dynamicRouteFamily}
         lang={lang}
         mapCategory={mapCategory}
         mapTheme={mapTheme}

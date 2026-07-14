@@ -88,7 +88,9 @@
     "customMarker": "自定义",
     "loading": "正在加载 Google Maps...",
     "googleKeyMissing": "缺少 VITE_MAP_KEY，无法加载 Google Maps",
-    "loadError": "Google Maps 加载失败，请检查 API Key 或网络"
+    "loadError": "Google Maps 加载失败，请检查 API Key 或网络",
+    "routeLoading": "正在生成路线...",
+    "routeError": "路线生成失败，请检查地点或 Directions API 配置"
   },
   "useCase": {
     "deliveredRange": "预计送达 3 月 28-30 日",
