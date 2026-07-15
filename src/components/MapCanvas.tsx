@@ -10,8 +10,7 @@ import informatedEmphasizedMarker from "../assets/informated-location/emphasized
 import informatedSelectedMarker from "../assets/informated-location/selected.svg";
 import normalRouteHasArrowDefault from "../assets/route/normal-route-has-arrow-default.svg";
 import normalRouteHasArrowHover from "../assets/route/normal-route-has-arrow-hover.svg";
-import { mapExploreDarkStyles, mapExploreVisualizationDarkStyles } from "../config/googleMapStyles";
-import { mapKey, mapPresets } from "../config/mapPresets";
+import { cloudMapIds, mapKey, mapLabCloudMapIdSource, mapPresets } from "../config/mapPresets";
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
 import type {
   CustomMarkerContent,
@@ -29,6 +28,7 @@ declare global {
   interface Window {
     google?: GoogleMapsGlobal;
     __mapLabGoogleMapsLanguage?: WorkbenchLanguage;
+    __mapLabGoogleMapsMapIds?: string;
     __mapLabGoogleMapsPromise?: Promise<GoogleMapsGlobal>;
   }
 }
@@ -484,6 +484,7 @@ function resetGoogleMapsScript() {
     script.remove();
   });
   delete window.google;
+  window.__mapLabGoogleMapsMapIds = undefined;
   window.__mapLabGoogleMapsPromise = undefined;
 }
 
@@ -492,26 +493,42 @@ function loadGoogleMaps(lang: WorkbenchLanguage) {
     return Promise.reject(new Error("missing-map-key"));
   }
 
-  if (window.google?.maps && window.__mapLabGoogleMapsLanguage === lang) {
+  const mapIdsKey = cloudMapIds.join(",");
+
+  if (window.google?.maps && window.__mapLabGoogleMapsLanguage === lang && window.__mapLabGoogleMapsMapIds === mapIdsKey) {
     return Promise.resolve(window.google);
   }
 
-  if (window.__mapLabGoogleMapsPromise && window.__mapLabGoogleMapsLanguage === lang) {
+  if (
+    window.__mapLabGoogleMapsPromise &&
+    window.__mapLabGoogleMapsLanguage === lang &&
+    window.__mapLabGoogleMapsMapIds === mapIdsKey
+  ) {
     return window.__mapLabGoogleMapsPromise;
   }
 
-  if (window.__mapLabGoogleMapsLanguage && window.__mapLabGoogleMapsLanguage !== lang) {
+  if (
+    window.google?.maps &&
+    (window.__mapLabGoogleMapsLanguage !== lang || window.__mapLabGoogleMapsMapIds !== mapIdsKey)
+  ) {
+    resetGoogleMapsScript();
+  } else if (
+    window.__mapLabGoogleMapsLanguage &&
+    (window.__mapLabGoogleMapsLanguage !== lang || window.__mapLabGoogleMapsMapIds !== mapIdsKey)
+  ) {
     resetGoogleMapsScript();
   }
 
   window.__mapLabGoogleMapsLanguage = lang;
+  window.__mapLabGoogleMapsMapIds = mapIdsKey;
   window.__mapLabGoogleMapsPromise = new Promise((resolve, reject) => {
     const script = document.createElement("script");
     const region = lang === "zh" ? "CN" : "US";
     script.id = scriptId;
     script.async = true;
     script.defer = true;
-    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(mapKey)}&language=${lang}&region=${region}&v=weekly`;
+    const mapIdsQuery = cloudMapIds.length ? `&map_ids=${encodeURIComponent(cloudMapIds.join(","))}` : "";
+    script.src = `https://maps.googleapis.com/maps/api/js?key=${encodeURIComponent(mapKey)}&language=${lang}&region=${region}&v=weekly${mapIdsQuery}`;
     script.onload = () => {
       if (window.google?.maps) {
         resolve(window.google);
@@ -867,6 +884,7 @@ export function MapCanvas({
   const { t } = useTranslation();
   const rootRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<GoogleMap | null>(null);
+  const mapConfigKeyRef = useRef("");
   const polylineRef = useRef<GooglePolyline | null>(null);
   const polygonRef = useRef<GooglePolygon | null>(null);
   const dynamicRouteRef = useRef<DynamicRouteLayer>(createEmptyDynamicRouteLayer());
@@ -877,9 +895,8 @@ export function MapCanvas({
   const [previewZoom, setPreviewZoom] = useState(controls.zoom);
   const [debouncedRouteNodes, setDebouncedRouteNodes] = useState(controls.routeNodes);
   const preset = mapPresets[mapCategory][lang];
-  const darkStyles = mapCategory === "visualization" ? mapExploreVisualizationDarkStyles : mapExploreDarkStyles;
-  const activeStyles = mapTheme === "dark" ? darkStyles : preset.mapId ? undefined : preset.styles;
-  const activeMapId = mapTheme === "dark" ? undefined : preset.mapId;
+  const activeMapId = preset.mapId;
+  const mapConfigKey = `${lang}:${mapCategory}:${preset.mapTypeId}:${activeMapId}`;
   const routeColor = mapCategory === "visualization" ? "#475569" : "#0f62fe";
   const markerLabels = useMemo(() => [t("map.warehouse"), t("map.hub"), t("map.destination")], [t]);
   const isCumulativePreview = previewMarkerFamily === "cumulative" && previewDistribution === "chinaCluster";
@@ -892,6 +909,19 @@ export function MapCanvas({
     Boolean(dynamicRouteFamily) &&
     Boolean(dynamicRouteNodes.find((node) => node.id === "start")?.value) &&
     Boolean(dynamicRouteNodes.find((node) => node.id === "end")?.value);
+
+  useEffect(() => {
+    if (!import.meta.env.DEV) {
+      return;
+    }
+
+    console.info("[Map Lab] Google Maps Map ID", {
+      mapCategory,
+      mapId: activeMapId,
+      mapTheme,
+      source: mapLabCloudMapIdSource,
+    });
+  }, [activeMapId, mapCategory, mapTheme]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -911,6 +941,23 @@ export function MapCanvas({
           return;
         }
 
+        if (mapRef.current && mapConfigKeyRef.current !== mapConfigKey) {
+          polylineRef.current?.setMap(null);
+          polygonRef.current?.setMap(null);
+          dynamicRouteRef.current.outline?.setMap(null);
+          dynamicRouteRef.current.route?.setMap(null);
+          dynamicRouteRef.current.listeners.forEach((listener) => listener.remove());
+          markersRef.current.forEach((marker) => marker.remove());
+          routePreviewsRef.current.forEach((route) => route.remove());
+          polylineRef.current = null;
+          polygonRef.current = null;
+          dynamicRouteRef.current = createEmptyDynamicRouteLayer();
+          markersRef.current = [];
+          routePreviewsRef.current = [];
+          mapRef.current = null;
+          rootRef.current.replaceChildren();
+        }
+
         const map =
           mapRef.current ??
           new googleMaps.maps.Map(rootRef.current, {
@@ -922,12 +969,12 @@ export function MapCanvas({
             mapTypeControl: false,
             mapTypeId: preset.mapTypeId,
             streetViewControl: controls.showMapUi,
-            styles: activeStyles,
             zoom: controls.zoom,
             zoomControl: controls.showMapUi,
           });
 
         mapRef.current = map;
+        mapConfigKeyRef.current = mapConfigKey;
         setPreviewZoom(map.getZoom() ?? controls.zoom);
         setStatus("ready");
       })
@@ -941,7 +988,15 @@ export function MapCanvas({
     return () => {
       cancelled = true;
     };
-  }, [activeMapId, activeStyles, controls.showMapUi, lang, mapCategory, preset.mapTypeId, previewDistribution]);
+  }, [
+    activeMapId,
+    controls.showMapUi,
+    lang,
+    mapCategory,
+    mapConfigKey,
+    preset.mapTypeId,
+    previewDistribution,
+  ]);
 
   useEffect(() => {
     if (!mapRef.current || status !== "ready") {
@@ -980,7 +1035,6 @@ export function MapCanvas({
       mapTypeControl: false,
       mapTypeId: preset.mapTypeId,
       streetViewControl: controls.showMapUi,
-      styles: activeStyles,
       zoomControl: controls.showMapUi,
     });
 
@@ -1150,7 +1204,6 @@ export function MapCanvas({
     markerLabels,
     activeMapId,
     preset.mapTypeId,
-    activeStyles,
     previewDistribution,
     previewFeature,
     previewMarkerFamily,

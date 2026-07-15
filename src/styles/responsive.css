@@ -96,6 +96,10 @@
     grid-template-columns: 1fr;
   }
 
+  .ManualUsageItem {
+    grid-template-columns: 1fr;
+  }
+
   .ManualMapRegion,
   .ManualMapRegion .MapCanvas {
     min-height: 260px;

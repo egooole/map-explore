@@ -6,8 +6,10 @@ Map Style Workbench is a single-page React application for experimenting with ma
 
 ```bash
 npm install
-npm run dev
+npm run dev -- --host 127.0.0.1 --port 5175 --strictPort
 ```
+
+Local development should use `http://127.0.0.1:5175/` to avoid confusing multiple Vite servers.
 
 Build for production:
 
@@ -17,15 +19,13 @@ npm run build
 
 ## Environment Variables
 
-Create a `.env.local` file when your map provider requires keys or hosted styles:
+Create a `.env.local` file when your map provider requires an API key:
 
 ```bash
 VITE_MAP_KEY=your-provider-key
-VITE_ENTITY_MAP_ID=your-entity-map-id
-VITE_VISUALIZATION_MAP_ID=your-visualization-map-id
 ```
 
-The default implementation uses Google Maps JavaScript API in `MapCanvas`. Put your Google Maps API key in `VITE_MAP_KEY`. Optional Google Cloud Map IDs for entity and visualization styles can be configured through `VITE_ENTITY_MAP_ID` and `VITE_VISUALIZATION_MAP_ID`; local fallback styling for the visualization map lives in `src/config/mapPresets.ts`.
+The default implementation uses Google Maps JavaScript API in `MapCanvas`. Put your Google Maps API key in `VITE_MAP_KEY`. The Google Cloud Map ID used for cloud-controlled styling is configured in `src/config/mapPresets.ts`.
 
 ## Directory Structure
 

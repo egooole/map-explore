@@ -141,6 +141,7 @@
       "fakeMod": "FakeMod",
       "styleDisplay": "Style Display",
       "baseData": "Base Data / Config",
+      "componentInformation": "Component Information",
       "frontendCode": "Frontend Code",
       "showCode": "View Code",
       "hideCode": "Collapse Code"

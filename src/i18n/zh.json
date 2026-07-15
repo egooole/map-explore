@@ -141,6 +141,7 @@
       "fakeMod": "FakeMod",
       "styleDisplay": "样式展示",
       "baseData": "基础数据 / 配置",
+      "componentInformation": "组件信息",
       "frontendCode": "前端实现代码",
       "showCode": "查看代码",
       "hideCode": "收起代码"

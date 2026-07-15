@@ -19,9 +19,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      VITE_ENTITY_MAP_ID: ${{ secrets.VITE_ENTITY_MAP_ID }}
       VITE_MAP_KEY: ${{ secrets.VITE_MAP_KEY }}
-      VITE_VISUALIZATION_MAP_ID: ${{ secrets.VITE_VISUALIZATION_MAP_ID }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4

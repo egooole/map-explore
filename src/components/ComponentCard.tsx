@@ -114,14 +114,18 @@ function UsageGroup({ group, tone }: { group: ManualUsageGroup; tone: "primary" 
   const { t } = useTranslation();
 
   return (
-    <section className={`ManualUsageCard ManualUsageCard--${tone}`}>
-      <span>{t(group.tagKey)}</span>
-      <ul>
-        {group.bulletKeys.map((key) => (
-          <li key={key}>{t(key)}</li>
-        ))}
-      </ul>
-    </section>
+    <div className={`ManualUsageItem ManualUsageItem--${tone}`}>
+      <dt>
+        <span>{t(group.tagKey)}</span>
+      </dt>
+      <dd>
+        <ul>
+          {group.bulletKeys.map((key) => (
+            <li key={key}>{t(key)}</li>
+          ))}
+        </ul>
+      </dd>
+    </div>
   );
 }
 
@@ -166,31 +170,25 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }:
           />
         </div>
 
-        <section className="ManualSpecSection">
-          <h3>{t("manual.content.styleDisplay")}</h3>
-          <InfoRows rows={spec.styleRows} />
-        </section>
-      </section>
-
-      <section className="ManualDetail__right" aria-label={t("manual.panels.usage")}>
-        <section className="ManualSpecSection">
-          <h3>{t("manual.content.baseData")}</h3>
-          <InfoRows rows={spec.fakeModRows} />
-        </section>
-
-        <CodeDisclosure code={spec.code} />
-
         <section className="ManualUsagePanel">
           <header className="ManualPanelHeader ManualPanelHeader--compact">
             <p>{t("manual.panels.usage")}</p>
             <span>{t("manual.usageIntro")}</span>
           </header>
-          <div className="ManualUsageGrid">
+          <dl className="ManualUsageList">
             <UsageGroup group={spec.usage.primary} tone="primary" />
             <UsageGroup group={spec.usage.extended} tone="extended" />
             <UsageGroup group={spec.usage.constraints} tone="constraints" />
-          </div>
+          </dl>
         </section>
+      </section>
+
+      <section className="ManualDetail__right" aria-label={t("manual.content.componentInformation")}>
+        <section className="ManualInfoPanel">
+          <h3>{t("manual.content.componentInformation")}</h3>
+          <InfoRows rows={[...spec.styleRows, ...spec.fakeModRows]} />
+        </section>
+        <CodeDisclosure code={spec.code} />
       </section>
     </article>
   );
