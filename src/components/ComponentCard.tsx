@@ -74,17 +74,114 @@ function resolveValue(row: ManualInfoRow, t: (key: string) => string) {
   return row.valueKey ? t(row.valueKey) : row.value ?? "";
 }
 
+const colorTokenValuesByKey: Record<string, string[]> = {
+  "manual.pointMarker.style.color": ["#2A3EF4", "#C9D2FC", "#9C9EAD", "#2232C3"],
+  "manual.informatedLocation.style.color": ["#2A3EF4", "#C9D2FC", "#9C9EAD", "#2232C3"],
+  "manual.cumulativeLocation.style.color": ["#2450FF", "#FFFFFF"],
+  "manual.customLocation.style.color": ["#2A3EF4", "#FFFFFF"],
+  "manual.normalRoute.style.color": ["#2A3EF4", "#C9D2FC", "#9C9EAD", "#2232C3"],
+  "manual.routeWithLocation.style.color": ["#2A3EF4", "#C9D2FC", "#9C9EAD", "#2232C3"],
+  "manual.routeWithProgress.style.color": ["#9C9EAD", "#2A3EF4", "#C9D2FC"],
+};
+
+const basePreviewStateOptions: Array<{ id: RoutePreviewVariant; labelKey: string }> = [
+  { id: "default", labelKey: "manual.stateSwitcher.default" },
+  { id: "muted", labelKey: "manual.stateSwitcher.disable" },
+  { id: "completed", labelKey: "manual.stateSwitcher.completed" },
+];
+
+function resolveColorTokenValues(row: ManualInfoRow, value: string) {
+  if (row.valueKey && colorTokenValuesByKey[row.valueKey]) {
+    return colorTokenValuesByKey[row.valueKey];
+  }
+
+  const hexValues = value.match(/#[0-9a-fA-F]{3,8}\b/g) ?? [];
+  return [...new Set(hexValues.map((item) => item.toUpperCase()))];
+}
+
+function resolveLineStateOptions(spec: ManualComponentSpec) {
+  const configuredStates = spec.routeVariants?.filter((variant) => variant.id !== "selected" && variant.id !== "inProgress") ?? [];
+  const configuredExtraStates = configuredStates.filter(
+    (variant) => !basePreviewStateOptions.some((option) => option.id === variant.id),
+  );
+
+  return [...basePreviewStateOptions, ...configuredExtraStates];
+}
+
+function ManualStateSwitcher({
+  ariaLabelKey,
+  onChange,
+  options,
+  value,
+}: {
+  ariaLabelKey: string;
+  onChange: (value: RoutePreviewVariant) => void;
+  options: Array<{ id: RoutePreviewVariant; labelKey: string }>;
+  value: RoutePreviewVariant;
+}) {
+  const { t } = useTranslation();
+
+  if (!options.length) {
+    return null;
+  }
+
+  return (
+    <div className="ManualStateSwitcher" role="group" aria-label={t(ariaLabelKey)}>
+      {options.map((option) => (
+        <button
+          aria-pressed={value === option.id}
+          className={value === option.id ? "is-active" : ""}
+          key={option.id}
+          onClick={() => onChange(option.id)}
+          type="button"
+        >
+          {t(option.labelKey)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function ColorTokenPairs({ row, value }: { row: ManualInfoRow; value: string }) {
+  const { t } = useTranslation();
+  const tokenValues = resolveColorTokenValues(row, value);
+
+  return (
+    <div className="ManualColorTokens">
+      <dl>
+        {tokenValues.map((tokenValue) => (
+          <div className="ManualColorTokens__pair" key={tokenValue}>
+            <div>
+              <dt>{t("manual.tokenMapping.designToken")}</dt>
+              <dd>{tokenValue}</dd>
+            </div>
+            <div>
+              <dt>{t("manual.tokenMapping.codeToken")}</dt>
+              <dd>{t("manual.tokenMapping.codeTokenPlaceholder")}</dd>
+            </div>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
 function InfoRows({ rows }: { rows: ManualInfoRow[] }) {
   const { t } = useTranslation();
 
   return (
     <dl className="ManualInfoRows">
-      {rows.map((row) => (
-        <div className="ManualInfoRows__row" key={`${row.labelKey}-${row.valueKey ?? row.value}`}>
-          <dt>{t(row.labelKey)}</dt>
-          <dd>{resolveValue(row, t)}</dd>
-        </div>
-      ))}
+      {rows.map((row) => {
+        const value = resolveValue(row, t);
+        const isColorRow = row.labelKey === "manual.rows.color";
+
+        return (
+          <div className="ManualInfoRows__row" key={`${row.labelKey}-${row.valueKey ?? row.value}`}>
+            <dt>{t(row.labelKey)}</dt>
+            <dd>{isColorRow ? <ColorTokenPairs row={row} value={value} /> : value}</dd>
+          </div>
+        );
+      })}
     </dl>
   );
 }
@@ -131,6 +228,12 @@ function UsageGroup({ group, tone }: { group: ManualUsageGroup; tone: "primary" 
 
 export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }: ComponentCardProps) {
   const { t } = useTranslation();
+  const lineStateOptions = useMemo(() => resolveLineStateOptions(spec), [spec]);
+  const [activePreviewState, setActivePreviewState] = useState<RoutePreviewVariant>("default");
+  const previewRoutes =
+    categoryId === "line"
+      ? lineStateOptions.map((option) => ({ id: option.id, label: t(option.labelKey) }))
+      : spec.routeVariants?.map((variant) => ({ id: variant.id, label: t(variant.labelKey) }));
   const previewControls = useMemo<MapControlsState>(
     () => ({
       markerStyle: categoryId === "point" ? "pin" : "default",
@@ -144,7 +247,15 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }:
     }),
     [categoryId, spec],
   );
-  const previewMarkers = useMemo(() => createPreviewMarkers(spec, t), [spec, t]);
+  const previewMarkers = useMemo(
+    () =>
+      createPreviewMarkers(
+        spec,
+        t,
+        categoryId === "point" && activePreviewState !== "inProgress" ? activePreviewState : undefined,
+      ),
+    [activePreviewState, categoryId, spec, t],
+  );
 
   return (
     <article className="ManualDetail" id={`manual-component-${spec.id}`}>
@@ -152,6 +263,14 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }:
         <header className="ManualPanelHeader">
           <h2>{t(spec.nameKey)}</h2>
           <span>{t(spec.descriptionKey)}</span>
+          {categoryId === "point" || categoryId === "line" ? (
+            <ManualStateSwitcher
+              ariaLabelKey={categoryId === "point" ? "manual.stateSwitcher.pointAria" : "manual.stateSwitcher.lineAria"}
+              options={categoryId === "line" ? lineStateOptions : basePreviewStateOptions}
+              value={activePreviewState}
+              onChange={setActivePreviewState}
+            />
+          ) : null}
         </header>
 
         <div className="ManualMapRegion">
@@ -166,7 +285,8 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }:
             previewMarkerFamily={spec.markerFamily}
             previewMarkers={previewMarkers}
             previewRouteFamily={spec.routeFamily}
-            previewRoutes={spec.routeVariants?.map((variant) => ({ id: variant.id, label: t(variant.labelKey) }))}
+            previewRouteState={activePreviewState}
+            previewRoutes={previewRoutes}
           />
         </div>
 

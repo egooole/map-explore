@@ -146,6 +146,18 @@
       "showCode": "View Code",
       "hideCode": "Collapse Code"
     },
+    "tokenMapping": {
+      "designToken": "Design Token",
+      "codeToken": "Code Token",
+      "codeTokenPlaceholder": "Code Token TBD"
+    },
+    "stateSwitcher": {
+      "pointAria": "Point state switcher",
+      "lineAria": "Route state switcher",
+      "default": "Default",
+      "disable": "Disable",
+      "completed": "Completed"
+    },
     "usageIntro": "Tags summarize the scenario type; detailed guidance lives in the bullets.",
     "usageTags": {
       "primary": "Primary",
@@ -328,7 +340,7 @@
         "primary": "Use to express a route together with its start and end locations so users can read both path and nodes.",
         "constraints": "Composite routes carry more visual weight than route-only components; limit quantity in one viewport to avoid overlap."
       },
-      "code": "type RouteLocationKind = \"normal\" | \"informated\";\n\nfunction createRouteWithLocation(kind: RouteLocationKind, state: \"default\" | \"muted\" | \"completed\") {\n  const family = kind === \"normal\" ? \"routeWithNormalLocation\" : \"routeWithInformatedLocation\";\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--${family} MapRoutePreview--${state}`;\n  content.innerHTML = `\n    <span class=\"MapRouteComposite MapRouteComposite--${family} MapRouteComposite--${state}\">\n      <span class=\"MapRoutePrimitive MapRoutePrimitive--${state}\">...</span>\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--start\"></span>\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--end\"></span>\n    </span>\n  `;\n  return content;\n}"
+      "code": "const cachedRoutePath = [{ lat: 31.1939, lng: 121.3382 }, ...];\n\nasync function renderRouteWithNormalLocation(map: google.maps.Map) {\n  const outline = new google.maps.Polyline({ map, path: cachedRoutePath, strokeColor: \"#fff\", strokeWeight: 12 });\n  const route = new google.maps.Polyline({ map, path: cachedRoutePath, strokeColor: \"#2A3EF4\", strokeWeight: 8, icons: arrowIcons });\n\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  new AdvancedMarkerElement({ map, position: cachedRoutePath[0], content: createNormalPoint() });\n  new AdvancedMarkerElement({ map, position: cachedRoutePath.at(-1), content: createNormalPoint() });\n\n  return { outline, route };\n}"
     },
     "routeWithNormalLocation": {
       "name": "Route with normal location",

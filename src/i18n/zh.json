@@ -146,6 +146,18 @@
       "showCode": "查看代码",
       "hideCode": "收起代码"
     },
+    "tokenMapping": {
+      "designToken": "Design Token",
+      "codeToken": "Code Token",
+      "codeTokenPlaceholder": "待接入 Code Token"
+    },
+    "stateSwitcher": {
+      "pointAria": "点状态切换",
+      "lineAria": "路线状态切换",
+      "default": "默认",
+      "disable": "Disable",
+      "completed": "已完成"
+    },
     "usageIntro": "场景标签用于快速识别类型，具体说明放在下方 bullet 中。",
     "usageTags": {
       "primary": "主要场景",
@@ -328,7 +340,7 @@
         "primary": "用于表达一条路线及其起终点位置，使用户能同时理解路径和节点。",
         "constraints": "组合组件比单路线占用更高视觉权重，同屏展示多条时应控制数量并避免互相遮挡。"
       },
-      "code": "type RouteLocationKind = \"normal\" | \"informated\";\n\nfunction createRouteWithLocation(kind: RouteLocationKind, state: \"default\" | \"muted\" | \"completed\") {\n  const family = kind === \"normal\" ? \"routeWithNormalLocation\" : \"routeWithInformatedLocation\";\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--${family} MapRoutePreview--${state}`;\n  content.innerHTML = `\n    <span class=\"MapRouteComposite MapRouteComposite--${family} MapRouteComposite--${state}\">\n      <span class=\"MapRoutePrimitive MapRoutePrimitive--${state}\">...</span>\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--start\"></span>\n      <span class=\"MapRouteComposite__point MapRouteComposite__point--end\"></span>\n    </span>\n  `;\n  return content;\n}"
+      "code": "const cachedRoutePath = [{ lat: 31.1939, lng: 121.3382 }, ...];\n\nasync function renderRouteWithNormalLocation(map: google.maps.Map) {\n  const outline = new google.maps.Polyline({ map, path: cachedRoutePath, strokeColor: \"#fff\", strokeWeight: 12 });\n  const route = new google.maps.Polyline({ map, path: cachedRoutePath, strokeColor: \"#2A3EF4\", strokeWeight: 8, icons: arrowIcons });\n\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  new AdvancedMarkerElement({ map, position: cachedRoutePath[0], content: createNormalPoint() });\n  new AdvancedMarkerElement({ map, position: cachedRoutePath.at(-1), content: createNormalPoint() });\n\n  return { outline, route };\n}"
     },
     "routeWithNormalLocation": {
       "name": "Route with normal location",

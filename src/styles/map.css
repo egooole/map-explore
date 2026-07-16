@@ -210,7 +210,7 @@
 .MapMarker--cumulative-default > .MapMarker__cluster,
 .MapMarker--cumulative-muted > .MapMarker__cluster,
 .MapMarker--cumulative-completed > .MapMarker__cluster {
-  background: #2450ff;
+  background: #2a3ef4;
   border: 4px solid #ffffff;
   box-shadow: 0 5px 14px rgba(15, 23, 42, 0.24), 0 1px 3px rgba(15, 23, 42, 0.16);
   color: #ffffff;
@@ -224,7 +224,7 @@
 
 .MapMarker--cumulative-emphasized > .MapMarker__cluster,
 .MapMarker--cumulative-selected > .MapMarker__cluster {
-  background: #2450ff;
+  background: #2a3ef4;
   border: 8px solid #ffffff;
   box-shadow: 0 11px 28px rgba(15, 23, 42, 0.28), 0 4px 12px rgba(36, 80, 255, 0.2);
   color: #ffffff;
@@ -236,7 +236,9 @@
   width: 64px;
 }
 
-.MapMarker--custom-default > .MapMarker__customAsset {
+.MapMarker--custom-default > .MapMarker__customAsset,
+.MapMarker--custom-muted > .MapMarker__customAsset,
+.MapMarker--custom-completed > .MapMarker__customAsset {
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -250,14 +252,18 @@
   width: 59px;
 }
 
-.MapMarker--custom-default > .MapMarker__customAsset img {
+.MapMarker--custom-default > .MapMarker__customAsset svg,
+.MapMarker--custom-muted > .MapMarker__customAsset svg,
+.MapMarker--custom-completed > .MapMarker__customAsset svg {
   display: block;
   height: 100%;
   max-width: none;
   width: 100%;
 }
 
-.MapMarker--custom-default > .MapMarker__customTextPin {
+.MapMarker--custom-default > .MapMarker__customTextPin,
+.MapMarker--custom-muted > .MapMarker__customTextPin,
+.MapMarker--custom-completed > .MapMarker__customTextPin {
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -316,8 +322,16 @@
 
 .MapMarker--custom-default.MapMarker--interactive:hover > .MapMarker__customAsset,
 .MapMarker--custom-default.is-selected > .MapMarker__customAsset,
+.MapMarker--custom-muted.MapMarker--interactive:hover > .MapMarker__customAsset,
+.MapMarker--custom-muted.is-selected > .MapMarker__customAsset,
+.MapMarker--custom-completed.MapMarker--interactive:hover > .MapMarker__customAsset,
+.MapMarker--custom-completed.is-selected > .MapMarker__customAsset,
 .MapMarker--custom-default.MapMarker--interactive:hover > .MapMarker__customTextPin,
-.MapMarker--custom-default.is-selected > .MapMarker__customTextPin {
+.MapMarker--custom-default.is-selected > .MapMarker__customTextPin,
+.MapMarker--custom-muted.MapMarker--interactive:hover > .MapMarker__customTextPin,
+.MapMarker--custom-muted.is-selected > .MapMarker__customTextPin,
+.MapMarker--custom-completed.MapMarker--interactive:hover > .MapMarker__customTextPin,
+.MapMarker--custom-completed.is-selected > .MapMarker__customTextPin {
   filter: drop-shadow(0 6px 12px rgba(36, 80, 255, 0.18));
   transform: translateY(-1px);
 }
@@ -338,7 +352,7 @@
 .MapMarker--cumulative-default > span,
 .MapMarker--cumulative-emphasized > span,
 .MapMarker--cumulative-selected > span {
-  background: #2450ff;
+  background: #2a3ef4;
 }
 
 .MapMarker--point-muted > span {
@@ -346,7 +360,7 @@
 }
 
 .MapMarker--point-completed > span {
-  background: #b6bdc8;
+  background: #9c9ead;
 }
 
 .MapMarker--informated-muted > span {
@@ -354,7 +368,23 @@
 }
 
 .MapMarker--informated-completed > span {
-  background: #b6bdc8;
+  background: #9c9ead;
+}
+
+.MapMarker--cumulative-muted > .MapMarker__cluster {
+  background: #c9d2fc;
+}
+
+.MapMarker--cumulative-completed > .MapMarker__cluster {
+  background: #9c9ead;
+}
+
+.MapMarker--custom-muted .MapMarker__customTextPin::after {
+  background: #c9d2fc;
+}
+
+.MapMarker--custom-completed .MapMarker__customTextPin::after {
+  background: #9c9ead;
 }
 
 .MapMarker--interactive {
@@ -387,7 +417,7 @@
 .MapMarker--cumulative-completed.is-selected > span,
 .MapMarker--cumulative-emphasized.MapMarker--interactive:hover > span,
 .MapMarker--cumulative-emphasized.is-selected > span {
-  background: #2450ff;
+  background: #2a3ef4;
   border-width: 6px;
   box-shadow: 0 8px 18px rgba(15, 98, 254, 0.24), 0 2px 5px rgba(15, 23, 42, 0.18);
 }
@@ -566,17 +596,17 @@
 
 .MapRoutePreview--routeWithNormalLocation {
   height: 24px;
-  width: 220px;
+  width: 224px;
 }
 
 .MapRoutePreview--routeWithInformatedLocation {
-  height: 40px;
-  width: 240px;
+  height: 143px;
+  width: 284px;
 }
 
 .MapRoutePreview--routeWithProgress {
-  height: 64px;
-  width: 246px;
+  height: 143px;
+  width: 284px;
 }
 
 .MapRouteComposite {
@@ -589,6 +619,58 @@
 
 .MapRouteComposite .MapRoutePrimitive {
   position: absolute;
+}
+
+.MapRouteComposite__routeSvg {
+  display: block;
+  filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.2));
+  height: 143px;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  width: 284px;
+}
+
+.MapRouteComposite__lineAsset {
+  display: block;
+  height: 12px;
+  left: 12px;
+  pointer-events: none;
+  position: absolute;
+  top: 6px;
+  width: 200px;
+}
+
+.MapRouteComposite__lineAsset img {
+  display: block;
+  height: 12px;
+  width: 200px;
+}
+
+.MapRouteComposite__routeArrows {
+  fill: none;
+  pointer-events: none;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+  stroke-width: 2;
+}
+
+.MapRouteComposite__routeArrows--secondary {
+  stroke: #31bdb8;
+}
+
+.MapRouteComposite__routeArrows--primary {
+  stroke: #768bff;
+}
+
+.MapRoutePreview--routeWithNormalLocation:hover .MapRouteComposite__routeSvg,
+.MapRoutePreview--routeWithNormalLocation.is-selected .MapRouteComposite__routeSvg,
+.MapRoutePreview--routeWithInformatedLocation:hover .MapRouteComposite__routeSvg,
+.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRouteComposite__routeSvg,
+.MapRoutePreview--routeWithProgress:hover .MapRouteComposite__routeSvg,
+.MapRoutePreview--routeWithProgress.is-selected .MapRouteComposite__routeSvg {
+  filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.24));
 }
 
 .MapRoutePrimitive {
@@ -776,6 +858,15 @@
   width: 24px;
 }
 
+.MapRouteComposite__point--normalPrimitive {
+  height: 24px;
+  width: 24px;
+}
+
+.MapRouteComposite__point--normalPrimitive > span {
+  transform: translate(0, 0);
+}
+
 .MapRouteComposite__point--normal > span {
   background: #2450ff;
   border: 4px solid #ffffff;
@@ -804,13 +895,23 @@
   width: 40px;
 }
 
+.MapRoutePreview--routeWithNormalLocation:hover .MapRouteComposite__point--normalPrimitive > span,
+.MapRoutePreview--routeWithNormalLocation.is-selected .MapRouteComposite__point--normalPrimitive > span {
+  background: #2a3ef4;
+  border-width: 6px;
+  box-shadow: 0 8px 18px rgba(15, 98, 254, 0.24), 0 2px 5px rgba(15, 23, 42, 0.18);
+  height: 40px;
+  transform: translate(-8px, -8px);
+  width: 40px;
+}
+
 .MapRouteComposite--routeWithNormalLocation .MapRouteComposite__point--start {
   left: 0;
   top: 0;
 }
 
 .MapRouteComposite--routeWithNormalLocation .MapRouteComposite__point--end {
-  left: 196px;
+  left: 200px;
   top: 0;
 }
 
@@ -846,29 +947,29 @@
 }
 
 .MapRouteComposite--routeWithInformatedLocation .MapRouteComposite__point--start {
-  left: 0;
-  top: 0;
+  left: 34px;
+  top: 10px;
 }
 
 .MapRouteComposite--routeWithInformatedLocation .MapRouteComposite__point--end {
-  left: 200px;
-  top: 0;
+  left: 229px;
+  top: 25px;
 }
 
 .MapRouteComposite--routeWithProgress .MapRouteComposite__point--start {
-  left: 12px;
-  top: 20px;
+  left: 17px;
+  top: 99px;
 }
 
 .MapRouteComposite--routeWithProgress .MapRouteComposite__point--end {
-  left: 210px;
-  top: 20px;
+  left: 237px;
+  top: 33px;
 }
 
 .MapRouteComposite__point--progress {
   height: 64px;
-  left: 122px;
-  top: 0;
+  left: 101px;
+  top: 44px;
   width: 64px;
 }
 
@@ -907,39 +1008,6 @@
   height: 121px;
   overflow: visible;
   width: 282px;
-}
-
-.MapRoutePreview--normalHasArrow .MapRoutePreview__asset {
-  display: block;
-  filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.2));
-  inset-inline: 0;
-  pointer-events: none;
-  position: absolute;
-}
-
-.MapRoutePreview--normalHasArrow .MapRoutePreview__asset img {
-  display: block;
-  height: auto;
-  width: 100%;
-}
-
-.MapRoutePreview--normalHasArrow .MapRoutePreview__asset--default {
-  bottom: 0;
-}
-
-.MapRoutePreview--normalHasArrow .MapRoutePreview__asset--hover {
-  opacity: 0;
-  top: 0;
-}
-
-.MapRoutePreview--normalHasArrow:hover .MapRoutePreview__asset--default,
-.MapRoutePreview--normalHasArrow.is-selected .MapRoutePreview__asset--default {
-  opacity: 0;
-}
-
-.MapRoutePreview--normalHasArrow:hover .MapRoutePreview__asset--hover,
-.MapRoutePreview--normalHasArrow.is-selected .MapRoutePreview__asset--hover {
-  opacity: 1;
 }
 
 .MapRoutePreview--muted {
@@ -1022,16 +1090,36 @@
   fill: rgba(255, 255, 255, 0.45);
 }
 
+.MapRoutePreview__narrowArrows {
+  fill: none;
+  pointer-events: none;
+  stroke: #768bff;
+  stroke-linecap: butt;
+  stroke-linejoin: miter;
+  stroke-width: 2;
+  transition: opacity 120ms ease;
+}
+
+.MapRoutePreview__narrowArrows--secondary {
+  opacity: 0.82;
+}
+
+.MapRoutePreview:hover .MapRoutePreview__narrowArrows--secondary,
+.MapRoutePreview.is-selected .MapRoutePreview__narrowArrows--secondary {
+  opacity: 0.55;
+}
+
+.MapRoutePreview:hover .MapRoutePreview__narrowArrows--primary,
+.MapRoutePreview.is-selected .MapRoutePreview__narrowArrows--primary {
+  opacity: 1;
+}
+
 .MapRoutePreview:focus-visible {
   outline: none;
 }
 
 .MapRoutePreview:focus-visible .MapRoutePreview__networkSvg {
   filter: drop-shadow(0 0 0 rgba(36, 80, 255, 0.4)) drop-shadow(0 6px 10px rgba(15, 23, 42, 0.2));
-}
-
-.MapRoutePreview:focus-visible .MapRoutePreview__asset {
-  filter: drop-shadow(0 0 0 rgba(36, 80, 255, 0.4));
 }
 
 .MapRoutePreview__pin,

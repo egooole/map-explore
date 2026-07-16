@@ -1,15 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import customShopMarker from "../assets/custom-location/shop.svg";
-import customUserMarker from "../assets/custom-location/user.svg";
-import customWarehouseMarker from "../assets/custom-location/warehouse.svg";
+import customShopMarker from "../assets/custom-location/shop.svg?raw";
+import customUserMarker from "../assets/custom-location/user.svg?raw";
+import customWarehouseMarker from "../assets/custom-location/warehouse.svg?raw";
 import informatedCompletedMarker from "../assets/informated-location/completed.svg";
 import informatedDefaultMarker from "../assets/informated-location/default.svg";
 import informatedDisableMarker from "../assets/informated-location/disable.svg";
 import informatedEmphasizedMarker from "../assets/informated-location/emphasized.svg";
 import informatedSelectedMarker from "../assets/informated-location/selected.svg";
-import normalRouteHasArrowDefault from "../assets/route/normal-route-has-arrow-default.svg";
-import normalRouteHasArrowHover from "../assets/route/normal-route-has-arrow-hover.svg";
 import { cloudMapIds, mapKey, mapLabCloudMapIdSource, mapPresets } from "../config/mapPresets";
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
 import type {
@@ -43,7 +41,6 @@ type GoogleMapsGlobal = {
     Polygon: new (options: Record<string, unknown>) => GooglePolygon;
     Polyline: new (options: Record<string, unknown>) => GooglePolyline;
     Size: new (width: number, height: number) => unknown;
-    SymbolPath: { FORWARD_CLOSED_ARROW: unknown };
   };
 };
 
@@ -85,6 +82,7 @@ type GoogleMarkerLibrary = {
     map: GoogleMap;
     position: GoogleLatLng;
     title?: string;
+    zIndex?: number;
   }) => GoogleAdvancedMarker;
 };
 
@@ -122,6 +120,7 @@ interface PreviewMarkerItem {
 interface DynamicRouteLayer {
   listeners: GoogleMapsListener[];
   markers: MapMarkerHandle[];
+  overlays: MapMarkerHandle[];
   outline: GooglePolyline | null;
   route: GooglePolyline | null;
 }
@@ -138,6 +137,7 @@ interface MapCanvasProps {
   previewMarkerFamily?: MarkerPreviewFamily;
   previewMarkers?: MarkerPreviewState[];
   previewRouteFamily?: RoutePreviewFamily;
+  previewRouteState?: RoutePreviewVariant;
   previewRoutes?: RoutePreviewState[];
 }
 
@@ -151,11 +151,54 @@ const routePositions: GoogleLatLngLiteral[] = [
 ];
 
 const routePreviewPosition: GoogleLatLngLiteral = { lat: 31.223, lng: 121.46 };
+const routeArrowAnchor = { x: 9.79846, y: 2.12132 };
+const routeArrowPath = "M1.06065 10.8591L9.79846 2.12132L18.5363 10.8591";
+const routeWithNormalLocationArrowScale = {
+  default: 7.83 / 20,
+  focused: 12.36 / 20,
+};
+
+const routeWithNormalLocationPreviewPath: GoogleLatLngLiteral[] = [
+  { lat: 31.1939, lng: 121.3382 },
+  { lat: 31.1974, lng: 121.3528 },
+  { lat: 31.2041, lng: 121.3751 },
+  { lat: 31.2118, lng: 121.3976 },
+  { lat: 31.2189, lng: 121.4214 },
+  { lat: 31.2265, lng: 121.4489 },
+  { lat: 31.2394, lng: 121.4715 },
+  { lat: 31.2527, lng: 121.4836 },
+  { lat: 31.2698, lng: 121.4929 },
+  { lat: 31.2885, lng: 121.5008 },
+  { lat: 31.3056, lng: 121.5071 },
+  { lat: 31.3211, lng: 121.5124 },
+  { lat: 31.3278, lng: 121.5152 },
+];
+
+const routeStateColors: Partial<Record<RoutePreviewVariant, string>> = {
+  completed: "#9C9EAD",
+  default: "#2A3EF4",
+  muted: "#C9D2FC",
+};
+
+const routeArrowStateColors: Partial<Record<RoutePreviewVariant, string>> = {
+  completed: "#C4C5CE",
+  default: "#768BFF",
+  muted: "#D9E0FD",
+};
+
+function resolveRouteStateColor(state?: RoutePreviewVariant) {
+  return routeStateColors[state ?? "default"] ?? routeStateColors.default ?? "#2A3EF4";
+}
+
+function resolveRouteArrowStateColor(state?: RoutePreviewVariant) {
+  return routeArrowStateColors[state ?? "default"] ?? routeArrowStateColors.default ?? "#768BFF";
+}
 
 function createEmptyDynamicRouteLayer(): DynamicRouteLayer {
   return {
     listeners: [],
     markers: [],
+    overlays: [],
     outline: null,
     route: null,
   };
@@ -166,10 +209,29 @@ function clearDynamicRouteLayer(layer: DynamicRouteLayer) {
   layer.listeners = [];
   layer.markers.forEach((marker) => marker.remove());
   layer.markers = [];
+  layer.overlays.forEach((overlay) => overlay.remove());
+  layer.overlays = [];
   layer.outline?.setMap(null);
   layer.route?.setMap(null);
   layer.outline = null;
   layer.route = null;
+}
+
+function getPathBounds(path: GoogleLatLngLiteral[]) {
+  return path.reduce(
+    (bounds, point) => ({
+      east: Math.max(bounds.east, point.lng),
+      north: Math.max(bounds.north, point.lat),
+      south: Math.min(bounds.south, point.lat),
+      west: Math.min(bounds.west, point.lng),
+    }),
+    {
+      east: path[0]?.lng ?? center.lng,
+      north: path[0]?.lat ?? center.lat,
+      south: path[0]?.lat ?? center.lat,
+      west: path[0]?.lng ?? center.lng,
+    },
+  );
 }
 
 function normalizeRouteNodeValue(value: string) {
@@ -479,6 +541,17 @@ const customMarkerAssets: Partial<Record<CustomMarkerContent, string>> = {
   warehouse: customWarehouseMarker,
 };
 
+const customMarkerStateColors: Partial<Record<MarkerPreviewVariant, string>> = {
+  completed: "#9C9EAD",
+  default: "#2A3EF4",
+  muted: "#C9D2FC",
+};
+
+function createCustomMarkerAsset(asset: string, previewVariant?: MarkerPreviewVariant) {
+  const stateColor = customMarkerStateColors[previewVariant ?? "default"] ?? customMarkerStateColors.default;
+  return asset.replace(/var\(--fill-0,\s*#2A3EF4\)/gi, stateColor ?? "#2A3EF4");
+}
+
 function resetGoogleMapsScript() {
   document.querySelectorAll(`script[id="${scriptId}"], script[src*="maps.googleapis.com/maps/api/js"]`).forEach((script) => {
     script.remove();
@@ -561,7 +634,7 @@ function createMarkerElement(
         ? `<span class="MapMarker__cluster"><b>${count ?? ""}</b></span>`
       : previewVariant && previewFamily === "custom" && customContent
         ? customMarkerAssets[customContent]
-          ? `<span class="MapMarker__customAsset"><img alt="" src="${customMarkerAssets[customContent]}" /></span>`
+          ? `<span class="MapMarker__customAsset">${createCustomMarkerAsset(customMarkerAssets[customContent], previewVariant)}</span>`
           : `<span class="MapMarker__customTextPin"><b>${customContent === "number" ? "2" : "O"}</b></span>`
       : style === "dot" && !previewVariant
         ? "<span></span>"
@@ -636,11 +709,54 @@ function createCompositeRouteElement(family: RoutePreviewFamily, variant: RouteP
 
   return `
     <span class="MapRouteComposite MapRouteComposite--${family} MapRouteComposite--${progressVariant}">
-      ${createRoutePrimitiveMarkup(progressVariant)}
+      ${createHasArrowRouteShapeMarkup()}
       ${createCompositePoint(isProgress ? "normal" : pointKind, "start")}
       ${isProgress ? createCompositePoint("progress", "middle") : ""}
       ${createCompositePoint(isProgress ? "normal" : pointKind, "end")}
     </span>
+  `;
+}
+
+function createRoutePreviewArrow(x: number, y: number, rotation: number) {
+  return `<path d="${routeArrowPath}" transform="translate(${x} ${y}) rotate(${rotation}) translate(-${routeArrowAnchor.x} -${routeArrowAnchor.y})" />`;
+}
+
+function createRoutePreviewArrowMarkup() {
+  return `
+    <g class="MapRoutePreview__narrowArrows MapRoutePreview__narrowArrows--primary">
+      ${createRoutePreviewArrow(84.1, 51.5, 44.5)}
+      ${createRoutePreviewArrow(119.9, 69.9, -12.5)}
+      ${createRoutePreviewArrow(163.4, 59.9, -13.9)}
+      ${createRoutePreviewArrow(207.1, 49.1, -13.9)}
+    </g>
+    <g class="MapRoutePreview__narrowArrows MapRoutePreview__narrowArrows--secondary">
+      ${createRoutePreviewArrow(70.9, 87.3, -17.7)}
+      ${createRoutePreviewArrow(114.0, 74.0, -16.5)}
+      ${createRoutePreviewArrow(157.7, 61.4, -13.9)}
+      ${createRoutePreviewArrow(201.4, 50.6, -13.9)}
+    </g>
+  `;
+}
+
+function createHasArrowRouteShapeMarkup() {
+  return `
+    <svg aria-hidden="true" class="MapRouteComposite__routeSvg" viewBox="0 0 284 143">
+      <path d="M250.229 52.9424L251.618 60.8213L251.792 61.8066L250.808 61.9795L134.326 82.5049C134.088 82.5469 133.855 82.6187 133.633 82.7168L31.3633 127.941L30.4492 128.346L30.0439 127.431L26.8086 120.113L26.4043 119.199L27.3193 118.794L129.589 73.5703C130.548 73.1461 131.556 72.8394 132.59 72.6572L249.071 52.1318L250.057 51.958L250.229 52.9424Z" fill="#009995" stroke="#ffffff" stroke-width="2" stroke-linecap="square"/>
+      <path d="M59.9766 39.6748L132.202 66.3105C132.7 66.4942 133.238 66.5432 133.761 66.4512L249.071 46.1318L250.057 45.958L250.229 46.9424L251.618 54.8213L251.792 55.8066L250.808 55.9795L135.496 76.2988C133.231 76.6979 130.9 76.4891 128.742 75.6934L56.5176 49.0576L55.5791 48.7109L55.9248 47.7734L58.6924 40.2676L59.0391 39.3291L59.9766 39.6748Z" fill="#2A3EF4" stroke="#ffffff" stroke-width="2" stroke-linecap="square"/>
+      <g class="MapRouteComposite__routeArrows MapRouteComposite__routeArrows--secondary">
+        <path d="M139.002 70.7998L145.406 75.3022L140.904 81.7065" />
+        <path d="M102.888 84.75L110.343 87.1376L107.956 94.5932" />
+        <path d="M73.8877 97.75L81.3433 100.138L78.9557 107.593" />
+        <path d="M173.553 64.7749L179.957 69.2773L175.455 75.6816" />
+        <path d="M208.103 58.75L214.507 63.2524L210.004 69.6567" />
+      </g>
+      <g class="MapRouteComposite__routeArrows MapRouteComposite__routeArrows--primary">
+        <path d="M131.783 65.6704L137.486 71.034L132.122 76.7365" />
+        <path d="M99.6416 53.75L102.848 60.8919L95.706 64.0982" />
+        <path d="M168.002 59.75L174.406 64.2524L169.904 70.6567" />
+        <path d="M202.002 53.75L208.406 58.2524L203.904 64.6567" />
+      </g>
+    </svg>
   `;
 }
 
@@ -669,12 +785,13 @@ function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVar
   route.setAttribute("role", "button");
   if (family === "normalHasArrow") {
     route.innerHTML = `
-      <span class="MapRoutePreview__asset MapRoutePreview__asset--default" aria-hidden="true">
-        <img src="${normalRouteHasArrowDefault}" alt="" />
-      </span>
-      <span class="MapRoutePreview__asset MapRoutePreview__asset--hover" aria-hidden="true">
-        <img src="${normalRouteHasArrowHover}" alt="" />
-      </span>
+      <svg aria-hidden="true" class="MapRoutePreview__networkSvg" viewBox="0 0 282 121">
+        <path class="MapRoutePreview__strokeBase" d="M52 20 L106 73 L151 63 L232 43" />
+        <path class="MapRoutePreview__strokeBase" d="M28 101 L97 79 L151 63 L232 43" />
+        <path class="MapRoutePreview__route MapRoutePreview__route--secondary" d="M28 101 L97 79 L151 63 L232 43" />
+        <path class="MapRoutePreview__route MapRoutePreview__route--primary" d="M52 20 L106 73 L151 63 L232 43" />
+        ${createRoutePreviewArrowMarkup()}
+      </svg>
     `;
   } else if (
     family === "routeWithNormalLocation" ||
@@ -796,12 +913,177 @@ function resolveCumulativePreviewItems(zoom: number, previewMarkers: MarkerPrevi
   }));
 }
 
+function createRouteWithNormalLocationOverlay(
+  googleMaps: GoogleMapsGlobal,
+  map: GoogleMap,
+  path: GoogleLatLngLiteral[],
+  onFocusChange: (focused: boolean) => void,
+  arrowScaleConfig = routeWithNormalLocationArrowScale,
+  showArrows = true,
+  routeState: RoutePreviewVariant = "default",
+): MapMarkerHandle {
+  class RouteOverlay extends googleMaps.maps.OverlayView {
+    private container = document.createElement("div");
+    private focused = false;
+    private selected = false;
+
+    constructor() {
+      super();
+      this.container.style.position = "absolute";
+      this.container.style.pointerEvents = "none";
+      this.container.style.zIndex = "10";
+    }
+
+    private isRouteHit(event: PointerEvent | MouseEvent) {
+      return document
+        .elementsFromPoint(event.clientX, event.clientY)
+        .some((element) => element.classList.contains("MapRouteOverlay__hitArea"));
+    }
+
+    private handlePointerMove = (event: PointerEvent) => {
+      if (this.isRouteHit(event)) {
+        if (!this.focused) {
+          this.setFocused(true);
+        }
+        return;
+      }
+
+      if (this.focused && !this.selected) {
+        this.setFocused(false);
+      }
+    };
+
+    private handleClick = (event: MouseEvent) => {
+      if (!this.isRouteHit(event)) {
+        return;
+      }
+
+      this.selected = !this.selected;
+      this.setFocused(this.selected);
+    };
+
+    private render() {
+      const projection = this.getProjection();
+      if (!projection || path.length < 2) {
+        return;
+      }
+
+      const projectedPath = path.map((point) => projection.fromLatLngToDivPixel(point));
+      const padding = this.focused ? 30 : 24;
+      const minX = Math.min(...projectedPath.map((point) => point.x)) - padding;
+      const minY = Math.min(...projectedPath.map((point) => point.y)) - padding;
+      const maxX = Math.max(...projectedPath.map((point) => point.x)) + padding;
+      const maxY = Math.max(...projectedPath.map((point) => point.y)) + padding;
+      const width = Math.max(1, maxX - minX);
+      const height = Math.max(1, maxY - minY);
+      const localPath = projectedPath.map((point) => ({ x: point.x - minX, y: point.y - minY }));
+      const routeD = localPath.map((point, index) => `${index === 0 ? "M" : "L"}${point.x} ${point.y}`).join(" ");
+      const routeStroke = this.focused ? 12 : 8;
+      const outlineStroke = routeStroke + 4;
+      const routeColor = resolveRouteStateColor(routeState);
+      const arrowColor = resolveRouteArrowStateColor(routeState);
+      const arrowScale = this.focused ? arrowScaleConfig.focused : arrowScaleConfig.default;
+      const arrowMarkup = showArrows ? this.createArrowMarkup(localPath, arrowScale, arrowColor) : "";
+      const maskId = `routeWithNormalLocationMask-${Math.round(minX)}-${Math.round(minY)}-${this.focused ? "on" : "off"}`;
+
+      this.container.style.left = `${minX}px`;
+      this.container.style.top = `${minY}px`;
+      this.container.style.width = `${width}px`;
+      this.container.style.height = `${height}px`;
+      this.container.innerHTML = `
+        <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <mask id="${maskId}" maskUnits="userSpaceOnUse">
+              <rect x="0" y="0" width="${width}" height="${height}" fill="black" />
+              <path d="${routeD}" fill="none" stroke="white" stroke-width="${routeStroke}" stroke-linecap="round" stroke-linejoin="round" />
+            </mask>
+          </defs>
+          <path d="${routeD}" fill="none" stroke="#ffffff" stroke-width="${outlineStroke}" stroke-linecap="round" stroke-linejoin="round" />
+          <path d="${routeD}" fill="none" stroke="${routeColor}" stroke-width="${routeStroke}" stroke-linecap="round" stroke-linejoin="round" />
+          <g mask="url(#${maskId})">
+            ${arrowMarkup}
+          </g>
+          <path class="MapRouteOverlay__hitArea" d="${routeD}" fill="none" stroke="transparent" stroke-width="${Math.max(outlineStroke, 24)}" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: stroke; cursor: pointer;" />
+        </svg>
+      `;
+    }
+
+    private createArrowMarkup(points: Array<{ x: number; y: number }>, scale: number, color: string) {
+      const arrows: string[] = [];
+      let travelled = 0;
+      let nextArrowDistance = 22;
+
+      for (let index = 1; index < points.length; index += 1) {
+        const start = points[index - 1];
+        const end = points[index];
+        const dx = end.x - start.x;
+        const dy = end.y - start.y;
+        const segmentLength = Math.hypot(dx, dy);
+
+        if (!segmentLength) {
+          continue;
+        }
+
+        while (nextArrowDistance <= travelled + segmentLength) {
+          const progress = (nextArrowDistance - travelled) / segmentLength;
+          const x = start.x + dx * progress;
+          const y = start.y + dy * progress;
+          const rotation = (Math.atan2(dy, dx) * 180) / Math.PI + 90;
+          arrows.push(
+            `<path d="${routeArrowPath}" fill="none" stroke="${color}" stroke-width="3" transform="translate(${x} ${y}) rotate(${rotation}) scale(${scale}) translate(-${routeArrowAnchor.x} -${routeArrowAnchor.y})" />`,
+          );
+          nextArrowDistance += 28;
+        }
+
+        travelled += segmentLength;
+      }
+
+      return arrows.join("");
+    }
+
+    private setFocused(focused: boolean) {
+      this.focused = focused;
+      onFocusChange(focused);
+      this.render();
+    }
+
+    onAdd() {
+      const svgPane = this.getPanes()?.overlayMouseTarget;
+      if (!svgPane) {
+        return;
+      }
+
+      document.addEventListener("pointermove", this.handlePointerMove);
+      document.addEventListener("click", this.handleClick);
+      svgPane.appendChild(this.container);
+    }
+
+    draw() {
+      this.render();
+    }
+
+    onRemove() {
+      document.removeEventListener("pointermove", this.handlePointerMove);
+      document.removeEventListener("click", this.handleClick);
+      this.container.remove();
+    }
+  }
+
+  const overlay = new RouteOverlay();
+  overlay.setMap(map);
+
+  return {
+    remove: () => overlay.setMap(null),
+  };
+}
+
 function createOverlayMarker(
   googleMaps: GoogleMapsGlobal,
   map: GoogleMap,
   position: GoogleLatLng,
   element: HTMLElement,
   anchor: "bottom" | "center" = "bottom",
+  zIndex?: number,
 ): MapMarkerHandle {
   class MarkerOverlay extends googleMaps.maps.OverlayView {
     private markerElement = element;
@@ -817,6 +1099,9 @@ function createOverlayMarker(
       }
       const anchorTransform = anchor === "center" ? "translate(-50%, -50%)" : "translate(-50%, -100%)";
       this.markerElement.style.transform = `translate(${pixel.x}px, ${pixel.y}px) ${anchorTransform}`;
+      if (zIndex !== undefined) {
+        this.markerElement.style.zIndex = String(zIndex);
+      }
     }
 
     onRemove() {
@@ -837,6 +1122,7 @@ async function createAdvancedMarker(
   position: GoogleLatLng,
   element: HTMLElement,
   anchor: "bottom" | "center" = "bottom",
+  zIndex?: number,
 ): Promise<MapMarkerHandle> {
   const { AdvancedMarkerElement } = await googleMaps.maps.importLibrary("marker");
   element.classList.add("MapMarker--advanced");
@@ -857,6 +1143,7 @@ async function createAdvancedMarker(
     map,
     position,
     title: element.getAttribute("aria-label") ?? undefined,
+    zIndex,
   });
 
   return {
@@ -879,6 +1166,7 @@ export function MapCanvas({
   previewMarkerFamily = "normal",
   previewMarkers,
   previewRouteFamily,
+  previewRouteState = "default",
   previewRoutes,
 }: MapCanvasProps) {
   const { t } = useTranslation();
@@ -888,6 +1176,7 @@ export function MapCanvas({
   const polylineRef = useRef<GooglePolyline | null>(null);
   const polygonRef = useRef<GooglePolygon | null>(null);
   const dynamicRouteRef = useRef<DynamicRouteLayer>(createEmptyDynamicRouteLayer());
+  const manualRoutePreviewRef = useRef<DynamicRouteLayer>(createEmptyDynamicRouteLayer());
   const markersRef = useRef<MapMarkerHandle[]>([]);
   const routePreviewsRef = useRef<MapMarkerHandle[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "missing-key" | "error">("idle");
@@ -1096,13 +1385,65 @@ export function MapCanvas({
     markersRef.current = [];
     routePreviewsRef.current.forEach((route) => route.remove());
     routePreviewsRef.current = [];
+    clearDynamicRouteLayer(manualRoutePreviewRef.current);
 
     const renderRoutePreviews = async () => {
       if (!shouldShowRoutePreview || !previewRouteFamily || !previewRoutes?.length) {
         return;
       }
 
-      const selectedRoute = previewRoutes.find((route) => route.id === "default") ?? previewRoutes[0];
+      const selectedRoute = previewRoutes.find((route) => route.id === previewRouteState) ?? previewRoutes[0];
+
+      if (
+        previewRouteFamily === "normalNoArrow" ||
+        previewRouteFamily === "normalHasArrow" ||
+        previewRouteFamily === "routeWithNormalLocation"
+      ) {
+        const path = routeWithNormalLocationPreviewPath;
+        const layer = manualRoutePreviewRef.current;
+        const routeMarkerElements =
+          previewRouteFamily === "routeWithNormalLocation"
+            ? [
+                createMarkerElement("dot", markerLabels[0], "default", "normal"),
+                createMarkerElement("dot", markerLabels[2], "default", "normal"),
+              ]
+            : [];
+        const setMarkerVariant = (focused: boolean) => {
+          routeMarkerElements.forEach((markerElement) => {
+            markerElement.classList.toggle("MapMarker--point-default", !focused);
+            markerElement.classList.toggle("MapMarker--point-selected", focused);
+          });
+        };
+        const routeOverlay = createRouteWithNormalLocationOverlay(
+          googleMaps,
+          map,
+          path,
+          setMarkerVariant,
+          routeWithNormalLocationArrowScale,
+          previewRouteFamily !== "normalNoArrow",
+          previewRouteState,
+        );
+        layer.overlays = [routeOverlay];
+
+        const markerHandles = await Promise.all(
+          (previewRouteFamily === "routeWithNormalLocation" ? [path[0], path[path.length - 1]] : []).map((position, index) =>
+            activeMapId
+              ? createAdvancedMarker(googleMaps, map, position, routeMarkerElements[index], "center", 100)
+              : Promise.resolve(createOverlayMarker(googleMaps, map, position, routeMarkerElements[index], "center", 100)),
+          ),
+        );
+
+        if (cancelled) {
+          markerHandles.forEach((marker) => marker.remove());
+          clearDynamicRouteLayer(layer);
+          return;
+        }
+
+        layer.markers = markerHandles;
+        map.fitBounds(getPathBounds(path), 72);
+        return;
+      }
+
       const routeElement = createRouteElement(previewRouteFamily, selectedRoute.id, selectedRoute.label);
       const routeHandles = [
         await (activeMapId
@@ -1195,6 +1536,7 @@ export function MapCanvas({
       markersRef.current = [];
       routePreviewsRef.current.forEach((route) => route.remove());
       routePreviewsRef.current = [];
+      clearDynamicRouteLayer(manualRoutePreviewRef.current);
     };
   }, [
     controls.markerStyle,
@@ -1209,6 +1551,7 @@ export function MapCanvas({
     previewMarkerFamily,
     previewMarkers,
     previewRouteFamily,
+    previewRouteState,
     previewRoutes,
     renderPreviewZoom,
     routeColor,
@@ -1234,6 +1577,10 @@ export function MapCanvas({
     const middle = dynamicRouteNodes.find((node) => node.id === "middle")?.value ?? "";
     const end = dynamicRouteNodes.find((node) => node.id === "end")?.value ?? "";
     const shouldShowArrows = dynamicRouteFamily !== "normalNoArrow";
+    const shouldUseRouteOverlay =
+      dynamicRouteFamily === "normalNoArrow" ||
+      dynamicRouteFamily === "normalHasArrow" ||
+      dynamicRouteFamily === "routeWithNormalLocation";
 
     clearDynamicRouteLayer(dynamicRouteRef.current);
     setRouteStatus("loading");
@@ -1249,86 +1596,116 @@ export function MapCanvas({
         const layer = dynamicRouteRef.current;
         clearDynamicRouteLayer(layer);
 
-        let selected = false;
-        const routeIcons = (focused: boolean) =>
-          shouldShowArrows
-            ? [
-                {
-                  icon: {
-                    fillColor: focused ? "#768bff" : "#768bff",
-                    fillOpacity: focused ? 0.95 : 0.72,
-                    path: googleMaps.maps.SymbolPath.FORWARD_CLOSED_ARROW,
-                    scale: focused ? 3.2 : 2.8,
-                    strokeColor: focused ? "#768bff" : "#768bff",
-                    strokeOpacity: focused ? 0.95 : 0.72,
-                    strokeWeight: 1,
-                  },
-                  offset: "32px",
-                  repeat: focused ? "52px" : "56px",
-                },
-              ]
-            : [];
-        const setFocused = (focused: boolean) => {
-          layer.outline?.setOptions({
-            strokeWeight: focused ? 20 : 12,
-          });
-          layer.route?.setOptions({
-            icons: routeIcons(focused),
-            strokeColor: focused ? "#2232c3" : "#2a3ef4",
-            strokeWeight: focused ? 16 : 8,
-            zIndex: focused ? 42 : 41,
-          });
-        };
-
-        layer.outline = new googleMaps.maps.Polyline({
-          clickable: false,
-          geodesic: true,
-          map,
-          path,
-          strokeColor: "#ffffff",
-          strokeOpacity: 1,
-          strokeWeight: 12,
-          zIndex: 40,
-        });
-        layer.route = new googleMaps.maps.Polyline({
-          clickable: true,
-          geodesic: true,
-          icons: routeIcons(false),
-          map,
-          path,
-          strokeColor: "#2a3ef4",
-          strokeOpacity: 0.98,
-          strokeWeight: 8,
-          zIndex: 41,
-        });
-        layer.listeners = [
-          layer.route.addListener("mouseover", () => setFocused(true)),
-          layer.route.addListener("mouseout", () => {
-            if (!selected) {
-              setFocused(false);
-            }
-          }),
-          layer.route.addListener("click", () => {
-            selected = !selected;
-            setFocused(selected);
-          }),
-        ];
-
-        const routeMarkerPositions = middle
-          ? [path[0], path[Math.floor(path.length / 2)], path[path.length - 1]]
-          : [path[0], path[path.length - 1]];
+        const routeMarkerPositions =
+          dynamicRouteFamily === "normalHasArrow"
+            ? []
+            : middle
+              ? [path[0], path[Math.floor(path.length / 2)], path[path.length - 1]]
+              : [path[0], path[path.length - 1]];
         const routeMarkerLabels = dynamicRouteNodes.filter((node) => node.value).map((node) => node.value);
+        const routeMarkerElements = routeMarkerPositions.map((_, index) =>
+          createMarkerElement(
+            controls.markerStyle,
+            routeMarkerLabels[index] ?? markerLabels[index] ?? t("map.destination"),
+            index === 0 ? "default" : index === routeMarkerPositions.length - 1 ? "emphasized" : "completed",
+            "normal",
+          ),
+        );
+
+        if (shouldUseRouteOverlay) {
+          const setMarkerVariant = (focused: boolean) => {
+            if (dynamicRouteFamily !== "routeWithNormalLocation") {
+              return;
+            }
+
+            routeMarkerElements.forEach((markerElement) => {
+              markerElement.classList.toggle("MapMarker--point-selected", focused);
+            });
+          };
+          layer.overlays = [
+            createRouteWithNormalLocationOverlay(
+              googleMaps,
+              map,
+              path,
+              setMarkerVariant,
+              routeWithNormalLocationArrowScale,
+              shouldShowArrows,
+            ),
+          ];
+        } else {
+          let selected = false;
+          const routeIcons = () =>
+            shouldShowArrows
+              ? [
+                  {
+                    icon: {
+                      anchor: new googleMaps.maps.Point(routeArrowAnchor.x, routeArrowAnchor.y),
+                      fillOpacity: 0,
+                      path: routeArrowPath,
+                      scale: 1,
+                      strokeColor: "#768bff",
+                      strokeOpacity: 1,
+                      strokeWeight: 3,
+                    },
+                    fixedRotation: false,
+                    offset: "22px",
+                    repeat: "45px",
+                  },
+                ]
+              : [];
+          const setFocused = (focused: boolean) => {
+            layer.outline?.setOptions({
+              strokeWeight: focused ? 20 : 12,
+            });
+            layer.route?.setOptions({
+              icons: routeIcons(),
+              strokeColor: focused ? "#2232c3" : "#2a3ef4",
+              strokeWeight: focused ? 16 : 8,
+              zIndex: focused ? 42 : 41,
+            });
+          };
+
+          layer.outline = new googleMaps.maps.Polyline({
+            clickable: false,
+            geodesic: true,
+            map,
+            path,
+            strokeColor: "#ffffff",
+            strokeOpacity: 1,
+            strokeWeight: 12,
+            zIndex: 40,
+          });
+          layer.route = new googleMaps.maps.Polyline({
+            clickable: true,
+            geodesic: true,
+            icons: routeIcons(),
+            map,
+            path,
+            strokeColor: "#2a3ef4",
+            strokeOpacity: 0.98,
+            strokeWeight: 8,
+            zIndex: 41,
+          });
+          layer.listeners = [
+            layer.route.addListener("mouseover", () => setFocused(true)),
+            layer.route.addListener("mouseout", () => {
+              if (!selected) {
+                setFocused(false);
+              }
+            }),
+            layer.route.addListener("click", () => {
+              selected = !selected;
+              setFocused(selected);
+            }),
+          ];
+        }
+
         const markerHandles = await Promise.all(
           routeMarkerPositions.map((position, index) => {
-            const markerElement = createMarkerElement(
-              controls.markerStyle,
-              routeMarkerLabels[index] ?? markerLabels[index] ?? t("map.destination"),
-              index === 0 ? "default" : index === routeMarkerPositions.length - 1 ? "emphasized" : "completed",
-              "normal",
-            );
+            const markerElement = routeMarkerElements[index];
             return activeMapId
-              ? createAdvancedMarker(googleMaps, map, position, markerElement)
-              : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement));
+              ? createAdvancedMarker(googleMaps, map, position, markerElement, "bottom", shouldUseRouteOverlay ? 100 : undefined)
+              : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement, "bottom", shouldUseRouteOverlay ? 100 : undefined));
           }),
         );
 
@@ -1368,6 +1745,7 @@ export function MapCanvas({
   useEffect(() => {
     return () => {
       clearDynamicRouteLayer(dynamicRouteRef.current);
+      clearDynamicRouteLayer(manualRoutePreviewRef.current);
       polylineRef.current?.setMap(null);
       polygonRef.current?.setMap(null);
       markersRef.current.forEach((marker) => marker.remove());

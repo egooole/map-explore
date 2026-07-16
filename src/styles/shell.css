@@ -1,14 +1,18 @@
 .AppShell {
   background: var(--color-app-bg);
   display: flex;
-  min-height: 100dvh;
+  height: 100dvh;
+  min-height: 0;
   overflow: hidden;
+  width: 100%;
 }
 .MainStage {
   flex: 1;
+  height: 100dvh;
   min-width: 0;
   overflow: auto;
   padding: 20px;
+  overscroll-behavior: contain;
 }
 
 .MapBrowseScene,

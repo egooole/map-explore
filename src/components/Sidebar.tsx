@@ -20,16 +20,14 @@ interface SidebarNavItemProps {
   onClick: () => void;
 }
 
-function SidebarNavItem({ icon, label, description, active, onClick }: SidebarNavItemProps) {
+function SidebarNavItem({ icon, label, active, onClick }: SidebarNavItemProps) {
   return (
     <button className={`SidebarNavItem ${active ? "is-active" : ""}`} onClick={onClick} type="button">
-      <span className="SidebarNavItem__bar" />
       <span className="SidebarNavItem__icon" aria-hidden="true">
         {icon}
       </span>
       <span className="SidebarNavItem__copy">
         <span>{label}</span>
-        {description ? <small>{description}</small> : null}
       </span>
     </button>
   );

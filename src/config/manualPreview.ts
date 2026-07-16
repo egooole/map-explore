@@ -51,7 +51,11 @@ const chinaPointPreviewPattern: MarkerPreviewVariant[] = [
 
 const chinaClusterPreviewCounts = [18, 42, 12, 126, 86, 64, 38, 52, 220, 148, 34, 76, 28, 15];
 
-export function createPreviewMarkers(spec: ManualComponentSpec, translate: (key: string) => string): MarkerPreviewState[] | undefined {
+export function createPreviewMarkers(
+  spec: ManualComponentSpec,
+  translate: (key: string) => string,
+  previewState?: MarkerPreviewVariant,
+): MarkerPreviewState[] | undefined {
   if (!spec.markerVariants?.length) {
     return undefined;
   }
@@ -61,7 +65,7 @@ export function createPreviewMarkers(spec: ManualComponentSpec, translate: (key:
       const marker = spec.markerVariants?.[index % spec.markerVariants.length];
       return {
         customContent: marker?.customContent,
-        id: marker?.id ?? "default",
+        id: previewState ?? marker?.id ?? "default",
         label: marker ? translate(marker.labelKey) : translate("manual.customLocation.name"),
       };
     });
@@ -71,8 +75,18 @@ export function createPreviewMarkers(spec: ManualComponentSpec, translate: (key:
     const baseMarker = spec.markerVariants.find((marker) => marker.id === "default") ?? spec.markerVariants[0];
     return chinaClusterPreviewCounts.map((count) => ({
       count,
-      id: baseMarker.id,
+      id: previewState ?? baseMarker.id,
       label: `${translate(baseMarker.labelKey)} ${count}`,
+    }));
+  }
+
+  if (previewState) {
+    const fallbackMarker = spec.markerVariants.find((marker) => marker.id === previewState) ?? spec.markerVariants[0];
+    const previewPattern = spec.previewDistribution === "china" ? chinaPointPreviewPattern : pointPreviewPattern;
+
+    return previewPattern.map(() => ({
+      id: previewState,
+      label: fallbackMarker ? translate(fallbackMarker.labelKey) : translate(spec.nameKey),
     }));
   }
 

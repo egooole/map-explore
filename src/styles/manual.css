@@ -203,6 +203,39 @@
   line-height: 1.45;
 }
 
+.ManualStateSwitcher {
+  align-items: center;
+  display: inline-flex;
+  gap: 3px;
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.ManualStateSwitcher button {
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--radius-sm) - 2px);
+  color: var(--color-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1;
+  min-height: 28px;
+  padding: 0 11px;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.ManualStateSwitcher button:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.ManualStateSwitcher button.is-active {
+  background: var(--color-primary-soft);
+  box-shadow: 0 1px 2px rgba(18, 24, 40, 0.08);
+  color: var(--color-primary);
+}
+
 .ManualMapRegion {
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
@@ -269,6 +302,52 @@
 
 .ManualInfoRows__row dd {
   color: var(--color-text);
+}
+
+.ManualColorTokens {
+  display: grid;
+  gap: 8px;
+}
+
+.ManualColorTokens dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.ManualColorTokens__pair {
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+.ManualColorTokens__pair:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.ManualColorTokens__pair > div {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(88px, 0.28fr) minmax(0, 1fr);
+}
+
+.ManualColorTokens dt,
+.ManualColorTokens dd {
+  font-size: 12px;
+  line-height: 1.42;
+  margin: 0;
+}
+
+.ManualColorTokens dt {
+  color: var(--color-tertiary);
+  font-weight: 400;
+}
+
+.ManualColorTokens dd {
+  color: var(--color-text);
+  overflow-wrap: anywhere;
 }
 
 .ManualCodeBlock {
