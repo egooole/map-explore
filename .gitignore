@@ -4,3 +4,6 @@ dist/
 vite.config.js
 vite.config.d.ts
 .env.local
+scripts/geo-data/raw/
+scripts/geo-data/filtered/
+scripts/geo-data/simplified/

@@ -27,9 +27,19 @@ export interface RouteNode {
   value: string;
 }
 
+export interface ManagedRoute {
+  colorId: "route1" | "route2" | "route3";
+  id: string;
+  name: string;
+  nodes: RouteNode[];
+  visible: boolean;
+}
+
 export interface MapControlsState {
+  activeRouteId: string;
   zoom: number;
   markerStyle: MarkerStyle;
+  routes: ManagedRoute[];
   showMapUi: boolean;
   routeNodes: RouteNode[];
 }

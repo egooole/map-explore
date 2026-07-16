@@ -40,7 +40,7 @@
 .BrowseComponentPicker header h2 {
   color: var(--color-text);
   font-size: 15px;
-  font-weight: 760;
+  font-weight: var(--font-weight-semibold);
   line-height: 1.35;
   margin: 0;
 }
@@ -66,7 +66,7 @@
   border-radius: calc(var(--radius-sm) - 3px);
   color: var(--color-muted);
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--font-weight-semibold);
   min-height: 32px;
   padding: 0 8px;
   transition: background 160ms ease, color 160ms ease;
@@ -82,12 +82,18 @@
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
-.BrowseComponentPicker__list {
+.BrowseComponentPicker__list,
+.BrowseCheckboxList {
   display: grid;
   gap: 6px;
   max-height: 310px;
   overflow: auto;
   padding-right: 2px;
+}
+
+.BrowseCheckboxList {
+  max-height: none;
+  overflow: visible;
 }
 
 .BrowseComponentPicker__list button {
@@ -115,7 +121,7 @@
 
 .BrowseComponentPicker__list strong {
   font-size: 13px;
-  font-weight: 780;
+  font-weight: var(--font-weight-semibold);
   line-height: 1.35;
 }
 
@@ -129,9 +135,90 @@
   -webkit-line-clamp: 2;
 }
 
+.BrowseCheckboxItem {
+  align-items: center;
+  background: var(--color-app-bg);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: grid;
+  gap: 9px;
+  grid-template-columns: 16px minmax(0, 1fr);
+  min-height: 44px;
+  padding: 7px 10px;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.BrowseCheckboxItem:hover {
+  background: var(--color-primary-soft);
+}
+
+.BrowseCheckboxItem input {
+  height: 1px;
+  opacity: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.BrowseCheckboxItem__box {
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 4px;
+  display: flex;
+  height: 16px;
+  justify-content: center;
+  width: 16px;
+}
+
+.BrowseCheckboxItem__box::after {
+  border: solid #ffffff;
+  border-width: 0 2px 2px 0;
+  content: "";
+  height: 8px;
+  opacity: 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+  width: 4px;
+}
+
+.BrowseCheckboxItem input:checked + .BrowseCheckboxItem__box {
+  background: #2A3EF4;
+  border-color: #2A3EF4;
+}
+
+.BrowseCheckboxItem input:checked + .BrowseCheckboxItem__box::after {
+  opacity: 1;
+}
+
+.BrowseCheckboxItem input:focus-visible + .BrowseCheckboxItem__box {
+  box-shadow: 0 0 0 3px rgba(42, 62, 244, 0.18);
+}
+
+.BrowseCheckboxItem__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.BrowseCheckboxItem__copy strong {
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+}
+
+.BrowseCheckboxItem__copy small {
+  color: var(--color-muted);
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ParamPanel h2 {
   font-size: 15px;
-  font-weight: 760;
+  font-weight: var(--font-weight-semibold);
   line-height: 1.4;
   margin: 0;
   padding-bottom: 2px;
@@ -151,6 +238,104 @@
   margin: 0;
 }
 
+.ParamPanel__routeHeader {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.ParamPanel__routeHeader button,
+.RouteList__delete,
+.RouteList__name,
+.RouteList__visibility {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  display: inline-flex;
+  font: inherit;
+}
+
+.ParamPanel__routeHeader button {
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  min-height: 28px;
+  padding: 0 8px;
+}
+
+.ParamPanel__routeHeader button:hover,
+.RouteList__item:hover {
+  background: var(--color-primary-soft);
+}
+
+.RouteList {
+  display: grid;
+  gap: 6px;
+}
+
+.RouteList__item.is-active {
+  background: var(--color-primary-soft);
+}
+
+.RouteList__item {
+  grid-template-columns: 16px minmax(0, 1fr) 28px;
+}
+
+.RouteList__delete {
+  color: var(--color-muted);
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.RouteList__visibility[aria-pressed="true"] {
+  background: #2A3EF4;
+  border-color: #2A3EF4;
+}
+
+.RouteList__visibility[aria-pressed="true"]::after {
+  opacity: 1;
+}
+
+.RouteList__name {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.RouteList__name strong {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.RouteList__swatch {
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(17, 24, 39, 0.12);
+  flex: 0 0 auto;
+  height: 12px;
+  width: 12px;
+}
+
+.RouteList__swatch--route1 {
+  background: #2A3EF4;
+}
+
+.RouteList__swatch--route2 {
+  background: #009995;
+}
+
+.RouteList__swatch--route3 {
+  background: #9583FF;
+}
+
 .ParamRow {
   display: grid;
   gap: 7px;
@@ -159,7 +344,7 @@
 .ParamRow > span {
   color: var(--color-muted);
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--font-weight-semibold);
 }
 
 .ParamRow input,
@@ -203,7 +388,7 @@
   border-radius: var(--radius-sm);
   color: var(--color-text);
   display: inline-flex;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   justify-content: center;
   min-height: 40px;
   transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;

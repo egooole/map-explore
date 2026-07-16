@@ -40,7 +40,7 @@
 
 .SidebarHeader h1 {
   font-size: 14px;
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   line-height: 20px;
   margin: 0;
 }
@@ -129,7 +129,7 @@
 
 .SidebarNavItem__copy span {
   font-size: 14px;
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
   line-height: 20px;
   overflow-wrap: anywhere;
 }

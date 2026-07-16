@@ -57,6 +57,11 @@
     "layerVisibility": "Layer Visibility",
     "showMapUi": "显示地图 UI",
     "routeNodes": "路径节点",
+    "routeList": "路线列表",
+    "addRoute": "+ Add Route",
+    "deleteRoute": "删除路线",
+    "routeVisible": "显示中",
+    "routeHidden": "已隐藏",
     "start": "起点",
     "middle": "中途点",
     "end": "终点",
@@ -395,6 +400,27 @@
       },
       "code": "type RouteProgressState = \"default\" | \"inProgress\" | \"completed\";\n\nasync function renderRouteWithProgress(map: google.maps.Map, position: google.maps.LatLngLiteral, state: RouteProgressState) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--routeWithProgress MapRoutePreview--${state}`;\n  content.innerHTML = `<span class=\"MapRouteComposite MapRouteComposite--${state}\">...</span>`;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
+    "areaSelection": {
+      "name": "Region selection",
+      "description": "用于在地图中高亮城市、区县或国家边界的面组件，支持默认、禁用、悬停与选中状态。",
+      "style": {
+        "variantSet": "Default / Disable / Hover or Selected；Hover 与 Selected 共用同一套高亮视觉",
+        "color": "Default：fill #2A3EF4 / 10%，stroke #2A3EF4；Disable：fill #2A3EF4 / 6%，stroke #C9D2FC；Hover/Selected：fill #2A3EF4 / 40%，stroke #2A3EF4",
+        "strokeWidth": "2px 实线描边；地图区域为真实不规则边界，忽略 Figma 色板里的 cornerRadius",
+        "label": "Selected 时显示中心标签：白底 95% 不透明度，圆角 4px，内边距 8px 12px，Shadow/Down-L：0 8px 20px rgba(0,0,0,0.12)；标题 12px Medium #171718，辅助信息 12px Regular #6C6D6F / #171718"
+      },
+      "fakeMod": {
+        "component": "RegionSelection",
+        "property": "Property 1 = 区域选择/{Default | Disable | Hover or Selected}",
+        "figmaNodes": "3079:140122 / 3079:140124 / 3079:140126"
+      },
+      "usage": {
+        "primary": "用于高亮可点击的城市、区县、国家或业务区域，让用户快速识别当前关注范围。",
+        "extended": "可与中心标签结合展示区域名称、占位数值或后续业务统计数据。",
+        "constraints": "存在 selected 区域时，其他未选中区域不响应 hover，避免产生即将切换选中的误导。"
+      },
+      "code": "type RegionSelectionState = \"default\" | \"disabled\" | \"selected\";\n\nconst regionStyle = {\n  default: { fillColor: \"#2A3EF4\", fillOpacity: 0.1, strokeColor: \"#2A3EF4\", strokeWeight: 2 },\n  disabled: { fillColor: \"#2A3EF4\", fillOpacity: 0.06, strokeColor: \"#C9D2FC\", strokeWeight: 2 },\n  selected: { fillColor: \"#2A3EF4\", fillOpacity: 0.4, strokeColor: \"#2A3EF4\", strokeWeight: 2 },\n};\n\nfunction renderRegionSelection(dataLayer: google.maps.Data, selectedId?: string, hoveredId?: string) {\n  dataLayer.setStyle((feature) => {\n    const id = String(feature.getProperty(\"mapLabId\") ?? \"\");\n    return id === selectedId || id === hoveredId ? regionStyle.selected : regionStyle.default;\n  });\n}"
+    },
     "sections": {
       "spec": "样式",
       "content": "内容",
@@ -413,6 +439,7 @@
       "property": "属性",
       "figmaNodes": "Figma 节点",
       "icon": "图标",
+      "label": "中心标签",
       "strokeWidth": "线宽",
       "strokeColor": "线色"
     },

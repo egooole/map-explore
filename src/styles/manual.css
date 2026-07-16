@@ -1,4 +1,5 @@
 .ManualScene {
+  /* 组件手册页面根容器：控制整个手册内容区的背景、内边距和纵向节奏。 */
   background: var(--color-surface);
   border-radius: var(--radius-md);
   color: var(--color-text);
@@ -9,6 +10,7 @@
 }
 
 .ManualScene__header {
+  /* 手册顶部标题区：border-bottom 是标题和内容区之间的分割线。 */
   background: transparent;
   border-bottom: 1px solid var(--color-border);
   padding: 0 0 20px;
@@ -17,7 +19,7 @@
 .ManualScene__header h1 {
   color: var(--color-text);
   font-size: 30px;
-  font-weight: 780;
+  font-weight: var(--font-weight-semibold);
   line-height: 1.2;
   margin: 0;
 }
@@ -33,11 +35,12 @@
 .ManualScene__breadcrumb {
   color: var(--color-primary) !important;
   font-size: 12px !important;
-  font-weight: 820;
+  font-weight: var(--font-weight-bold);
   margin: 0 0 10px !important;
 }
 
 .ManualHierarchy {
+  /* 三层信息架构区域：地图类型 / 组件分类 / 具体组件入口。 */
   display: grid;
   gap: 14px;
 }
@@ -50,7 +53,7 @@
 .ManualHierarchy__layer h2 {
   color: var(--color-tertiary);
   font-size: 12px;
-  font-weight: 820;
+  font-weight: var(--font-weight-bold);
   line-height: 1.35;
   margin: 0;
 }
@@ -122,7 +125,7 @@
   border: 0;
   border-radius: var(--radius-sm);
   font-size: 14px;
-  font-weight: 800;
+  font-weight: var(--font-weight-bold);
   min-height: 38px;
   min-width: 72px;
   padding: 0 16px;
@@ -140,6 +143,7 @@
 }
 
 .ManualDetail {
+  /* 单个组件详情卡片：左侧地图预览，右侧组件信息。 */
   align-items: start;
   background: var(--color-surface-muted);
   border: 0;
@@ -163,6 +167,7 @@
 }
 
 .ManualDetail__right {
+  /* 右侧信息区的竖线和间距；如果想让左右更分离，可以调 padding-left 或 border。 */
   align-content: start;
   border-left: 1px solid var(--color-border);
   padding-left: 20px;
@@ -176,7 +181,7 @@
 .ManualPanelHeader p {
   color: var(--color-primary);
   font-size: 12px;
-  font-weight: 860;
+  font-weight: var(--font-weight-bold);
   line-height: 1.35;
   margin: 0;
 }
@@ -204,6 +209,7 @@
 }
 
 .ManualStateSwitcher {
+  /* 状态切换按钮组：直接跟在组件标题下方，不额外做卡片容器。 */
   align-items: center;
   display: inline-flex;
   gap: 3px;
@@ -218,7 +224,7 @@
   color: var(--color-muted);
   cursor: pointer;
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--font-weight-semibold);
   line-height: 1;
   min-height: 28px;
   padding: 0 11px;
@@ -237,6 +243,7 @@
 }
 
 .ManualMapRegion {
+  /* 地图预览容器：这里决定地图在组件卡片里的圆角、边框和最小高度。 */
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
   height: 100%;
@@ -267,7 +274,7 @@
 .ManualInfoPanel h3 {
   color: var(--color-text);
   font-size: 13px;
-  font-weight: 860;
+  font-weight: var(--font-weight-bold);
   margin: 0;
 }
 
@@ -277,6 +284,7 @@
 }
 
 .ManualInfoRows__row {
+  /* 组件信息列表的 key/value 行；grid-template-columns 控制左侧标签和右侧内容比例。 */
   border-top: 1px solid var(--color-border);
   display: grid;
   gap: 12px;
@@ -297,7 +305,7 @@
 
 .ManualInfoRows__row dt {
   color: var(--color-tertiary);
-  font-weight: 780;
+  font-weight: var(--font-weight-semibold);
 }
 
 .ManualInfoRows__row dd {
@@ -342,7 +350,7 @@
 
 .ManualColorTokens dt {
   color: var(--color-tertiary);
-  font-weight: 400;
+  font-weight: var(--font-weight-regular);
 }
 
 .ManualColorTokens dd {
@@ -365,7 +373,7 @@
   color: var(--color-muted);
   display: inline-flex;
   font-size: 13px;
-  font-weight: 820;
+  font-weight: var(--font-weight-bold);
   gap: 8px;
   justify-content: flex-start;
   justify-self: start;
@@ -388,6 +396,7 @@
 }
 
 .ManualCodeBlock pre {
+  /* 折叠展开后的代码块：max-height 控制代码区域不要占据太多页面高度。 */
   background: var(--color-surface-muted);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
@@ -411,6 +420,7 @@
 }
 
 .ManualUsageItem {
+  /* 使用场景列表项：左边是短标签，右边是 bullet 说明。 */
   border-top: 1px solid var(--color-border);
   display: grid;
   gap: 12px;
@@ -436,7 +446,7 @@
   border-radius: 999px;
   color: var(--color-primary-strong);
   font-size: 11px;
-  font-weight: 840;
+  font-weight: var(--font-weight-bold);
   justify-self: start;
   line-height: 1;
   padding: 6px 9px;

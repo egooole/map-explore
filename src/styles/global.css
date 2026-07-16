@@ -22,7 +22,11 @@ body {
   background: var(--color-app-bg);
   color: var(--color-text);
   font-family: var(--font-sans);
+  font-kerning: normal;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
   overflow: hidden;
+  text-rendering: optimizeLegibility;
 }
 
 button,

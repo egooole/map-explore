@@ -12,6 +12,7 @@ import { cloudMapIds, mapKey, mapLabCloudMapIdSource, mapPresets } from "../conf
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
 import type {
   CustomMarkerContent,
+  ManagedRoute,
   MapControlsState,
   MarkerPreviewFamily,
   MarkerPreviewState,
@@ -22,6 +23,12 @@ import type {
   RoutePreviewVariant,
 } from "../types";
 
+/**
+ * 这里补充 Google Maps 的最小 TypeScript 类型。
+ * 项目没有引入完整的 @types/google.maps，所以只声明当前文件实际用到的 API。
+ * 如果后面要新增 Google Maps 能力，比如 InfoWindow、Circle、DirectionsRenderer，
+ * 可以在这些类型里继续追加对应字段。
+ */
 declare global {
   interface Window {
     google?: GoogleMapsGlobal;
@@ -35,6 +42,7 @@ type GoogleMapsGlobal = {
   maps: {
     ControlPosition: Record<string, number>;
     importLibrary: (library: "marker") => Promise<GoogleMarkerLibrary>;
+    Data: new (options: { map?: GoogleMap }) => GoogleDataLayer;
     Map: new (element: HTMLElement, options: Record<string, unknown>) => GoogleMap;
     OverlayView: typeof GoogleOverlayView;
     Point: new (x: number, y: number) => unknown;
@@ -45,7 +53,7 @@ type GoogleMapsGlobal = {
 };
 
 interface GoogleMap {
-  addListener: (eventName: "zoom_changed", handler: () => void) => GoogleMapsListener;
+  addListener: (eventName: "click" | "zoom_changed", handler: () => void) => GoogleMapsListener;
   controls: Record<number, { clear: () => void }>;
   fitBounds: (bounds: unknown, padding?: number) => void;
   getZoom: () => number | undefined;
@@ -71,6 +79,23 @@ interface GooglePolygon {
 
 interface GoogleAdvancedMarker {
   map: GoogleMap | null;
+}
+
+interface GoogleDataFeature {
+  getProperty: (name: string) => unknown;
+}
+
+interface GoogleDataMouseEvent {
+  feature: GoogleDataFeature;
+}
+
+interface GoogleDataLayer {
+  addGeoJson: (geoJson: GeoJsonFeatureCollection) => GoogleDataFeature[];
+  addListener: (eventName: "click" | "mouseout" | "mouseover", handler: (event: GoogleDataMouseEvent) => void) => GoogleMapsListener;
+  forEach: (callback: (feature: GoogleDataFeature) => void) => void;
+  remove: (feature: GoogleDataFeature) => void;
+  setMap: (map: GoogleMap | null) => void;
+  setStyle: (style: (feature: GoogleDataFeature) => Record<string, unknown>) => void;
 }
 
 type GoogleMarkerLibrary = {
@@ -117,14 +142,62 @@ interface PreviewMarkerItem {
   position: GoogleLatLng;
 }
 
+interface GeoJsonFeatureCollection {
+  features: Array<Record<string, unknown>>;
+  name?: string;
+  type: "FeatureCollection";
+}
+
+interface RegionManifestEntry {
+  bbox: {
+    east: number;
+    north: number;
+    south: number;
+    west: number;
+  };
+  center: GoogleLatLngLiteral;
+  countryCode: string;
+  filePath: string;
+  id: string;
+  level: string;
+  nameEn: string;
+  nameZh: string;
+  source: string;
+}
+
+interface RegionManifest {
+  generatedAt: string;
+  regions: RegionManifestEntry[];
+}
+
+export interface PreviewMarkerGroup {
+  distribution?: MapCanvasProps["previewDistribution"];
+  family: MarkerPreviewFamily;
+  markers: MarkerPreviewState[];
+}
+
+export interface PreviewRouteGroup {
+  family: RoutePreviewFamily;
+  routes: RoutePreviewState[];
+  state?: RoutePreviewVariant;
+}
+
 interface DynamicRouteLayer {
   listeners: GoogleMapsListener[];
   markers: MapMarkerHandle[];
   overlays: MapMarkerHandle[];
+  polylines: GooglePolyline[];
   outline: GooglePolyline | null;
   route: GooglePolyline | null;
 }
 
+/**
+ * MapCanvas 的 props 是整个地图画布的控制入口。
+ * - controls：来自右侧参数面板，控制 zoom、marker style、路线输入等。
+ * - previewFeature：组件手册里只展示点/线/面/容器中的某一类。
+ * - previewMarkerFamily / previewRouteFamily：决定预览哪一种组件样式。
+ * - previewRouteState：组件手册里状态切换按钮传进来的路线状态。
+ */
 interface MapCanvasProps {
   mapCategory: MapCategory;
   lang: WorkbenchLanguage;
@@ -134,16 +207,29 @@ interface MapCanvasProps {
   mapTheme?: MapTheme;
   previewDistribution?: "local" | "china" | "chinaCluster";
   previewFeature?: "point" | "line" | "area" | "container";
+  previewRegionIds?: string[];
+  hidePreviewContent?: boolean;
   previewMarkerFamily?: MarkerPreviewFamily;
+  previewMarkerGroups?: PreviewMarkerGroup[];
   previewMarkers?: MarkerPreviewState[];
   previewRouteFamily?: RoutePreviewFamily;
+  previewRouteGroups?: PreviewRouteGroup[];
   previewRouteState?: RoutePreviewVariant;
   previewRoutes?: RoutePreviewState[];
 }
 
+/**
+ * 地图默认中心点。
+ * center 用在上海局部预览；chinaCenter 用在全国聚合点预览。
+ * 修改这里会影响组件手册和地图浏览初始看到的地图区域。
+ */
 const center: GoogleLatLngLiteral = { lat: 31.225, lng: 121.45 };
 const chinaCenter: GoogleLatLngLiteral = { lat: 35.8, lng: 103.8 };
 
+/**
+ * 最基础的静态路线坐标。
+ * 当页面没有选择组件手册里的高级路线预览，也没有输入动态起终点时，会用这条简单路线。
+ */
 const routePositions: GoogleLatLngLiteral[] = [
   { lat: 31.207, lng: 121.317 },
   { lat: 31.223, lng: 121.445 },
@@ -151,13 +237,31 @@ const routePositions: GoogleLatLngLiteral[] = [
 ];
 
 const routePreviewPosition: GoogleLatLngLiteral = { lat: 31.223, lng: 121.46 };
+
+/**
+ * 箭头 SVG 的几何参数。
+ * routeArrowPath：箭头的 SVG path，当前默认朝上，方便根据路线切线旋转。
+ * routeArrowAnchor：旋转锚点，影响箭头贴在线上的位置。
+ * 如果箭头“方向对但位置偏”，优先检查 anchor；如果“整体转歪”，优先检查 path 默认朝向。
+ */
 const routeArrowAnchor = { x: 9.79846, y: 2.12132 };
 const routeArrowPath = "M1.06065 10.8591L9.79846 2.12132L18.5363 10.8591";
+
+/**
+ * Route with normal location 的箭头尺寸。
+ * default：静态态箭头大小；focused：hover / selected 后箭头大小。
+ * 数字写成“设计稿像素 / path 基准宽度 20”，方便从设计稿尺寸换算。
+ */
 const routeWithNormalLocationArrowScale = {
   default: 7.83 / 20,
   focused: 12.36 / 20,
 };
 
+/**
+ * 组件手册中路线预览使用的固定路线。
+ * 这是一条“看起来像真实道路”的经纬度路径，不会每次打开都请求 Routes API。
+ * 如果想让预览路线更弯或经过更多道路，可以在这里继续增加坐标点。
+ */
 const routeWithNormalLocationPreviewPath: GoogleLatLngLiteral[] = [
   { lat: 31.1939, lng: 121.3382 },
   { lat: 31.1974, lng: 121.3528 },
@@ -174,16 +278,54 @@ const routeWithNormalLocationPreviewPath: GoogleLatLngLiteral[] = [
   { lat: 31.3278, lng: 121.5152 },
 ];
 
+/**
+ * 线组件的状态色。
+ * default / muted / completed 对应状态切换按钮中的 默认 / Disable / 已完成。
+ */
 const routeStateColors: Partial<Record<RoutePreviewVariant, string>> = {
   completed: "#9C9EAD",
   default: "#2A3EF4",
   muted: "#C9D2FC",
 };
 
+/**
+ * 箭头颜色单独配置。
+ * 因为箭头在视觉上比路线主体更浅，所以没有直接复用 routeStateColors。
+ */
 const routeArrowStateColors: Partial<Record<RoutePreviewVariant, string>> = {
   completed: "#C4C5CE",
   default: "#768BFF",
   muted: "#D9E0FD",
+};
+
+type DynamicRouteColorId = ManagedRoute["colorId"];
+
+interface DynamicRouteStyle {
+  arrowColor: string;
+  arrowFocusedColor: string;
+  color: string;
+  focusedColor: string;
+}
+
+const dynamicRouteStyles: Record<DynamicRouteColorId, DynamicRouteStyle> = {
+  route1: {
+    arrowColor: "#768BFF",
+    arrowFocusedColor: "#768BFF",
+    color: "#2A3EF4",
+    focusedColor: "#2232C3",
+  },
+  route2: {
+    arrowColor: "#009995",
+    arrowFocusedColor: "#017B77",
+    color: "#009995",
+    focusedColor: "#017B77",
+  },
+  route3: {
+    arrowColor: "#9583FF",
+    arrowFocusedColor: "#8575FF",
+    color: "#9583FF",
+    focusedColor: "#8575FF",
+  },
 };
 
 function resolveRouteStateColor(state?: RoutePreviewVariant) {
@@ -199,11 +341,17 @@ function createEmptyDynamicRouteLayer(): DynamicRouteLayer {
     listeners: [],
     markers: [],
     overlays: [],
+    polylines: [],
     outline: null,
     route: null,
   };
 }
 
+/**
+ * 清理地图上的动态路线层。
+ * Google Maps 上创建的 marker / polyline / overlay 不会随 React 自动卸载，
+ * 所以每次切换组件、重新搜索路线或页面卸载时，都要手动 remove / setMap(null)。
+ */
 function clearDynamicRouteLayer(layer: DynamicRouteLayer) {
   layer.listeners.forEach((listener) => listener.remove());
   layer.listeners = [];
@@ -211,12 +359,18 @@ function clearDynamicRouteLayer(layer: DynamicRouteLayer) {
   layer.markers = [];
   layer.overlays.forEach((overlay) => overlay.remove());
   layer.overlays = [];
+  layer.polylines.forEach((polyline) => polyline.setMap(null));
+  layer.polylines = [];
   layer.outline?.setMap(null);
   layer.route?.setMap(null);
   layer.outline = null;
   layer.route = null;
 }
 
+/**
+ * 根据一组经纬度计算地图可视范围。
+ * map.fitBounds 会用这个范围把整条路线自动放进视口。
+ */
 function getPathBounds(path: GoogleLatLngLiteral[]) {
   return path.reduce(
     (bounds, point) => ({
@@ -274,6 +428,10 @@ class RouteRequestError extends Error {
   }
 }
 
+/**
+ * Google Routes API 返回的 encoded polyline 是压缩字符串。
+ * 这个函数把它解码成 [{ lat, lng }] 坐标数组，后面才能画真实道路路线。
+ */
 function decodeEncodedPolyline(encodedPolyline: string): GoogleLatLngLiteral[] {
   const path: GoogleLatLngLiteral[] = [];
   let index = 0;
@@ -308,6 +466,13 @@ function decodeEncodedPolyline(encodedPolyline: string): GoogleLatLngLiteral[] {
   return path;
 }
 
+/**
+ * 用 Google Routes API 根据起点 / 中途点 / 终点生成真实路线。
+ * 这里影响路线结果的关键参数：
+ * - travelMode: DRIVE 表示驾车路线。
+ * - polylineQuality: HIGH_QUALITY 表示返回更细的路线点，弯道更自然。
+ * - routingPreference: TRAFFIC_UNAWARE 表示暂不考虑实时交通。
+ */
 async function computeRouteWithRoutesApi(start: string, middle: string, end: string): Promise<ComputedRoute> {
   if (!mapKey) {
     throw new Error("missing-map-key");
@@ -526,6 +691,30 @@ const areaPositions: GoogleLatLng[] = [
 
 const scriptId = "map-lab-google-maps";
 const interactivePointVariants: MarkerPreviewVariant[] = ["default", "completed", "emphasized"];
+const regionManifestUrl = `${import.meta.env.BASE_URL}geo/manifest.json`;
+let regionManifestPromise: Promise<RegionManifest> | null = null;
+const regionGeoJsonCache = new Map<string, Promise<GeoJsonFeatureCollection>>();
+
+const regionDataStyles = {
+  default: {
+    fillColor: "#2A3EF4",
+    fillOpacity: 0.1,
+    strokeColor: "#2A3EF4",
+    strokeWeight: 2,
+  },
+  disabled: {
+    fillColor: "#2A3EF4",
+    fillOpacity: 0.06,
+    strokeColor: "#C9D2FC",
+    strokeWeight: 2,
+  },
+  selected: {
+    fillColor: "#2A3EF4",
+    fillOpacity: 0.4,
+    strokeColor: "#2A3EF4",
+    strokeWeight: 2,
+  },
+};
 
 const informatedMarkerAssets: Record<MarkerPreviewVariant, string> = {
   completed: informatedCompletedMarker,
@@ -534,6 +723,58 @@ const informatedMarkerAssets: Record<MarkerPreviewVariant, string> = {
   muted: informatedDisableMarker,
   selected: informatedSelectedMarker,
 };
+
+function loadRegionManifest() {
+  if (!regionManifestPromise) {
+    regionManifestPromise = fetch(regionManifestUrl).then((response) => {
+      if (!response.ok) {
+        throw new Error(`Failed to load region manifest: ${response.status}`);
+      }
+      return response.json() as Promise<RegionManifest>;
+    });
+  }
+
+  return regionManifestPromise;
+}
+
+function resolveAssetUrl(filePath: string) {
+  const base = import.meta.env.BASE_URL.endsWith("/") ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`;
+  return `${base}${filePath}`;
+}
+
+function loadRegionGeoJson(region: RegionManifestEntry) {
+  if (!regionGeoJsonCache.has(region.id)) {
+    regionGeoJsonCache.set(
+      region.id,
+      fetch(resolveAssetUrl(region.filePath)).then(async (response) => {
+        if (!response.ok) {
+          throw new Error(`Failed to load region geojson ${region.id}: ${response.status}`);
+        }
+        const geoJson = (await response.json()) as GeoJsonFeatureCollection;
+        geoJson.features = geoJson.features.map((feature) => ({
+          ...feature,
+          properties: {
+            ...((feature.properties as Record<string, unknown> | undefined) ?? {}),
+            mapLabId: region.id,
+          },
+        }));
+        return geoJson;
+      }),
+    );
+  }
+
+  return regionGeoJsonCache.get(region.id)!;
+}
+
+function createRegionLabelElement(region: RegionManifestEntry) {
+  const label = document.createElement("div");
+  label.className = "MapRegionLabel";
+  label.innerHTML = `
+    <strong>${region.nameZh || region.nameEn}</strong>
+    <span><em>Selected</em><b>--</b></span>
+  `;
+  return label;
+}
 
 const customMarkerAssets: Partial<Record<CustomMarkerContent, string>> = {
   shop: customShopMarker,
@@ -547,11 +788,20 @@ const customMarkerStateColors: Partial<Record<MarkerPreviewVariant, string>> = {
   muted: "#C9D2FC",
 };
 
+/**
+ * Custom 点的 SVG 是用 ?raw 以内联字符串形式加载的。
+ * 这样才能把 SVG 内部的主色从默认蓝色替换成当前状态色；
+ * 如果用 <img src="...">，外部 CSS 只能加滤镜，不能精准改 SVG 里的 fill。
+ */
 function createCustomMarkerAsset(asset: string, previewVariant?: MarkerPreviewVariant) {
   const stateColor = customMarkerStateColors[previewVariant ?? "default"] ?? customMarkerStateColors.default;
   return asset.replace(/var\(--fill-0,\s*#2A3EF4\)/gi, stateColor ?? "#2A3EF4");
 }
 
+/**
+ * 重置 Google Maps 脚本缓存。
+ * 当语言或 mapIds 变化时，需要重新加载脚本，否则 Google Maps 会继续沿用旧语言/旧 Map ID。
+ */
 function resetGoogleMapsScript() {
   document.querySelectorAll(`script[id="${scriptId}"], script[src*="maps.googleapis.com/maps/api/js"]`).forEach((script) => {
     script.remove();
@@ -561,6 +811,13 @@ function resetGoogleMapsScript() {
   window.__mapLabGoogleMapsPromise = undefined;
 }
 
+/**
+ * 加载 Google Maps JavaScript API。
+ * 关键参数：
+ * - key：来自 VITE_MAP_KEY。
+ * - language / region：跟随工作台语言切换。
+ * - map_ids：告诉 Google 预加载哪个 Cloud Map ID，Advanced Marker 和云端样式都依赖它。
+ */
 function loadGoogleMaps(lang: WorkbenchLanguage) {
   if (!mapKey) {
     return Promise.reject(new Error("missing-map-key"));
@@ -616,6 +873,12 @@ function loadGoogleMaps(lang: WorkbenchLanguage) {
   return window.__mapLabGoogleMapsPromise;
 }
 
+/**
+ * 创建地图上的点组件 DOM。
+ * previewFamily 决定点的类型：normal / informated / cumulative / custom。
+ * previewVariant 决定状态：default / muted / completed / emphasized / selected。
+ * 这里返回的是 HTMLElement，后面会交给 AdvancedMarker 或 OverlayView 放到地图上。
+ */
 function createMarkerElement(
   style: MarkerStyle,
   label: string,
@@ -640,6 +903,7 @@ function createMarkerElement(
         ? "<span></span>"
         : "<span><i></i></span>";
 
+  // 只有默认、已完成、强化这几种状态支持 hover / selected 交互；Disable 不参与点击选择。
   if (previewVariant && interactivePointVariants.includes(previewVariant)) {
     marker.classList.add("MapMarker--interactive");
     marker.tabIndex = 0;
@@ -662,6 +926,7 @@ function createMarkerElement(
     });
   }
 
+  // 统一给点加一个 tooltip，方便在地图上 hover 时知道当前点的语义。
   const tooltip = document.createElement("div");
   tooltip.className = "MapMarker__tooltip";
   tooltip.textContent = label;
@@ -702,6 +967,11 @@ function createCompositePoint(kind: "normal" | "informated" | "progress", positi
   `;
 }
 
+/**
+ * 静态组件手册里的组合路线预览。
+ * 组合逻辑是：路线 SVG + 起点/终点点组件；progress 类型会额外加一个中间进度点。
+ * 后续新增“路线 + 点”的组合组件时，可以复用这个思路，而不是重新写一套路线。
+ */
 function createCompositeRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVariant) {
   const pointKind = family === "routeWithInformatedLocation" ? "informated" : "normal";
   const isProgress = family === "routeWithProgress";
@@ -717,6 +987,11 @@ function createCompositeRouteElement(family: RoutePreviewFamily, variant: RouteP
   `;
 }
 
+/**
+ * 创建静态 SVG 预览中的箭头。
+ * x / y 控制箭头位置；rotation 控制箭头角度。
+ * 这是纯静态预览，不会跟随真实地图道路自动转向。
+ */
 function createRoutePreviewArrow(x: number, y: number, rotation: number) {
   return `<path d="${routeArrowPath}" transform="translate(${x} ${y}) rotate(${rotation}) translate(-${routeArrowAnchor.x} -${routeArrowAnchor.y})" />`;
 }
@@ -869,6 +1144,32 @@ function resolvePreviewPositions(previewDistribution: MapCanvasProps["previewDis
   return previewDistribution === "china" ? chinaPointPreviewPositions : pointPreviewPositions;
 }
 
+function offsetGroupedPreviewPosition(
+  position: GoogleLatLng,
+  groupIndex: number,
+  groupCount: number,
+  previewDistribution: MapCanvasProps["previewDistribution"],
+) {
+  if (groupCount <= 1 || previewDistribution === "chinaCluster") {
+    return position;
+  }
+
+  const offsets: GoogleLatLngLiteral[] = [
+    { lat: 0, lng: 0 },
+    { lat: 0.0018, lng: 0.0022 },
+    { lat: -0.0016, lng: 0.0018 },
+    { lat: 0.0016, lng: -0.002 },
+  ];
+  const offset = offsets[groupIndex % offsets.length];
+  const lat = typeof position.lat === "function" ? position.lat() : position.lat;
+  const lng = typeof position.lng === "function" ? position.lng() : position.lng;
+
+  return {
+    lat: lat + offset.lat,
+    lng: lng + offset.lng,
+  };
+}
+
 function resolveCumulativePreviewItems(zoom: number, previewMarkers: MarkerPreviewState[] | undefined): PreviewMarkerItem[] {
   if (zoom >= 7) {
     const variants: MarkerPreviewVariant[] = ["default", "completed", "muted", "default", "emphasized", "completed"];
@@ -913,6 +1214,25 @@ function resolveCumulativePreviewItems(zoom: number, previewMarkers: MarkerPrevi
   }));
 }
 
+function offsetRoutePath(points: Array<{ x: number; y: number }>, offsetPx: number) {
+  if (!offsetPx || points.length < 2) {
+    return points;
+  }
+
+  return points.map((point, index) => {
+    const previous = points[Math.max(0, index - 1)];
+    const next = points[Math.min(points.length - 1, index + 1)];
+    const dx = next.x - previous.x;
+    const dy = next.y - previous.y;
+    const length = Math.hypot(dx, dy) || 1;
+
+    return {
+      x: point.x + (-dy / length) * offsetPx,
+      y: point.y + (dx / length) * offsetPx,
+    };
+  });
+}
+
 function createRouteWithNormalLocationOverlay(
   googleMaps: GoogleMapsGlobal,
   map: GoogleMap,
@@ -921,7 +1241,14 @@ function createRouteWithNormalLocationOverlay(
   arrowScaleConfig = routeWithNormalLocationArrowScale,
   showArrows = true,
   routeState: RoutePreviewVariant = "default",
+  dynamicStyle?: DynamicRouteStyle,
+  routeOffsetPx = 0,
 ): MapMarkerHandle {
+  /**
+   * 这里不用 Google Polyline 的 icons，而是自定义 OverlayView 画 SVG。
+   * 原因：我们需要更精准控制路线宽度、白色描边、箭头间距和 hover 尺寸。
+   * OverlayView 可以拿到地图投影，把经纬度转换成屏幕像素，再按像素精确摆放箭头。
+   */
   class RouteOverlay extends googleMaps.maps.OverlayView {
     private container = document.createElement("div");
     private focused = false;
@@ -968,20 +1295,33 @@ function createRouteWithNormalLocationOverlay(
         return;
       }
 
+      // fromLatLngToDivPixel 把经纬度转换成当前缩放级别下的屏幕像素坐标。
+      // 后面所有路线宽度、箭头间距都按屏幕像素计算，所以缩放时视觉尺寸稳定。
       const projectedPath = path.map((point) => projection.fromLatLngToDivPixel(point));
-      const padding = this.focused ? 30 : 24;
+
+      // padding 给 SVG 容器留出路线描边和 hover 放大的空间，避免边缘被裁切。
+      const padding = (this.focused ? 30 : 24) + Math.abs(routeOffsetPx);
       const minX = Math.min(...projectedPath.map((point) => point.x)) - padding;
       const minY = Math.min(...projectedPath.map((point) => point.y)) - padding;
       const maxX = Math.max(...projectedPath.map((point) => point.x)) + padding;
       const maxY = Math.max(...projectedPath.map((point) => point.y)) + padding;
       const width = Math.max(1, maxX - minX);
       const height = Math.max(1, maxY - minY);
-      const localPath = projectedPath.map((point) => ({ x: point.x - minX, y: point.y - minY }));
+      const localPath = offsetRoutePath(
+        projectedPath.map((point) => ({ x: point.x - minX, y: point.y - minY })),
+        routeOffsetPx,
+      );
       const routeD = localPath.map((point, index) => `${index === 0 ? "M" : "L"}${point.x} ${point.y}`).join(" ");
+
+      // 路线视觉参数：静态态 8px 蓝线 + 12px 白底；hover/selected 后 12px 蓝线 + 16px 白底。
       const routeStroke = this.focused ? 12 : 8;
       const outlineStroke = routeStroke + 4;
-      const routeColor = resolveRouteStateColor(routeState);
-      const arrowColor = resolveRouteArrowStateColor(routeState);
+      const routeColor = dynamicStyle ? (this.focused ? dynamicStyle.focusedColor : dynamicStyle.color) : resolveRouteStateColor(routeState);
+      const arrowColor = dynamicStyle
+        ? this.focused
+          ? dynamicStyle.arrowFocusedColor
+          : dynamicStyle.arrowColor
+        : resolveRouteArrowStateColor(routeState);
       const arrowScale = this.focused ? arrowScaleConfig.focused : arrowScaleConfig.default;
       const arrowMarkup = showArrows ? this.createArrowMarkup(localPath, arrowScale, arrowColor) : "";
       const maskId = `routeWithNormalLocationMask-${Math.round(minX)}-${Math.round(minY)}-${this.focused ? "on" : "off"}`;
@@ -993,6 +1333,7 @@ function createRouteWithNormalLocationOverlay(
       this.container.innerHTML = `
         <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
           <defs>
+            <!-- mask 用来让箭头只显示在蓝色路线内部，避免箭头压到白色描边外面。 -->
             <mask id="${maskId}" maskUnits="userSpaceOnUse">
               <rect x="0" y="0" width="${width}" height="${height}" fill="black" />
               <path d="${routeD}" fill="none" stroke="white" stroke-width="${routeStroke}" stroke-linecap="round" stroke-linejoin="round" />
@@ -1005,9 +1346,14 @@ function createRouteWithNormalLocationOverlay(
           </g>
           <path class="MapRouteOverlay__hitArea" d="${routeD}" fill="none" stroke="transparent" stroke-width="${Math.max(outlineStroke, 24)}" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: stroke; cursor: pointer;" />
         </svg>
-      `;
+  `;
     }
 
+    /**
+     * 按屏幕像素生成箭头。
+     * nextArrowDistance 从 22px 开始，之后每 28px 放一个箭头。
+     * rotation 使用当前线段 dx/dy 算局部切线角度，所以转弯处箭头会跟随路线方向。
+     */
     private createArrowMarkup(points: Array<{ x: number; y: number }>, scale: number, color: string) {
       const arrows: string[] = [];
       let travelled = 0;
@@ -1041,6 +1387,7 @@ function createRouteWithNormalLocationOverlay(
       return arrows.join("");
     }
 
+    // hover / selected 切换后重新 render，路线宽度和箭头大小会立即更新。
     private setFocused(focused: boolean) {
       this.focused = focused;
       onFocusChange(focused);
@@ -1085,6 +1432,11 @@ function createOverlayMarker(
   anchor: "bottom" | "center" = "bottom",
   zIndex?: number,
 ): MapMarkerHandle {
+  /**
+   * OverlayView 版本的 marker。
+   * 当没有可用 Map ID 或 Advanced Marker 不适用时，用这个兜底。
+   * 它通过投影把经纬度转换成像素，然后把普通 DOM 节点定位到地图上。
+   */
   class MarkerOverlay extends googleMaps.maps.OverlayView {
     private markerElement = element;
 
@@ -1116,6 +1468,11 @@ function createOverlayMarker(
   };
 }
 
+/**
+ * Advanced Marker 版本的 marker。
+ * 这是当前项目主要使用的点组件渲染方式，可以直接把自定义 DOM 放进 Google Maps。
+ * anchor 决定经纬度落在元素的哪个位置：bottom 用于普通 pin，center 用于圆点/聚合点。
+ */
 async function createAdvancedMarker(
   googleMaps: GoogleMapsGlobal,
   map: GoogleMap,
@@ -1161,11 +1518,15 @@ export function MapCanvas({
   compact = false,
   dynamicRouteFamily,
   mapTheme = "light",
+  hidePreviewContent = false,
   previewDistribution = "local",
   previewFeature,
+  previewRegionIds,
   previewMarkerFamily = "normal",
+  previewMarkerGroups,
   previewMarkers,
   previewRouteFamily,
+  previewRouteGroups,
   previewRouteState = "default",
   previewRoutes,
 }: MapCanvasProps) {
@@ -1175,6 +1536,9 @@ export function MapCanvas({
   const mapConfigKeyRef = useRef("");
   const polylineRef = useRef<GooglePolyline | null>(null);
   const polygonRef = useRef<GooglePolygon | null>(null);
+  const regionDataRef = useRef<GoogleDataLayer | null>(null);
+  const regionListenersRef = useRef<GoogleMapsListener[]>([]);
+  const regionLabelRef = useRef<MapMarkerHandle | null>(null);
   const dynamicRouteRef = useRef<DynamicRouteLayer>(createEmptyDynamicRouteLayer());
   const manualRoutePreviewRef = useRef<DynamicRouteLayer>(createEmptyDynamicRouteLayer());
   const markersRef = useRef<MapMarkerHandle[]>([]);
@@ -1182,23 +1546,45 @@ export function MapCanvas({
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "missing-key" | "error">("idle");
   const [routeStatus, setRouteStatus] = useState<"idle" | "loading" | "error" | "api-blocked">("idle");
   const [previewZoom, setPreviewZoom] = useState(controls.zoom);
-  const [debouncedRouteNodes, setDebouncedRouteNodes] = useState(controls.routeNodes);
+  const [debouncedRoutes, setDebouncedRoutes] = useState(controls.routes);
   const preset = mapPresets[mapCategory][lang];
   const activeMapId = preset.mapId;
   const mapConfigKey = `${lang}:${mapCategory}:${preset.mapTypeId}:${activeMapId}`;
   const routeColor = mapCategory === "visualization" ? "#475569" : "#0f62fe";
   const markerLabels = useMemo(() => [t("map.warehouse"), t("map.hub"), t("map.destination")], [t]);
-  const isCumulativePreview = previewMarkerFamily === "cumulative" && previewDistribution === "chinaCluster";
+  const hasCumulativePreviewGroup =
+    previewMarkerGroups?.some((group) => group.family === "cumulative" && group.distribution === "chinaCluster") ?? false;
+  const hasRegionPreview = Boolean(previewRegionIds?.length);
+  const isCumulativePreview =
+    (previewMarkerFamily === "cumulative" && previewDistribution === "chinaCluster") || hasCumulativePreviewGroup;
   const renderPreviewZoom = isCumulativePreview ? previewZoom : undefined;
-  const dynamicRouteNodes = useMemo(
-    () => debouncedRouteNodes.map((node) => ({ ...node, value: normalizeRouteNodeValue(node.value) })),
-    [debouncedRouteNodes],
-  );
+  const dynamicRoutes = useMemo(() => {
+    const routes = debouncedRoutes?.length
+      ? debouncedRoutes
+      : [
+          {
+            colorId: "route1" as const,
+            id: "route-1",
+            name: "Route 1",
+            nodes: controls.routeNodes,
+            visible: true,
+          },
+        ];
+    return routes.map((route) => ({
+      ...route,
+      nodes: route.nodes.map((node) => ({ ...node, value: normalizeRouteNodeValue(node.value) })),
+    }));
+  }, [controls.routeNodes, debouncedRoutes]);
   const canRenderDynamicRoute =
     Boolean(dynamicRouteFamily) &&
-    Boolean(dynamicRouteNodes.find((node) => node.id === "start")?.value) &&
-    Boolean(dynamicRouteNodes.find((node) => node.id === "end")?.value);
+    dynamicRoutes.some(
+      (route) =>
+        route.visible &&
+        Boolean(route.nodes.find((node) => node.id === "start")?.value) &&
+        Boolean(route.nodes.find((node) => node.id === "end")?.value),
+    );
 
+  // 开发环境下输出当前实际使用的 Map ID，方便排查云端地图样式是否生效。
   useEffect(() => {
     if (!import.meta.env.DEV) {
       return;
@@ -1212,14 +1598,19 @@ export function MapCanvas({
     });
   }, [activeMapId, mapCategory, mapTheme]);
 
+  // 路线输入做 450ms 防抖，避免用户每输入一个字就请求一次 Routes API。
   useEffect(() => {
     const timer = window.setTimeout(() => {
-      setDebouncedRouteNodes(controls.routeNodes);
+      setDebouncedRoutes(controls.routes);
     }, 450);
 
     return () => window.clearTimeout(timer);
-  }, [controls.routeNodes]);
+  }, [controls.routes]);
 
+  /**
+   * 初始化 Google Map。
+   * 当语言、地图类型或 Map ID 改变时，会销毁旧地图并重新创建，避免 Google Maps 缓存旧配置。
+   */
   useEffect(() => {
     let cancelled = false;
 
@@ -1233,6 +1624,9 @@ export function MapCanvas({
         if (mapRef.current && mapConfigKeyRef.current !== mapConfigKey) {
           polylineRef.current?.setMap(null);
           polygonRef.current?.setMap(null);
+          regionDataRef.current?.setMap(null);
+          regionListenersRef.current.forEach((listener) => listener.remove());
+          regionLabelRef.current?.remove();
           dynamicRouteRef.current.outline?.setMap(null);
           dynamicRouteRef.current.route?.setMap(null);
           dynamicRouteRef.current.listeners.forEach((listener) => listener.remove());
@@ -1240,6 +1634,9 @@ export function MapCanvas({
           routePreviewsRef.current.forEach((route) => route.remove());
           polylineRef.current = null;
           polygonRef.current = null;
+          regionDataRef.current = null;
+          regionListenersRef.current = [];
+          regionLabelRef.current = null;
           dynamicRouteRef.current = createEmptyDynamicRouteLayer();
           markersRef.current = [];
           routePreviewsRef.current = [];
@@ -1287,6 +1684,7 @@ export function MapCanvas({
     previewDistribution,
   ]);
 
+  // 监听地图缩放，用于 Cumulative location：缩小时显示聚合，放大后逐步拆成更小聚合或普通点。
   useEffect(() => {
     if (!mapRef.current || status !== "ready") {
       return;
@@ -1300,6 +1698,7 @@ export function MapCanvas({
     return () => listener.remove();
   }, [controls.zoom, status]);
 
+  // 当预览类型或 zoom 改变时，把地图中心和缩放恢复到当前组件需要的位置。
   useEffect(() => {
     if (!mapRef.current || status !== "ready") {
       return;
@@ -1309,6 +1708,13 @@ export function MapCanvas({
     mapRef.current.setZoom(controls.zoom);
   }, [controls.zoom, previewDistribution, previewFeature, previewMarkerFamily, status]);
 
+  /**
+   * 主渲染流程：根据当前组件类型决定画什么。
+   * - point/container：渲染 marker。
+   * - line：渲染路线预览。
+   * - area/container：渲染面 Polygon。
+   * 每次重新渲染前都会清空旧 marker / route，避免地图上残留旧组件。
+   */
   useEffect(() => {
     if (!window.google?.maps || !mapRef.current || status !== "ready") {
       return;
@@ -1327,14 +1733,23 @@ export function MapCanvas({
       zoomControl: controls.showMapUi,
     });
 
-    const shouldShowMarkers = !previewFeature || previewFeature === "point" || previewFeature === "container";
+    const hasPreviewMarkerGroups = Boolean(previewMarkerGroups?.length);
+    const hasPreviewRouteGroups = Boolean(previewRouteGroups?.length);
+    const shouldShowMarkers =
+      !hidePreviewContent &&
+      (!previewFeature || previewFeature === "point" || previewFeature === "container") &&
+      (hasPreviewMarkerGroups || previewMarkers !== undefined || !hasPreviewRouteGroups);
     const shouldShowRoutePreview =
-      !canRenderDynamicRoute && previewFeature === "line" && Boolean(previewRouteFamily && previewRoutes?.length);
+      !canRenderDynamicRoute &&
+      !hidePreviewContent &&
+      previewFeature === "line" &&
+      (hasPreviewRouteGroups || Boolean(previewRouteFamily && previewRoutes?.length));
     const shouldShowLine =
       (!previewFeature || previewFeature === "line" || previewFeature === "container") &&
+      !hidePreviewContent &&
       !shouldShowRoutePreview &&
       !canRenderDynamicRoute;
-    const shouldShowArea = previewFeature === "area" || previewFeature === "container";
+    const shouldShowArea = !hidePreviewContent && !hasRegionPreview && (previewFeature === "area" || previewFeature === "container");
 
     if (!polylineRef.current) {
       polylineRef.current = new googleMaps.maps.Polyline({
@@ -1388,94 +1803,117 @@ export function MapCanvas({
     clearDynamicRouteLayer(manualRoutePreviewRef.current);
 
     const renderRoutePreviews = async () => {
-      if (!shouldShowRoutePreview || !previewRouteFamily || !previewRoutes?.length) {
+      if (!shouldShowRoutePreview) {
         return;
       }
 
-      const selectedRoute = previewRoutes.find((route) => route.id === previewRouteState) ?? previewRoutes[0];
+      const routeGroups: PreviewRouteGroup[] = previewRouteGroups?.length
+        ? previewRouteGroups
+        : previewRouteFamily && previewRoutes?.length
+          ? [{ family: previewRouteFamily, routes: previewRoutes, state: previewRouteState }]
+          : [];
 
-      if (
-        previewRouteFamily === "normalNoArrow" ||
-        previewRouteFamily === "normalHasArrow" ||
-        previewRouteFamily === "routeWithNormalLocation"
-      ) {
-        const path = routeWithNormalLocationPreviewPath;
-        const layer = manualRoutePreviewRef.current;
-        const routeMarkerElements =
-          previewRouteFamily === "routeWithNormalLocation"
-            ? [
-                createMarkerElement("dot", markerLabels[0], "default", "normal"),
-                createMarkerElement("dot", markerLabels[2], "default", "normal"),
-              ]
-            : [];
-        const setMarkerVariant = (focused: boolean) => {
-          routeMarkerElements.forEach((markerElement) => {
-            markerElement.classList.toggle("MapMarker--point-default", !focused);
-            markerElement.classList.toggle("MapMarker--point-selected", focused);
-          });
-        };
-        const routeOverlay = createRouteWithNormalLocationOverlay(
-          googleMaps,
-          map,
-          path,
-          setMarkerVariant,
-          routeWithNormalLocationArrowScale,
-          previewRouteFamily !== "normalNoArrow",
-          previewRouteState,
-        );
-        layer.overlays = [routeOverlay];
+      if (!routeGroups.length) {
+        return;
+      }
 
-        const markerHandles = await Promise.all(
-          (previewRouteFamily === "routeWithNormalLocation" ? [path[0], path[path.length - 1]] : []).map((position, index) =>
-            activeMapId
-              ? createAdvancedMarker(googleMaps, map, position, routeMarkerElements[index], "center", 100)
-              : Promise.resolve(createOverlayMarker(googleMaps, map, position, routeMarkerElements[index], "center", 100)),
-          ),
-        );
+      const layer = manualRoutePreviewRef.current;
+      const overlayMarkerHandles: MapMarkerHandle[] = [];
+      const routeHandles: MapMarkerHandle[] = [];
 
-        if (cancelled) {
-          markerHandles.forEach((marker) => marker.remove());
-          clearDynamicRouteLayer(layer);
-          return;
+      for (const group of routeGroups) {
+        const selectedRoute = group.routes.find((route) => route.id === (group.state ?? previewRouteState)) ?? group.routes[0];
+
+        if (group.family === "normalNoArrow" || group.family === "normalHasArrow" || group.family === "routeWithNormalLocation") {
+          const path = routeWithNormalLocationPreviewPath;
+          const routeMarkerElements =
+            group.family === "routeWithNormalLocation"
+              ? [
+                  createMarkerElement("dot", markerLabels[0], "default", "normal"),
+                  createMarkerElement("dot", markerLabels[2], "default", "normal"),
+                ]
+              : [];
+          const setMarkerVariant = (focused: boolean) => {
+            routeMarkerElements.forEach((markerElement) => {
+              markerElement.classList.toggle("MapMarker--point-default", !focused);
+              markerElement.classList.toggle("MapMarker--point-selected", focused);
+            });
+          };
+          const routeOverlay = createRouteWithNormalLocationOverlay(
+            googleMaps,
+            map,
+            path,
+            setMarkerVariant,
+            routeWithNormalLocationArrowScale,
+            group.family !== "normalNoArrow",
+            group.state ?? previewRouteState,
+          );
+          layer.overlays.push(routeOverlay);
+
+          const markerHandles = await Promise.all(
+            (group.family === "routeWithNormalLocation" ? [path[0], path[path.length - 1]] : []).map((position, index) =>
+              activeMapId
+                ? createAdvancedMarker(googleMaps, map, position, routeMarkerElements[index], "center", 100)
+                : Promise.resolve(createOverlayMarker(googleMaps, map, position, routeMarkerElements[index], "center", 100)),
+            ),
+          );
+          overlayMarkerHandles.push(...markerHandles);
+          continue;
         }
 
-        layer.markers = markerHandles;
-        map.fitBounds(getPathBounds(path), 72);
-        return;
+        const routeElement = createRouteElement(group.family, selectedRoute.id, selectedRoute.label);
+        routeHandles.push(
+          await (activeMapId
+            ? createAdvancedMarker(googleMaps, map, routePreviewPosition, routeElement, "center")
+            : Promise.resolve(createOverlayMarker(googleMaps, map, routePreviewPosition, routeElement, "center"))),
+        );
       }
-
-      const routeElement = createRouteElement(previewRouteFamily, selectedRoute.id, selectedRoute.label);
-      const routeHandles = [
-        await (activeMapId
-          ? createAdvancedMarker(googleMaps, map, routePreviewPosition, routeElement, "center")
-          : Promise.resolve(createOverlayMarker(googleMaps, map, routePreviewPosition, routeElement, "center"))),
-      ];
 
       if (cancelled) {
         routeHandles.forEach((route) => route.remove());
+        overlayMarkerHandles.forEach((marker) => marker.remove());
+        clearDynamicRouteLayer(layer);
         return;
       }
 
+      layer.markers = overlayMarkerHandles;
       routePreviewsRef.current = routeHandles;
+      if (
+        !previewRouteGroups?.length &&
+        routeGroups.some((group) => group.family === "normalNoArrow" || group.family === "normalHasArrow" || group.family === "routeWithNormalLocation")
+      ) {
+        map.fitBounds(getPathBounds(routeWithNormalLocationPreviewPath), 72);
+      }
     };
 
+    // 渲染点组件预览。组件手册传 previewMarkers，地图浏览模式则使用默认 routePositions。
     const renderMarkers = async () => {
       if (!shouldShowMarkers) {
         return;
       }
 
-      if (previewMarkers?.length) {
+      const markerGroups: PreviewMarkerGroup[] = previewMarkerGroups?.length
+        ? previewMarkerGroups
+        : previewMarkers?.length
+          ? [{ distribution: previewDistribution, family: previewMarkerFamily, markers: previewMarkers }]
+          : [];
+
+      if (markerGroups.length) {
         const markerItems: PreviewMarkerItem[] =
-          isCumulativePreview
-            ? resolveCumulativePreviewItems(renderPreviewZoom ?? controls.zoom, previewMarkers)
-            : previewMarkers.map((marker, index) => {
-                const previewPositions = resolvePreviewPositions(previewDistribution);
-                return {
-                  family: previewMarkerFamily,
-                  marker,
-                  position: previewPositions[index % previewPositions.length],
-                };
-              });
+          markerGroups.flatMap((group, groupIndex) =>
+            group.family === "cumulative" && group.distribution === "chinaCluster"
+              ? resolveCumulativePreviewItems(renderPreviewZoom ?? controls.zoom, group.markers)
+              : group.markers.map((marker, index) => {
+                  const groupDistribution = group.distribution ?? previewDistribution;
+                  const previewPositions = resolvePreviewPositions(groupDistribution);
+                  const basePosition = previewPositions[index % previewPositions.length];
+                  return {
+                    family: group.family,
+                    marker,
+                    position: offsetGroupedPreviewPosition(basePosition, groupIndex, markerGroups.length, groupDistribution),
+                  };
+                }),
+          );
 
         const markerHandles = await Promise.all(
           markerItems.map(({ family, marker, position }) => {
@@ -1541,6 +1979,8 @@ export function MapCanvas({
   }, [
     controls.markerStyle,
     controls.showMapUi,
+    hidePreviewContent,
+    hasRegionPreview,
     canRenderDynamicRoute,
     mapCategory,
     markerLabels,
@@ -1549,8 +1989,10 @@ export function MapCanvas({
     previewDistribution,
     previewFeature,
     previewMarkerFamily,
+    previewMarkerGroups,
     previewMarkers,
     previewRouteFamily,
+    previewRouteGroups,
     previewRouteState,
     previewRoutes,
     renderPreviewZoom,
@@ -1558,6 +2000,163 @@ export function MapCanvas({
     status,
   ]);
 
+  useEffect(() => {
+    if (!window.google?.maps || !mapRef.current || status !== "ready") {
+      return;
+    }
+
+    const googleMaps = window.google;
+    const map = mapRef.current;
+    let cancelled = false;
+    let hoveredRegionId: string | null = null;
+    let selectedRegionId: string | null = null;
+    let suppressNextMapClick = false;
+    let regionById = new Map<string, RegionManifestEntry>();
+
+    const clearRegionLayer = () => {
+      regionListenersRef.current.forEach((listener) => listener.remove());
+      regionListenersRef.current = [];
+      regionLabelRef.current?.remove();
+      regionLabelRef.current = null;
+
+      if (regionDataRef.current) {
+        const dataLayer = regionDataRef.current;
+        const features: GoogleDataFeature[] = [];
+        dataLayer.forEach((feature) => features.push(feature));
+        features.forEach((feature) => dataLayer.remove(feature));
+        dataLayer.setMap(null);
+        regionDataRef.current = null;
+      }
+    };
+
+    if (!previewRegionIds?.length || hidePreviewContent || (previewFeature !== "area" && previewFeature !== "container")) {
+      clearRegionLayer();
+      return;
+    }
+
+    const resolveFeatureRegionId = (feature: GoogleDataFeature) => String(feature.getProperty("mapLabId") ?? "");
+    const styleForFeature = (feature: GoogleDataFeature) => {
+      const regionId = resolveFeatureRegionId(feature);
+      if (regionId && (regionId === selectedRegionId || regionId === hoveredRegionId)) {
+        return regionDataStyles.selected;
+      }
+      return regionDataStyles.default;
+    };
+    const refreshStyles = () => {
+      regionDataRef.current?.setStyle(styleForFeature);
+    };
+    const removeLabel = () => {
+      regionLabelRef.current?.remove();
+      regionLabelRef.current = null;
+    };
+    const renderLabel = async (regionId: string | null) => {
+      removeLabel();
+      if (!regionId) {
+        return;
+      }
+
+      const region = regionById.get(regionId);
+      if (!region) {
+        return;
+      }
+
+      const labelElement = createRegionLabelElement(region);
+      const labelMarker = await createAdvancedMarker(googleMaps, map, region.center, labelElement, "center", 120);
+      if (cancelled || selectedRegionId !== regionId) {
+        labelMarker.remove();
+        return;
+      }
+      regionLabelRef.current = labelMarker;
+    };
+    const selectRegion = (regionId: string | null) => {
+      hoveredRegionId = null;
+      selectedRegionId = regionId;
+      refreshStyles();
+      void renderLabel(regionId);
+    };
+
+    clearRegionLayer();
+    const dataLayer = new googleMaps.maps.Data({ map });
+    regionDataRef.current = dataLayer;
+
+    loadRegionManifest()
+      .then(async (manifest) => {
+        if (cancelled) {
+          return;
+        }
+
+        const regionIds = new Set(previewRegionIds);
+        const regions = manifest.regions.filter((region) => regionIds.has(region.id));
+        regionById = new Map(regions.map((region) => [region.id, region]));
+
+        for (const region of regions) {
+          const geoJson = await loadRegionGeoJson(region);
+          if (cancelled) {
+            return;
+          }
+          dataLayer.addGeoJson(geoJson);
+        }
+
+        refreshStyles();
+
+        regionListenersRef.current = [
+          dataLayer.addListener("mouseover", (event) => {
+            if (selectedRegionId) {
+              return;
+            }
+            hoveredRegionId = resolveFeatureRegionId(event.feature);
+            refreshStyles();
+          }),
+          dataLayer.addListener("mouseout", (event) => {
+            const regionId = resolveFeatureRegionId(event.feature);
+            if (regionId !== selectedRegionId) {
+              hoveredRegionId = null;
+              refreshStyles();
+            }
+          }),
+          dataLayer.addListener("click", (event) => {
+            suppressNextMapClick = true;
+            selectRegion(resolveFeatureRegionId(event.feature));
+            window.setTimeout(() => {
+              suppressNextMapClick = false;
+            }, 50);
+          }),
+          map.addListener("click", () => {
+            if (suppressNextMapClick) {
+              return;
+            }
+            selectRegion(null);
+          }),
+        ];
+
+        const bounds = regions.reduce(
+          (currentBounds, region) => ({
+            east: Math.max(currentBounds.east, region.bbox.east),
+            north: Math.max(currentBounds.north, region.bbox.north),
+            south: Math.min(currentBounds.south, region.bbox.south),
+            west: Math.min(currentBounds.west, region.bbox.west),
+          }),
+          { east: -Infinity, north: -Infinity, south: Infinity, west: Infinity },
+        );
+        if (Number.isFinite(bounds.east)) {
+          map.fitBounds(bounds, 56);
+        }
+      })
+      .catch((error) => {
+        console.error("[Map Lab] Failed to render regions", error);
+      });
+
+    return () => {
+      cancelled = true;
+      clearRegionLayer();
+    };
+  }, [hidePreviewContent, previewFeature, previewRegionIds, status]);
+
+  /**
+   * 地图浏览模式里的“输入起点/中途点/终点生成路线”。
+   * canRenderDynamicRoute 为 true 时，会请求 Google Routes API 得到真实道路 path，
+   * 然后复用和组件手册一致的路线 Overlay 样式画出来。
+   */
   useEffect(() => {
     if (!window.google?.maps || !mapRef.current || status !== "ready") {
       return;
@@ -1573,10 +2172,15 @@ export function MapCanvas({
     }
 
     let cancelled = false;
-    const start = dynamicRouteNodes.find((node) => node.id === "start")?.value ?? "";
-    const middle = dynamicRouteNodes.find((node) => node.id === "middle")?.value ?? "";
-    const end = dynamicRouteNodes.find((node) => node.id === "end")?.value ?? "";
     const shouldShowArrows = dynamicRouteFamily !== "normalNoArrow";
+    const renderableRoutes = dynamicRoutes.filter(
+      (route) =>
+        route.visible &&
+        Boolean(route.nodes.find((node) => node.id === "start")?.value) &&
+        Boolean(route.nodes.find((node) => node.id === "end")?.value),
+    );
+
+    // 这些路线类型使用自定义 Overlay，才能得到设计稿要求的白描边、箭头尺寸和像素间距。
     const shouldUseRouteOverlay =
       dynamicRouteFamily === "normalNoArrow" ||
       dynamicRouteFamily === "normalHasArrow" ||
@@ -1587,137 +2191,167 @@ export function MapCanvas({
 
     void (async () => {
       try {
-        const computedRoute = await computeRouteWithRoutesApi(start, middle, end);
-        if (cancelled) {
-          return;
-        }
-
-        const path = computedRoute.path;
         const layer = dynamicRouteRef.current;
         clearDynamicRouteLayer(layer);
 
-        const routeMarkerPositions =
-          dynamicRouteFamily === "normalHasArrow"
-            ? []
-            : middle
-              ? [path[0], path[Math.floor(path.length / 2)], path[path.length - 1]]
-              : [path[0], path[path.length - 1]];
-        const routeMarkerLabels = dynamicRouteNodes.filter((node) => node.value).map((node) => node.value);
-        const routeMarkerElements = routeMarkerPositions.map((_, index) =>
-          createMarkerElement(
-            controls.markerStyle,
-            routeMarkerLabels[index] ?? markerLabels[index] ?? t("map.destination"),
-            index === 0 ? "default" : index === routeMarkerPositions.length - 1 ? "emphasized" : "completed",
-            "normal",
-          ),
-        );
+        const renderedBounds: ComputedRoute["bounds"][] = [];
 
-        if (shouldUseRouteOverlay) {
-          const setMarkerVariant = (focused: boolean) => {
-            if (dynamicRouteFamily !== "routeWithNormalLocation") {
-              return;
-            }
+        for (const [routeIndex, route] of renderableRoutes.entries()) {
+          const start = route.nodes.find((node) => node.id === "start")?.value ?? "";
+          const middle = route.nodes.find((node) => node.id === "middle")?.value ?? "";
+          const end = route.nodes.find((node) => node.id === "end")?.value ?? "";
+          const computedRoute = await computeRouteWithRoutesApi(start, middle, end);
+          if (cancelled) {
+            return;
+          }
 
-            routeMarkerElements.forEach((markerElement) => {
-              markerElement.classList.toggle("MapMarker--point-selected", focused);
-            });
-          };
-          layer.overlays = [
-            createRouteWithNormalLocationOverlay(
-              googleMaps,
+          const path = computedRoute.path;
+          const routeStyle = dynamicRouteStyles[route.colorId] ?? dynamicRouteStyles.route1;
+          const routeMarkerPositions =
+            dynamicRouteFamily === "normalHasArrow"
+              ? []
+              : middle
+                ? [path[0], path[Math.floor(path.length / 2)], path[path.length - 1]]
+                : [path[0], path[path.length - 1]];
+          const routeMarkerLabels = route.nodes.filter((node) => node.value).map((node) => node.value);
+          const routeMarkerElements = routeMarkerPositions.map((_, index) =>
+            createMarkerElement(
+              controls.markerStyle,
+              routeMarkerLabels[index] ?? markerLabels[index] ?? t("map.destination"),
+              index === 0 ? "default" : index === routeMarkerPositions.length - 1 ? "emphasized" : "completed",
+              "normal",
+            ),
+          );
+
+          if (shouldUseRouteOverlay) {
+            const setMarkerVariant = (focused: boolean) => {
+              if (dynamicRouteFamily !== "routeWithNormalLocation") {
+                return;
+              }
+
+              routeMarkerElements.forEach((markerElement) => {
+                markerElement.classList.toggle("MapMarker--point-selected", focused);
+              });
+            };
+            layer.overlays.push(
+              createRouteWithNormalLocationOverlay(
+                googleMaps,
+                map,
+                path,
+                setMarkerVariant,
+                routeWithNormalLocationArrowScale,
+                shouldShowArrows,
+                "default",
+                routeStyle,
+                routeIndex * 5,
+              ),
+            );
+          } else {
+            // 兜底方案：普通 Google Polyline + icons。当前主要路线样式优先走上面的自定义 Overlay。
+            let selected = false;
+            const routeIcons = () =>
+              shouldShowArrows
+                ? [
+                    {
+                      icon: {
+                        anchor: new googleMaps.maps.Point(routeArrowAnchor.x, routeArrowAnchor.y),
+                        fillOpacity: 0,
+                        path: routeArrowPath,
+                        scale: 1,
+                        strokeColor: routeStyle.arrowColor,
+                        strokeOpacity: 1,
+                        strokeWeight: 3,
+                      },
+                      fixedRotation: false,
+                      offset: "22px",
+                      repeat: "45px",
+                    },
+                  ]
+                : [];
+            const outline = new googleMaps.maps.Polyline({
+              clickable: false,
+              geodesic: true,
               map,
               path,
-              setMarkerVariant,
-              routeWithNormalLocationArrowScale,
-              shouldShowArrows,
-            ),
-          ];
-        } else {
-          let selected = false;
-          const routeIcons = () =>
-            shouldShowArrows
-              ? [
-                  {
-                    icon: {
-                      anchor: new googleMaps.maps.Point(routeArrowAnchor.x, routeArrowAnchor.y),
-                      fillOpacity: 0,
-                      path: routeArrowPath,
-                      scale: 1,
-                      strokeColor: "#768bff",
-                      strokeOpacity: 1,
-                      strokeWeight: 3,
-                    },
-                    fixedRotation: false,
-                    offset: "22px",
-                    repeat: "45px",
-                  },
-                ]
-              : [];
-          const setFocused = (focused: boolean) => {
-            layer.outline?.setOptions({
-              strokeWeight: focused ? 20 : 12,
+              strokeColor: "#ffffff",
+              strokeOpacity: 1,
+              strokeWeight: 12,
+              zIndex: 40,
             });
-            layer.route?.setOptions({
+            const polyline = new googleMaps.maps.Polyline({
+              clickable: true,
+              geodesic: true,
               icons: routeIcons(),
-              strokeColor: focused ? "#2232c3" : "#2a3ef4",
-              strokeWeight: focused ? 16 : 8,
-              zIndex: focused ? 42 : 41,
+              map,
+              path,
+              strokeColor: routeStyle.color,
+              strokeOpacity: 0.98,
+              strokeWeight: 8,
+              zIndex: 41,
             });
-          };
+            const setFocused = (focused: boolean) => {
+              outline.setOptions({
+                strokeWeight: focused ? 16 : 12,
+              });
+              polyline.setOptions({
+                icons: routeIcons(),
+                strokeColor: focused ? routeStyle.focusedColor : routeStyle.color,
+                strokeWeight: focused ? 12 : 8,
+                zIndex: focused ? 42 : 41,
+              });
+            };
+            layer.listeners.push(
+              polyline.addListener("mouseover", () => setFocused(true)),
+              polyline.addListener("mouseout", () => {
+                if (!selected) {
+                  setFocused(false);
+                }
+              }),
+              polyline.addListener("click", () => {
+                selected = !selected;
+                setFocused(selected);
+              }),
+            );
+            layer.polylines.push(outline, polyline);
+            layer.outline = outline;
+            layer.route = polyline;
+          }
 
-          layer.outline = new googleMaps.maps.Polyline({
-            clickable: false,
-            geodesic: true,
-            map,
-            path,
-            strokeColor: "#ffffff",
-            strokeOpacity: 1,
-            strokeWeight: 12,
-            zIndex: 40,
-          });
-          layer.route = new googleMaps.maps.Polyline({
-            clickable: true,
-            geodesic: true,
-            icons: routeIcons(),
-            map,
-            path,
-            strokeColor: "#2a3ef4",
-            strokeOpacity: 0.98,
-            strokeWeight: 8,
-            zIndex: 41,
-          });
-          layer.listeners = [
-            layer.route.addListener("mouseover", () => setFocused(true)),
-            layer.route.addListener("mouseout", () => {
-              if (!selected) {
-                setFocused(false);
-              }
+          const markerHandles = await Promise.all(
+            routeMarkerPositions.map((position, index) => {
+              const markerElement = routeMarkerElements[index];
+              return activeMapId
+                ? createAdvancedMarker(googleMaps, map, position, markerElement, "bottom", shouldUseRouteOverlay ? 100 : undefined)
+                : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement, "bottom", shouldUseRouteOverlay ? 100 : undefined));
             }),
-            layer.route.addListener("click", () => {
-              selected = !selected;
-              setFocused(selected);
-            }),
-          ];
+          );
+
+          if (cancelled) {
+            markerHandles.forEach((marker) => marker.remove());
+            clearDynamicRouteLayer(layer);
+            return;
+          }
+
+          layer.markers.push(...markerHandles);
+          if (computedRoute.bounds) {
+            renderedBounds.push(computedRoute.bounds);
+          }
         }
 
-        const markerHandles = await Promise.all(
-          routeMarkerPositions.map((position, index) => {
-            const markerElement = routeMarkerElements[index];
-            return activeMapId
-              ? createAdvancedMarker(googleMaps, map, position, markerElement, "bottom", shouldUseRouteOverlay ? 100 : undefined)
-              : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement, "bottom", shouldUseRouteOverlay ? 100 : undefined));
-          }),
+        const unionBounds = renderedBounds.reduce<ComputedRoute["bounds"] | undefined>(
+          (bounds, item) =>
+            item
+              ? {
+                  east: Math.max(bounds?.east ?? item.east, item.east),
+                  north: Math.max(bounds?.north ?? item.north, item.north),
+                  south: Math.min(bounds?.south ?? item.south, item.south),
+                  west: Math.min(bounds?.west ?? item.west, item.west),
+                }
+              : bounds,
+          undefined,
         );
-
-        if (cancelled) {
-          markerHandles.forEach((marker) => marker.remove());
-          clearDynamicRouteLayer(layer);
-          return;
-        }
-
-        layer.markers = markerHandles;
-        if (computedRoute.bounds) {
-          map.fitBounds(computedRoute.bounds, 72);
+        if (unionBounds) {
+          map.fitBounds(unionBounds, 72);
         }
         setRouteStatus("idle");
       } catch (error) {
@@ -1736,18 +2370,22 @@ export function MapCanvas({
     canRenderDynamicRoute,
     controls.markerStyle,
     dynamicRouteFamily,
-    dynamicRouteNodes,
+    dynamicRoutes,
     markerLabels,
     status,
     t,
   ]);
 
+  // 组件卸载时统一清理地图对象，避免重新进入页面后出现重复点或重复路线。
   useEffect(() => {
     return () => {
       clearDynamicRouteLayer(dynamicRouteRef.current);
       clearDynamicRouteLayer(manualRoutePreviewRef.current);
       polylineRef.current?.setMap(null);
       polygonRef.current?.setMap(null);
+      regionDataRef.current?.setMap(null);
+      regionListenersRef.current.forEach((listener) => listener.remove());
+      regionLabelRef.current?.remove();
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
       routePreviewsRef.current.forEach((route) => route.remove());

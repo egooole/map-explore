@@ -366,23 +366,29 @@
           "components": [
             {
               "id": "entity-area-placeholder-01",
-              "nameKey": "manual.placeholders.componentName",
-              "descriptionKey": "manual.placeholders.componentDescription",
+              "nameKey": "manual.areaSelection.name",
+              "descriptionKey": "manual.areaSelection.description",
               "previewType": "area",
+              "regionIds": ["huangpu"],
               "styleRows": [
-                { "labelKey": "manual.content.style", "valueKey": "manual.placeholders.pending" }
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.areaSelection.style.variantSet" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.areaSelection.style.color" },
+                { "labelKey": "manual.rows.strokeWidth", "valueKey": "manual.areaSelection.style.strokeWidth" },
+                { "labelKey": "manual.rows.label", "valueKey": "manual.areaSelection.style.label" }
               ],
               "fakeModRows": [
-                { "labelKey": "manual.content.fakeMod", "valueKey": "manual.placeholders.pending" }
+                { "labelKey": "manual.rows.component", "valueKey": "manual.areaSelection.fakeMod.component" },
+                { "labelKey": "manual.rows.property", "valueKey": "manual.areaSelection.fakeMod.property" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.areaSelection.fakeMod.figmaNodes" }
               ],
               "code": {
                 "language": "tsx",
-                "valueKey": "manual.placeholders.code"
+                "valueKey": "manual.areaSelection.code"
               },
               "usage": {
-                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.placeholders.pendingBullet"] },
-                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.placeholders.pendingBullet"] },
-                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.placeholders.pendingBullet"] }
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.areaSelection.usage.primary"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.areaSelection.usage.extended"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.areaSelection.usage.constraints"] }
               }
             }
           ]

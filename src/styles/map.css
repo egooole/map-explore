@@ -1,4 +1,5 @@
 .MapCanvas {
+  /* 地图画布外壳：控制地图区域的边框、圆角和最小高度。 */
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
@@ -26,6 +27,7 @@
 }
 
 .MapCanvas__state {
+  /* 地图加载/错误状态的居中提示。 */
   align-items: center;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid var(--color-border);
@@ -34,7 +36,7 @@
   color: var(--color-muted);
   display: flex;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--font-weight-bold);
   left: 50%;
   min-height: 44px;
   padding: 0 14px;
@@ -53,7 +55,7 @@
   color: var(--color-muted);
   display: flex;
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--font-weight-semibold);
   min-height: 34px;
   padding: 0 10px;
   position: absolute;
@@ -86,7 +88,7 @@
 .MapCanvas__poi span {
   color: var(--color-text);
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--font-weight-semibold);
 }
 
 .MapCanvas__meta span + span,
@@ -116,6 +118,7 @@
 }
 
 .MapMarker > span {
+  /* 默认 pin marker 的基础形态；后面的 point/informated/custom 会覆盖它。 */
   align-items: center;
   background: var(--color-primary);
   border: 3px solid #ffffff;
@@ -178,6 +181,7 @@
 .MapMarker--point-default > span,
 .MapMarker--point-muted > span,
 .MapMarker--point-completed > span {
+  /* Normal 点基础态尺寸：24px 是整个点的尺寸，不只是内部颜色区域。 */
   border-width: 4px;
   height: 24px;
   width: 24px;
@@ -185,6 +189,7 @@
 
 .MapMarker--point-emphasized > span,
 .MapMarker--point-selected > span {
+  /* Normal 点强化/hover/selected 尺寸：40px 是整个点的尺寸。 */
   border-width: 6px;
   box-shadow: 0 8px 18px rgba(15, 98, 254, 0.24), 0 2px 5px rgba(15, 23, 42, 0.18);
   height: 40px;
@@ -194,6 +199,7 @@
 .MapMarker--informated-default > span,
 .MapMarker--informated-muted > span,
 .MapMarker--informated-completed > span {
+  /* Informated location 的基础尺寸。SVG 图标内容由 MapCanvas 注入。 */
   border-width: 4px;
   height: 40px;
   width: 40px;
@@ -210,13 +216,14 @@
 .MapMarker--cumulative-default > .MapMarker__cluster,
 .MapMarker--cumulative-muted > .MapMarker__cluster,
 .MapMarker--cumulative-completed > .MapMarker__cluster {
+  /* Cumulative location 聚合气泡基础态；font-size 控制数字大小。 */
   background: #2a3ef4;
   border: 4px solid #ffffff;
   box-shadow: 0 5px 14px rgba(15, 23, 42, 0.24), 0 1px 3px rgba(15, 23, 42, 0.16);
   color: #ffffff;
-  font-family: "TikTok Text", var(--font-sans);
+  font-family: var(--font-sans);
   font-size: 14px;
-  font-weight: 650;
+  font-weight: var(--font-weight-semibold);
   height: 40px;
   line-height: 1;
   width: 40px;
@@ -228,9 +235,9 @@
   border: 8px solid #ffffff;
   box-shadow: 0 11px 28px rgba(15, 23, 42, 0.28), 0 4px 12px rgba(36, 80, 255, 0.2);
   color: #ffffff;
-  font-family: "TikTok Text", var(--font-sans);
+  font-family: var(--font-sans);
   font-size: 22px;
-  font-weight: 650;
+  font-weight: var(--font-weight-semibold);
   height: 64px;
   line-height: 1;
   width: 64px;
@@ -239,6 +246,7 @@
 .MapMarker--custom-default > .MapMarker__customAsset,
 .MapMarker--custom-muted > .MapMarker__customAsset,
 .MapMarker--custom-completed > .MapMarker__customAsset {
+  /* Custom location 的图片型点位，尺寸要匹配 SVG viewBox 的视觉比例。 */
   background: transparent;
   border: 0;
   border-radius: 0;
@@ -270,9 +278,9 @@
   box-shadow: none;
   color: #ffffff;
   display: block;
-  font-family: "TikTok Text", var(--font-sans);
+  font-family: var(--font-sans);
   font-size: 20px;
-  font-weight: 650;
+  font-weight: var(--font-weight-semibold);
   height: 40px;
   line-height: 24px;
   overflow: visible;
@@ -296,6 +304,7 @@
 }
 
 .MapMarker__customTextPin::after {
+  /* Custom 文字/数字点的内部颜色圆；状态色在下面的 muted/completed 规则里覆盖。 */
   background: #2a3ef4;
   border-radius: 999px;
   content: "";
@@ -1003,6 +1012,7 @@
 }
 
 .MapRoutePreview__networkSvg {
+  /* 静态路线预览的 SVG 容器，主要用于组件手册里的 route 缩略展示。 */
   display: block;
   filter: drop-shadow(0 6px 10px rgba(15, 23, 42, 0.2));
   height: 121px;
@@ -1091,6 +1101,7 @@
 }
 
 .MapRoutePreview__narrowArrows {
+  /* 静态路线预览里的箭头，不是地图上的真实动态路线箭头。 */
   fill: none;
   pointer-events: none;
   stroke: #768bff;
@@ -1131,9 +1142,9 @@
   box-shadow: 0 5px 12px rgba(15, 23, 42, 0.24);
   color: #ffffff;
   display: flex;
-  font-family: "TikTok Text", var(--font-sans);
+  font-family: var(--font-sans);
   font-size: 18px;
-  font-weight: 650;
+  font-weight: var(--font-weight-semibold);
   height: 40px;
   justify-content: center;
   line-height: 1;
@@ -1189,7 +1200,7 @@
 
 .MapRoutePreview__routeTooltip b {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: var(--font-weight-medium);
   line-height: 18px;
 }
 
@@ -1216,11 +1227,57 @@
   box-shadow: var(--shadow-panel);
   color: var(--color-text);
   font-size: 12px;
-  font-weight: 760;
+  font-weight: var(--font-weight-semibold);
   left: 50%;
   padding: 5px 8px;
   position: absolute;
   top: -34px;
   transform: translateX(-50%);
   white-space: nowrap;
+}
+
+.MapRegionLabel {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 4px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  color: #171718;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 416px;
+  padding: 8px 12px;
+  pointer-events: none;
+  white-space: nowrap;
+}
+
+.MapRegionLabel strong {
+  color: #171718;
+  font-family: var(--font-family-base);
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  line-height: 18px;
+}
+
+.MapRegionLabel span {
+  align-items: center;
+  display: flex;
+  gap: 4px;
+  line-height: 18px;
+}
+
+.MapRegionLabel em,
+.MapRegionLabel b {
+  font-family: var(--font-family-base);
+  font-size: 12px;
+  font-style: normal;
+  font-weight: var(--font-weight-regular);
+  line-height: 18px;
+}
+
+.MapRegionLabel em {
+  color: #6c6d6f;
+}
+
+.MapRegionLabel b {
+  color: #171718;
 }

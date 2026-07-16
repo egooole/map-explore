@@ -44,6 +44,7 @@ export interface ManualComponentSpec {
   descriptionKey: string;
   previewType: ManualCategoryId;
   previewDistribution?: ManualPreviewDistribution;
+  regionIds?: string[];
   markerFamily?: MarkerPreviewFamily;
   markerVariants?: ManualMarkerVariant[];
   routeFamily?: RoutePreviewFamily;
@@ -70,10 +71,19 @@ interface ComponentCardProps {
   mapTheme: MapTheme;
 }
 
+/**
+ * 组件信息表里的 value 可以是直接写死的字符串，也可以是 i18n key。
+ * 这个函数统一把它解析成最终展示文本。
+ */
 function resolveValue(row: ManualInfoRow, t: (key: string) => string) {
   return row.valueKey ? t(row.valueKey) : row.value ?? "";
 }
 
+/**
+ * 颜色行的 Token Mapping。
+ * key 是 componentSpecs / i18n 中的颜色说明字段，value 是当前组件涉及到的色值。
+ * 后续你给 Code Token 后，可以在这里或数据配置里把占位内容换成真实 code token。
+ */
 const colorTokenValuesByKey: Record<string, string[]> = {
   "manual.pointMarker.style.color": ["#2A3EF4", "#C9D2FC", "#9C9EAD", "#2232C3"],
   "manual.informatedLocation.style.color": ["#2A3EF4", "#C9D2FC", "#9C9EAD", "#2232C3"],
@@ -82,14 +92,23 @@ const colorTokenValuesByKey: Record<string, string[]> = {
   "manual.normalRoute.style.color": ["#2A3EF4", "#C9D2FC", "#9C9EAD", "#2232C3"],
   "manual.routeWithLocation.style.color": ["#2A3EF4", "#C9D2FC", "#9C9EAD", "#2232C3"],
   "manual.routeWithProgress.style.color": ["#9C9EAD", "#2A3EF4", "#C9D2FC"],
+  "manual.areaSelection.style.color": ["#2A3EF4", "#C9D2FC"],
 };
 
+/**
+ * 点/线组件共用的状态切换选项。
+ * muted 在代码里表示 Disable；文案层展示为 Disable。
+ */
 const basePreviewStateOptions: Array<{ id: RoutePreviewVariant; labelKey: string }> = [
   { id: "default", labelKey: "manual.stateSwitcher.default" },
   { id: "muted", labelKey: "manual.stateSwitcher.disable" },
   { id: "completed", labelKey: "manual.stateSwitcher.completed" },
 ];
 
+/**
+ * 从信息行里提取颜色。
+ * 优先读 colorTokenValuesByKey 的人工配置；没有配置时，从文本里自动提取 #HEX 色值。
+ */
 function resolveColorTokenValues(row: ManualInfoRow, value: string) {
   if (row.valueKey && colorTokenValuesByKey[row.valueKey]) {
     return colorTokenValuesByKey[row.valueKey];
@@ -99,6 +118,10 @@ function resolveColorTokenValues(row: ManualInfoRow, value: string) {
   return [...new Set(hexValues.map((item) => item.toUpperCase()))];
 }
 
+/**
+ * 线组件可能有额外状态，比如 selected / inProgress。
+ * 这里先保证 Default / Disable / Completed 永远在前面，再拼接组件自己配置的扩展状态。
+ */
 function resolveLineStateOptions(spec: ManualComponentSpec) {
   const configuredStates = spec.routeVariants?.filter((variant) => variant.id !== "selected" && variant.id !== "inProgress") ?? [];
   const configuredExtraStates = configuredStates.filter(
@@ -108,6 +131,10 @@ function resolveLineStateOptions(spec: ManualComponentSpec) {
   return [...basePreviewStateOptions, ...configuredExtraStates];
 }
 
+/**
+ * 状态切换控件。
+ * 点组件和线组件都复用这一套 UI，避免每个组件单独实现按钮逻辑。
+ */
 function ManualStateSwitcher({
   ariaLabelKey,
   onChange,
@@ -142,6 +169,10 @@ function ManualStateSwitcher({
   );
 }
 
+/**
+ * 颜色信息的展示方式。
+ * 每一个颜色都会展示 Design Token（当前先放具体色值）和 Code Token（先占位）。
+ */
 function ColorTokenPairs({ row, value }: { row: ManualInfoRow; value: string }) {
   const { t } = useTranslation();
   const tokenValues = resolveColorTokenValues(row, value);
@@ -166,6 +197,10 @@ function ColorTokenPairs({ row, value }: { row: ManualInfoRow; value: string }) 
   );
 }
 
+/**
+ * 右侧“组件信息”的普通列表。
+ * 如果当前行是颜色行，就切换成 ColorTokenPairs；其他行按普通 key/value 展示。
+ */
 function InfoRows({ rows }: { rows: ManualInfoRow[] }) {
   const { t } = useTranslation();
 
@@ -186,6 +221,10 @@ function InfoRows({ rows }: { rows: ManualInfoRow[] }) {
   );
 }
 
+/**
+ * 前端代码默认折叠。
+ * 这样代码不会抢组件预览的视觉层级，只有用户点击“查看代码”时才展开。
+ */
 function CodeDisclosure({ code }: { code: ManualComponentSpec["code"] }) {
   const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
@@ -207,6 +246,10 @@ function CodeDisclosure({ code }: { code: ManualComponentSpec["code"] }) {
   );
 }
 
+/**
+ * 使用场景列表项。
+ * tone 用来区分主要场景、扩展场景、使用约束，视觉上保持同一模块但有不同语义。
+ */
 function UsageGroup({ group, tone }: { group: ManualUsageGroup; tone: "primary" | "extended" | "constraints" }) {
   const { t } = useTranslation();
 
@@ -226,27 +269,43 @@ function UsageGroup({ group, tone }: { group: ManualUsageGroup; tone: "primary" 
   );
 }
 
+/**
+ * 组件手册里每一个组件的详情卡片。
+ * 左侧：标题、状态切换、地图预览、使用场景。
+ * 右侧：组件信息、FakeMod/配置、代码折叠。
+ */
 export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }: ComponentCardProps) {
   const { t } = useTranslation();
   const lineStateOptions = useMemo(() => resolveLineStateOptions(spec), [spec]);
   const [activePreviewState, setActivePreviewState] = useState<RoutePreviewVariant>("default");
+
+  // 线组件的路线状态来自 lineStateOptions；其他组件使用自身配置的 routeVariants。
   const previewRoutes =
     categoryId === "line"
       ? lineStateOptions.map((option) => ({ id: option.id, label: t(option.labelKey) }))
       : spec.routeVariants?.map((variant) => ({ id: variant.id, label: t(variant.labelKey) }));
+
+  // 预览地图的控制参数。组件手册里不依赖右侧参数面板，因此这里给一组稳定的默认值。
   const previewControls = useMemo<MapControlsState>(
-    () => ({
-      markerStyle: categoryId === "point" ? "pin" : "default",
-      routeNodes: [
+    () => {
+      const routeNodes: MapControlsState["routeNodes"] = [
         { id: "start", value: "Placeholder start" },
         { id: "middle", value: "Placeholder middle" },
         { id: "end", value: "Placeholder end" },
-      ],
-      showMapUi: spec.previewDistribution === "chinaCluster",
-      zoom: getPreviewZoom(spec),
-    }),
+      ];
+      return {
+        activeRouteId: "route-1",
+        markerStyle: categoryId === "point" ? "pin" : "default",
+        routeNodes,
+        routes: [{ colorId: "route1", id: "route-1", name: "Route 1", nodes: routeNodes, visible: true }],
+        showMapUi: spec.previewDistribution === "chinaCluster",
+        zoom: getPreviewZoom(spec),
+      };
+    },
     [categoryId, spec],
   );
+
+  // 点组件状态切换时，重新生成对应状态的 marker 数据；每个组件独立维护自己的 activePreviewState。
   const previewMarkers = useMemo(
     () =>
       createPreviewMarkers(
@@ -282,6 +341,7 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }:
             mapTheme={mapTheme}
             previewFeature={spec.previewType}
             previewDistribution={spec.previewDistribution}
+            previewRegionIds={spec.regionIds}
             previewMarkerFamily={spec.markerFamily}
             previewMarkers={previewMarkers}
             previewRouteFamily={spec.routeFamily}

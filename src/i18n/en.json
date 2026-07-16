@@ -57,6 +57,11 @@
     "layerVisibility": "Layer Visibility",
     "showMapUi": "Show map UI",
     "routeNodes": "Route Nodes",
+    "routeList": "Route List",
+    "addRoute": "+ Add Route",
+    "deleteRoute": "Delete route",
+    "routeVisible": "Visible",
+    "routeHidden": "Hidden",
     "start": "Start",
     "middle": "Waypoint",
     "end": "Destination",
@@ -395,6 +400,27 @@
       },
       "code": "type RouteProgressState = \"default\" | \"inProgress\" | \"completed\";\n\nasync function renderRouteWithProgress(map: google.maps.Map, position: google.maps.LatLngLiteral, state: RouteProgressState) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--routeWithProgress MapRoutePreview--${state}`;\n  content.innerHTML = `<span class=\"MapRouteComposite MapRouteComposite--${state}\">...</span>`;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
+    "areaSelection": {
+      "name": "Region selection",
+      "description": "Area component for highlighting city, district, or country boundaries on the map, with default, disabled, hover, and selected states.",
+      "style": {
+        "variantSet": "Default / Disable / Hover or Selected; Hover and Selected share the same highlighted visual style",
+        "color": "Default: fill #2A3EF4 / 10%, stroke #2A3EF4; Disable: fill #2A3EF4 / 6%, stroke #C9D2FC; Hover/Selected: fill #2A3EF4 / 40%, stroke #2A3EF4",
+        "strokeWidth": "2px solid stroke; map regions follow real irregular boundaries, so the Figma swatch cornerRadius is ignored",
+        "label": "Selected state shows a center label: 95% white background, 4px radius, 8px 12px padding, Shadow/Down-L: 0 8px 20px rgba(0,0,0,0.12); title 12px Medium #171718, metadata 12px Regular #6C6D6F / #171718"
+      },
+      "fakeMod": {
+        "component": "RegionSelection",
+        "property": "Property 1 = Region selection / {Default | Disable | Hover or Selected}",
+        "figmaNodes": "3079:140122 / 3079:140124 / 3079:140126"
+      },
+      "usage": {
+        "primary": "Highlight clickable cities, districts, countries, or business regions so users can quickly identify the current focus area.",
+        "extended": "Pair with a center label to show the region name, placeholder metrics, or future business statistics.",
+        "constraints": "When a region is selected, other unselected regions do not respond to hover to avoid implying that selection is about to change."
+      },
+      "code": "type RegionSelectionState = \"default\" | \"disabled\" | \"selected\";\n\nconst regionStyle = {\n  default: { fillColor: \"#2A3EF4\", fillOpacity: 0.1, strokeColor: \"#2A3EF4\", strokeWeight: 2 },\n  disabled: { fillColor: \"#2A3EF4\", fillOpacity: 0.06, strokeColor: \"#C9D2FC\", strokeWeight: 2 },\n  selected: { fillColor: \"#2A3EF4\", fillOpacity: 0.4, strokeColor: \"#2A3EF4\", strokeWeight: 2 },\n};\n\nfunction renderRegionSelection(dataLayer: google.maps.Data, selectedId?: string, hoveredId?: string) {\n  dataLayer.setStyle((feature) => {\n    const id = String(feature.getProperty(\"mapLabId\") ?? \"\");\n    return id === selectedId || id === hoveredId ? regionStyle.selected : regionStyle.default;\n  });\n}"
+    },
     "sections": {
       "spec": "Style",
       "content": "Content",
@@ -413,6 +439,7 @@
       "property": "Property",
       "figmaNodes": "Figma nodes",
       "icon": "Icon",
+      "label": "Center label",
       "strokeWidth": "Stroke width",
       "strokeColor": "Stroke color"
     },

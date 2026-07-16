@@ -6,6 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",
+    "geo:download": "node scripts/geo-data/download-boundaries.mjs",
+    "geo:process": "node scripts/geo-data/process-boundaries.mjs",
     "preview": "vite preview"
   },
   "dependencies": {
