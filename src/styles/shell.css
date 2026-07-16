@@ -25,9 +25,10 @@
 
 .UseCaseScene {
   align-items: center;
-  grid-template-columns: minmax(420px, 1fr) var(--param-width);
+  grid-template-columns: minmax(720px, 1fr) var(--param-width);
 }
 
+.UseCaseScene__product,
 .UseCaseScene__phone {
   display: flex;
   justify-content: center;

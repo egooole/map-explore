@@ -204,6 +204,7 @@ interface MapCanvasProps {
   controls: MapControlsState;
   compact?: boolean;
   dynamicRouteFamily?: RoutePreviewFamily;
+  hideDynamicRouteMarkers?: boolean;
   mapTheme?: MapTheme;
   previewDistribution?: "local" | "china" | "chinaCluster";
   previewFeature?: "point" | "line" | "area" | "container";
@@ -1517,6 +1518,7 @@ export function MapCanvas({
   controls,
   compact = false,
   dynamicRouteFamily,
+  hideDynamicRouteMarkers = false,
   mapTheme = "light",
   hidePreviewContent = false,
   previewDistribution = "local",
@@ -2208,7 +2210,7 @@ export function MapCanvas({
           const path = computedRoute.path;
           const routeStyle = dynamicRouteStyles[route.colorId] ?? dynamicRouteStyles.route1;
           const routeMarkerPositions =
-            dynamicRouteFamily === "normalHasArrow"
+            hideDynamicRouteMarkers || dynamicRouteFamily === "normalHasArrow"
               ? []
               : middle
                 ? [path[0], path[Math.floor(path.length / 2)], path[path.length - 1]]
@@ -2370,6 +2372,7 @@ export function MapCanvas({
     canRenderDynamicRoute,
     controls.markerStyle,
     dynamicRouteFamily,
+    hideDynamicRouteMarkers,
     dynamicRoutes,
     markerLabels,
     status,
