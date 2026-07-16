@@ -1552,7 +1552,7 @@ export function MapCanvas({
   const preset = mapPresets[mapCategory][lang];
   const activeMapId = preset.mapId;
   const mapConfigKey = `${lang}:${mapCategory}:${preset.mapTypeId}:${activeMapId}`;
-  const routeColor = mapCategory === "visualization" ? "#475569" : "#0f62fe";
+  const routeColor = mapCategory === "visualization" ? "#475569" : "#2A3EF4";
   const markerLabels = useMemo(() => [t("map.warehouse"), t("map.hub"), t("map.destination")], [t]);
   const hasCumulativePreviewGroup =
     previewMarkerGroups?.some((group) => group.family === "cumulative" && group.distribution === "chinaCluster") ?? false;
@@ -1787,10 +1787,10 @@ export function MapCanvas({
     }
 
     polygonRef.current.setOptions({
-      fillColor: mapCategory === "visualization" ? "#475569" : "#0f62fe",
+      fillColor: mapCategory === "visualization" ? "#475569" : "#2A3EF4",
       fillOpacity: mapCategory === "visualization" ? 0.16 : 0.18,
       paths: areaPositions,
-      strokeColor: mapCategory === "visualization" ? "#334155" : "#0f62fe",
+      strokeColor: mapCategory === "visualization" ? "#334155" : "#2A3EF4",
       strokeOpacity: 0.8,
       strokeWeight: 2,
     });
