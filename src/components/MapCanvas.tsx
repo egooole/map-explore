@@ -8,6 +8,7 @@ import informatedDefaultMarker from "../assets/informated-location/default.svg";
 import informatedDisableMarker from "../assets/informated-location/disable.svg";
 import informatedEmphasizedMarker from "../assets/informated-location/emphasized.svg";
 import informatedSelectedMarker from "../assets/informated-location/selected.svg";
+import routeLocationPin from "../assets/route/location-pin.svg";
 import { cloudMapIds, mapKey, mapLabCloudMapIdSource, mapPresets } from "../config/mapPresets";
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
 import type {
@@ -190,6 +191,8 @@ interface DynamicRouteLayer {
   outline: GooglePolyline | null;
   route: GooglePolyline | null;
 }
+
+type MapMarkerAnchor = "bottom" | "center" | "pin-tip";
 
 /**
  * MapCanvas 的 props 是整个地图画布的控制入口。
@@ -936,18 +939,21 @@ function createMarkerElement(
   return marker;
 }
 
-function createCompositePoint(kind: "normal" | "informated" | "progress", position: "start" | "middle" | "end") {
-  if (kind === "informated") {
-    return `
-      <span class="MapRouteComposite__point MapRouteComposite__point--informated MapRouteComposite__point--${position}">
-        <span class="MapMarker__asset">
-          <img alt="" class="MapMarker__assetBase" src="${informatedDefaultMarker}" />
-          <img alt="" class="MapMarker__assetSelected" src="${informatedSelectedMarker}" />
-        </span>
-      </span>
-    `;
-  }
+function createRouteLocationPinElement(label: string) {
+  const marker = document.createElement("div");
+  marker.className = "MapMarker MapMarker--advanced MapMarker--route-location-pin";
+  marker.setAttribute("aria-label", label);
+  marker.setAttribute("role", "img");
 
+  const asset = document.createElement("img");
+  asset.alt = "";
+  asset.src = routeLocationPin;
+  marker.appendChild(asset);
+
+  return marker;
+}
+
+function createCompositePoint(kind: "normal" | "progress", position: "start" | "middle" | "end") {
   if (kind === "progress") {
     return `
       <span class="MapRouteComposite__point MapRouteComposite__point--progress MapRouteComposite__point--${position}" aria-hidden="true">
@@ -974,16 +980,15 @@ function createCompositePoint(kind: "normal" | "informated" | "progress", positi
  * 后续新增“路线 + 点”的组合组件时，可以复用这个思路，而不是重新写一套路线。
  */
 function createCompositeRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVariant) {
-  const pointKind = family === "routeWithInformatedLocation" ? "informated" : "normal";
   const isProgress = family === "routeWithProgress";
   const progressVariant = isProgress && variant === "default" ? "inProgress" : variant;
 
   return `
     <span class="MapRouteComposite MapRouteComposite--${family} MapRouteComposite--${progressVariant}">
       ${createHasArrowRouteShapeMarkup()}
-      ${createCompositePoint(isProgress ? "normal" : pointKind, "start")}
+      ${createCompositePoint("normal", "start")}
       ${isProgress ? createCompositePoint("progress", "middle") : ""}
-      ${createCompositePoint(isProgress ? "normal" : pointKind, "end")}
+      ${createCompositePoint("normal", "end")}
     </span>
   `;
 }
@@ -1071,7 +1076,6 @@ function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVar
     `;
   } else if (
     family === "routeWithNormalLocation" ||
-    family === "routeWithInformatedLocation" ||
     family === "routeWithProgress"
   ) {
     route.innerHTML = createCompositeRouteElement(family, variant);
@@ -1265,7 +1269,7 @@ function createRouteWithNormalLocationOverlay(
     private isRouteHit(event: PointerEvent | MouseEvent) {
       return document
         .elementsFromPoint(event.clientX, event.clientY)
-        .some((element) => element.classList.contains("MapRouteOverlay__hitArea"));
+        .some((element) => this.container.contains(element) && element.classList.contains("MapRouteOverlay__hitArea"));
     }
 
     private handlePointerMove = (event: PointerEvent) => {
@@ -1430,7 +1434,7 @@ function createOverlayMarker(
   map: GoogleMap,
   position: GoogleLatLng,
   element: HTMLElement,
-  anchor: "bottom" | "center" = "bottom",
+  anchor: MapMarkerAnchor = "bottom",
   zIndex?: number,
 ): MapMarkerHandle {
   /**
@@ -1450,7 +1454,8 @@ function createOverlayMarker(
       if (!pixel) {
         return;
       }
-      const anchorTransform = anchor === "center" ? "translate(-50%, -50%)" : "translate(-50%, -100%)";
+      const anchorTransform =
+        anchor === "center" ? "translate(-50%, -50%)" : anchor === "pin-tip" ? "translate(-50%, -51px)" : "translate(-50%, -100%)";
       this.markerElement.style.transform = `translate(${pixel.x}px, ${pixel.y}px) ${anchorTransform}`;
       if (zIndex !== undefined) {
         this.markerElement.style.zIndex = String(zIndex);
@@ -1479,7 +1484,7 @@ async function createAdvancedMarker(
   map: GoogleMap,
   position: GoogleLatLng,
   element: HTMLElement,
-  anchor: "bottom" | "center" = "bottom",
+  anchor: MapMarkerAnchor = "bottom",
   zIndex?: number,
 ): Promise<MapMarkerHandle> {
   const { AdvancedMarkerElement } = await googleMaps.maps.importLibrary("marker");
@@ -1490,6 +1495,11 @@ async function createAdvancedMarker(
           anchorLeft: "-50%",
           anchorTop: "-50%",
         }
+      : anchor === "pin-tip"
+        ? {
+            anchorLeft: "-50%",
+            anchorTop: "-51px",
+          }
       : {
           anchorLeft: "-50%",
           anchorTop: "-100%",
@@ -1747,7 +1757,7 @@ export function MapCanvas({
       previewFeature === "line" &&
       (hasPreviewRouteGroups || Boolean(previewRouteFamily && previewRoutes?.length));
     const shouldShowLine =
-      (!previewFeature || previewFeature === "line" || previewFeature === "container") &&
+      (!previewFeature || previewFeature === "container") &&
       !hidePreviewContent &&
       !shouldShowRoutePreview &&
       !canRenderDynamicRoute;
@@ -1826,7 +1836,12 @@ export function MapCanvas({
       for (const group of routeGroups) {
         const selectedRoute = group.routes.find((route) => route.id === (group.state ?? previewRouteState)) ?? group.routes[0];
 
-        if (group.family === "normalNoArrow" || group.family === "normalHasArrow" || group.family === "routeWithNormalLocation") {
+        if (
+          group.family === "normalNoArrow" ||
+          group.family === "normalHasArrow" ||
+          group.family === "routeWithNormalLocation" ||
+          group.family === "routeWithInformatedLocation"
+        ) {
           const path = routeWithNormalLocationPreviewPath;
           const routeMarkerElements =
             group.family === "routeWithNormalLocation"
@@ -1834,11 +1849,17 @@ export function MapCanvas({
                   createMarkerElement("dot", markerLabels[0], "default", "normal"),
                   createMarkerElement("dot", markerLabels[2], "default", "normal"),
                 ]
+              : group.family === "routeWithInformatedLocation"
+                ? [createRouteLocationPinElement(markerLabels[0]), createRouteLocationPinElement(markerLabels[2])]
               : [];
           const setMarkerVariant = (focused: boolean) => {
             routeMarkerElements.forEach((markerElement) => {
-              markerElement.classList.toggle("MapMarker--point-default", !focused);
-              markerElement.classList.toggle("MapMarker--point-selected", focused);
+              if (markerElement.classList.contains("MapMarker--route-location-pin")) {
+                markerElement.classList.toggle("is-selected", focused);
+              } else {
+                markerElement.classList.toggle("MapMarker--point-default", !focused);
+                markerElement.classList.toggle("MapMarker--point-selected", focused);
+              }
             });
           };
           const routeOverlay = createRouteWithNormalLocationOverlay(
@@ -1853,11 +1874,15 @@ export function MapCanvas({
           layer.overlays.push(routeOverlay);
 
           const markerHandles = await Promise.all(
-            (group.family === "routeWithNormalLocation" ? [path[0], path[path.length - 1]] : []).map((position, index) =>
-              activeMapId
-                ? createAdvancedMarker(googleMaps, map, position, routeMarkerElements[index], "center", 100)
-                : Promise.resolve(createOverlayMarker(googleMaps, map, position, routeMarkerElements[index], "center", 100)),
-            ),
+            (group.family === "routeWithNormalLocation" || group.family === "routeWithInformatedLocation"
+              ? [path[0], path[path.length - 1]]
+              : []
+            ).map((position, index) => {
+              const anchor = group.family === "routeWithInformatedLocation" ? "pin-tip" : "center";
+              return activeMapId
+                ? createAdvancedMarker(googleMaps, map, position, routeMarkerElements[index], anchor, 100)
+                : Promise.resolve(createOverlayMarker(googleMaps, map, position, routeMarkerElements[index], anchor, 100));
+            }),
           );
           overlayMarkerHandles.push(...markerHandles);
           continue;
@@ -1882,7 +1907,13 @@ export function MapCanvas({
       routePreviewsRef.current = routeHandles;
       if (
         !previewRouteGroups?.length &&
-        routeGroups.some((group) => group.family === "normalNoArrow" || group.family === "normalHasArrow" || group.family === "routeWithNormalLocation")
+        routeGroups.some(
+          (group) =>
+            group.family === "normalNoArrow" ||
+            group.family === "normalHasArrow" ||
+            group.family === "routeWithNormalLocation" ||
+            group.family === "routeWithInformatedLocation",
+        )
       ) {
         map.fitBounds(getPathBounds(routeWithNormalLocationPreviewPath), 72);
       }

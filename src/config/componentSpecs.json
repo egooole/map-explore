@@ -329,18 +329,18 @@
               "nameKey": "manual.routeWithProgress.name",
               "descriptionKey": "manual.routeWithProgress.description",
               "previewType": "line",
-              "routeFamily": "routeWithProgress",
+              "routeFamily": "routeWithNormalLocation",
               "routeVariants": [
-                { "id": "inProgress", "labelKey": "manual.routeWithLocation.variants.inProgress" },
                 { "id": "default", "labelKey": "manual.normalRoute.variants.default" },
+                { "id": "muted", "labelKey": "manual.normalRoute.variants.muted" },
                 { "id": "completed", "labelKey": "manual.normalRoute.variants.completed" },
                 { "id": "selected", "labelKey": "manual.normalRoute.variants.selected" }
               ],
               "styleRows": [
-                { "labelKey": "manual.rows.variant", "valueKey": "manual.routeWithProgress.style.variantSet" },
-                { "labelKey": "manual.rows.size", "valueKey": "manual.routeWithProgress.style.sizes" },
-                { "labelKey": "manual.rows.color", "valueKey": "manual.routeWithProgress.style.color" },
-                { "labelKey": "manual.rows.icon", "valueKey": "manual.routeWithProgress.style.icon" },
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.routeWithInformatedLocation.style.variantSet" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.routeWithInformatedLocation.style.sizes" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.routeWithLocation.style.color" },
+                { "labelKey": "manual.rows.icon", "valueKey": "manual.routeWithInformatedLocation.style.icon" },
                 { "labelKey": "manual.rows.shadow", "valueKey": "manual.routeWithLocation.style.shadow" }
               ],
               "fakeModRows": [
@@ -350,7 +350,7 @@
               ],
               "code": {
                 "language": "tsx",
-                "valueKey": "manual.routeWithProgress.code"
+                "valueKey": "manual.routeWithLocation.code"
               },
               "usage": {
                 "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.routeWithProgress.usage.primary"] },

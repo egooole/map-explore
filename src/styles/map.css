@@ -559,6 +559,22 @@
   display: none;
 }
 
+.MapMarker--route-location-pin {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  display: block;
+  height: 63px;
+  pointer-events: none;
+  width: 60px;
+}
+
+.MapMarker--route-location-pin img {
+  display: block;
+  height: 63px;
+  width: 60px;
+}
+
 .MapMarker--informated-default.MapMarker--interactive:hover .MapMarker__assetBase,
 .MapMarker--informated-default.is-selected .MapMarker__assetBase,
 .MapMarker--informated-completed.MapMarker--interactive:hover .MapMarker__assetBase,
@@ -606,11 +622,6 @@
 .MapRoutePreview--routeWithNormalLocation {
   height: 24px;
   width: 224px;
-}
-
-.MapRoutePreview--routeWithInformatedLocation {
-  height: 143px;
-  width: 284px;
 }
 
 .MapRoutePreview--routeWithProgress {
@@ -675,8 +686,6 @@
 
 .MapRoutePreview--routeWithNormalLocation:hover .MapRouteComposite__routeSvg,
 .MapRoutePreview--routeWithNormalLocation.is-selected .MapRouteComposite__routeSvg,
-.MapRoutePreview--routeWithInformatedLocation:hover .MapRouteComposite__routeSvg,
-.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRouteComposite__routeSvg,
 .MapRoutePreview--routeWithProgress:hover .MapRouteComposite__routeSvg,
 .MapRoutePreview--routeWithProgress.is-selected .MapRouteComposite__routeSvg {
   filter: drop-shadow(0 8px 14px rgba(15, 23, 42, 0.24));
@@ -707,11 +716,6 @@
   top: 6px;
 }
 
-.MapRouteComposite--routeWithInformatedLocation .MapRoutePrimitive {
-  left: 20px;
-  top: 27px;
-}
-
 .MapRouteComposite--routeWithProgress .MapRoutePrimitive {
   left: 22px;
   top: 26px;
@@ -721,12 +725,6 @@
 .MapRoutePreview--routeWithNormalLocation.is-selected .MapRouteComposite .MapRoutePrimitive {
   height: 20px;
   top: 2px;
-}
-
-.MapRoutePreview--routeWithInformatedLocation:hover .MapRouteComposite .MapRoutePrimitive,
-.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRouteComposite .MapRoutePrimitive {
-  height: 20px;
-  top: 21px;
 }
 
 .MapRoutePreview--routeWithProgress:hover .MapRouteComposite .MapRoutePrimitive,
@@ -757,10 +755,6 @@
 .MapRoutePreview--routeWithNormalLocation.is-selected .MapRoutePrimitive__track,
 .MapRoutePreview--routeWithNormalLocation:hover .MapRoutePrimitive__arrows,
 .MapRoutePreview--routeWithNormalLocation.is-selected .MapRoutePrimitive__arrows,
-.MapRoutePreview--routeWithInformatedLocation:hover .MapRoutePrimitive__track,
-.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRoutePrimitive__track,
-.MapRoutePreview--routeWithInformatedLocation:hover .MapRoutePrimitive__arrows,
-.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRoutePrimitive__arrows,
 .MapRoutePreview--routeWithProgress:hover .MapRoutePrimitive__track,
 .MapRoutePreview--routeWithProgress.is-selected .MapRoutePrimitive__track,
 .MapRoutePreview--routeWithProgress:hover .MapRoutePrimitive__arrows,
@@ -793,8 +787,6 @@
 .MapRoutePreview--normalHasArrow.is-selected .MapRoutePrimitive__track--active,
 .MapRoutePreview--routeWithNormalLocation:hover .MapRoutePrimitive__track--active,
 .MapRoutePreview--routeWithNormalLocation.is-selected .MapRoutePrimitive__track--active,
-.MapRoutePreview--routeWithInformatedLocation:hover .MapRoutePrimitive__track--active,
-.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRoutePrimitive__track--active,
 .MapRoutePreview--routeWithProgress:hover .MapRoutePrimitive__track--active,
 .MapRoutePreview--routeWithProgress.is-selected .MapRoutePrimitive__track--active {
   background: #2232c3;
@@ -825,8 +817,6 @@
 .MapRoutePreview--normalHasArrow.is-selected .MapRoutePrimitive__arrows,
 .MapRoutePreview--routeWithNormalLocation:hover .MapRoutePrimitive__arrows,
 .MapRoutePreview--routeWithNormalLocation.is-selected .MapRoutePrimitive__arrows,
-.MapRoutePreview--routeWithInformatedLocation:hover .MapRoutePrimitive__arrows,
-.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRoutePrimitive__arrows,
 .MapRoutePreview--routeWithProgress:hover .MapRoutePrimitive__arrows,
 .MapRoutePreview--routeWithProgress.is-selected .MapRoutePrimitive__arrows,
 .MapRoutePrimitive--selected .MapRoutePrimitive__arrows {
@@ -922,47 +912,6 @@
 .MapRouteComposite--routeWithNormalLocation .MapRouteComposite__point--end {
   left: 200px;
   top: 0;
-}
-
-.MapRouteComposite__point--informated {
-  height: 40px;
-  width: 40px;
-}
-
-.MapRouteComposite__point--informated > .MapMarker__asset {
-  background: transparent;
-  border: 0;
-  box-shadow: none;
-  display: block;
-  height: 62px;
-  position: relative;
-  width: 59px;
-}
-
-.MapRoutePreview--routeWithInformatedLocation:hover .MapRouteComposite__point--informated > .MapMarker__asset,
-.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRouteComposite__point--informated > .MapMarker__asset {
-  height: 99px;
-  width: 95px;
-}
-
-.MapRoutePreview--routeWithInformatedLocation:hover .MapRouteComposite__point--informated .MapMarker__assetBase,
-.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRouteComposite__point--informated .MapMarker__assetBase {
-  display: none;
-}
-
-.MapRoutePreview--routeWithInformatedLocation:hover .MapRouteComposite__point--informated .MapMarker__assetSelected,
-.MapRoutePreview--routeWithInformatedLocation.is-selected .MapRouteComposite__point--informated .MapMarker__assetSelected {
-  display: block;
-}
-
-.MapRouteComposite--routeWithInformatedLocation .MapRouteComposite__point--start {
-  left: 34px;
-  top: 10px;
-}
-
-.MapRouteComposite--routeWithInformatedLocation .MapRouteComposite__point--end {
-  left: 229px;
-  top: 25px;
 }
 
 .MapRouteComposite--routeWithProgress .MapRouteComposite__point--start {
