@@ -398,7 +398,7 @@
         "primary": "Use in logistics, navigation, or inspection routes to show current location and completion progress.",
         "extended": "The completed segment, active segment, and current node can later be driven by real business progress."
       },
-      "code": "type RouteProgressState = \"default\" | \"inProgress\" | \"completed\";\n\nasync function renderRouteWithProgress(map: google.maps.Map, position: google.maps.LatLngLiteral, state: RouteProgressState) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapRoutePreview MapRoutePreview--routeWithProgress MapRoutePreview--${state}`;\n  content.innerHTML = `<span class=\"MapRouteComposite MapRouteComposite--${state}\">...</span>`;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
+      "code": "const routePath = [{ lat: 31.1939, lng: 121.3382 }, ...];\nconst progressRatio = 0.58;\n\nfunction renderRouteWithProgress(map: google.maps.Map) {\n  const { completedPath, remainingPath, progressPoint } = splitRouteAtRatio(routePath, progressRatio);\n\n  drawRouteSegment(completedPath, { color: \"#9C9EAD\" });\n  drawRouteSegment(remainingPath, { color: \"#2A3EF4\", arrows: true });\n  renderNormalPoint(routePath[0]);\n  renderProgressPoint(progressPoint);\n  renderNormalPoint(routePath.at(-1));\n}"
     },
     "areaSelection": {
       "name": "Region selection",

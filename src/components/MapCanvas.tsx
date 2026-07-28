@@ -9,6 +9,7 @@ import informatedDisableMarker from "../assets/informated-location/disable.svg";
 import informatedEmphasizedMarker from "../assets/informated-location/emphasized.svg";
 import informatedSelectedMarker from "../assets/informated-location/selected.svg";
 import routeLocationPin from "../assets/route/location-pin.svg";
+import routeProgressLocationPin from "../assets/route/progress-location.svg";
 import { cloudMapIds, mapKey, mapLabCloudMapIdSource, mapPresets } from "../config/mapPresets";
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
 import type {
@@ -282,6 +283,8 @@ const routeWithNormalLocationPreviewPath: GoogleLatLngLiteral[] = [
   { lat: 31.3278, lng: 121.5152 },
 ];
 
+const routeWithProgressRatio = 0.58;
+
 /**
  * 线组件的状态色。
  * default / muted / completed 对应状态切换按钮中的 默认 / Disable / 已完成。
@@ -309,6 +312,11 @@ interface DynamicRouteStyle {
   arrowFocusedColor: string;
   color: string;
   focusedColor: string;
+}
+
+interface RouteProgressOverlayConfig {
+  completedColor: string;
+  ratio: number;
 }
 
 const dynamicRouteStyles: Record<DynamicRouteColorId, DynamicRouteStyle> = {
@@ -1238,6 +1246,63 @@ function offsetRoutePath(points: Array<{ x: number; y: number }>, offsetPx: numb
   });
 }
 
+function splitPathAtRatio(points: Array<{ x: number; y: number }>, ratio: number) {
+  const safeRatio = Math.min(1, Math.max(0, ratio));
+  const fallback = points.length ? [points[0]] : [];
+
+  if (points.length < 2) {
+    return { completed: fallback, remaining: fallback };
+  }
+
+  const totalLength = points.slice(1).reduce((sum, point, index) => {
+    const previous = points[index];
+    return sum + Math.hypot(point.x - previous.x, point.y - previous.y);
+  }, 0);
+
+  if (!totalLength) {
+    return { completed: fallback, remaining: fallback };
+  }
+
+  const targetLength = totalLength * safeRatio;
+  const completed: Array<{ x: number; y: number }> = [points[0]];
+  let travelled = 0;
+
+  for (let index = 1; index < points.length; index += 1) {
+    const start = points[index - 1];
+    const end = points[index];
+    const segmentLength = Math.hypot(end.x - start.x, end.y - start.y);
+
+    if (!segmentLength) {
+      continue;
+    }
+
+    if (travelled + segmentLength >= targetLength) {
+      const segmentProgress = (targetLength - travelled) / segmentLength;
+      const splitPoint = {
+        x: start.x + (end.x - start.x) * segmentProgress,
+        y: start.y + (end.y - start.y) * segmentProgress,
+      };
+      completed.push(splitPoint);
+      return {
+        completed,
+        remaining: [splitPoint, ...points.slice(index)],
+      };
+    }
+
+    completed.push(end);
+    travelled += segmentLength;
+  }
+
+  return {
+    completed: points,
+    remaining: [points[points.length - 1]],
+  };
+}
+
+function createPathD(points: Array<{ x: number; y: number }>) {
+  return points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x} ${point.y}`).join(" ");
+}
+
 function createRouteWithNormalLocationOverlay(
   googleMaps: GoogleMapsGlobal,
   map: GoogleMap,
@@ -1248,6 +1313,7 @@ function createRouteWithNormalLocationOverlay(
   routeState: RoutePreviewVariant = "default",
   dynamicStyle?: DynamicRouteStyle,
   routeOffsetPx = 0,
+  progressConfig?: RouteProgressOverlayConfig,
 ): MapMarkerHandle {
   /**
    * 这里不用 Google Polyline 的 icons，而是自定义 OverlayView 画 SVG。
@@ -1256,14 +1322,24 @@ function createRouteWithNormalLocationOverlay(
    */
   class RouteOverlay extends googleMaps.maps.OverlayView {
     private container = document.createElement("div");
+    private progressPin = document.createElement("span");
+    private svgLayer = document.createElement("div");
     private focused = false;
     private selected = false;
 
     constructor() {
       super();
+      this.container.className = "MapRouteOverlay";
       this.container.style.position = "absolute";
       this.container.style.pointerEvents = "none";
       this.container.style.zIndex = "10";
+      this.svgLayer.className = "MapRouteOverlay__svgLayer";
+      this.progressPin.className = "MapRouteOverlay__progressPin";
+      this.progressPin.innerHTML = `
+        <span class="MapRouteOverlay__progressRing" aria-hidden="true"></span>
+        <img class="MapRouteOverlay__progressIcon" src="${routeProgressLocationPin}" alt="" />
+      `;
+      this.container.append(this.svgLayer, this.progressPin);
     }
 
     private isRouteHit(event: PointerEvent | MouseEvent) {
@@ -1316,7 +1392,11 @@ function createRouteWithNormalLocationOverlay(
         projectedPath.map((point) => ({ x: point.x - minX, y: point.y - minY })),
         routeOffsetPx,
       );
-      const routeD = localPath.map((point, index) => `${index === 0 ? "M" : "L"}${point.x} ${point.y}`).join(" ");
+      const routeD = createPathD(localPath);
+      const progressPaths = progressConfig ? splitPathAtRatio(localPath, progressConfig.ratio) : null;
+      const completedRouteD = progressPaths ? createPathD(progressPaths.completed) : "";
+      const remainingRouteD = progressPaths ? createPathD(progressPaths.remaining) : routeD;
+      const progressPoint = progressPaths?.completed.at(-1);
 
       // 路线视觉参数：静态态 8px 蓝线 + 12px 白底；hover/selected 后 12px 蓝线 + 16px 白底。
       const routeStroke = this.focused ? 12 : 8;
@@ -1327,15 +1407,27 @@ function createRouteWithNormalLocationOverlay(
           ? dynamicStyle.arrowFocusedColor
           : dynamicStyle.arrowColor
         : resolveRouteArrowStateColor(routeState);
+      const completedArrowColor = resolveRouteArrowStateColor("completed");
       const arrowScale = this.focused ? arrowScaleConfig.focused : arrowScaleConfig.default;
-      const arrowMarkup = showArrows ? this.createArrowMarkup(localPath, arrowScale, arrowColor) : "";
+      const completedArrowMarkup =
+        showArrows && progressPaths ? this.createArrowMarkup(progressPaths.completed, arrowScale, completedArrowColor) : "";
+      const arrowMarkup = showArrows ? this.createArrowMarkup(progressPaths?.remaining ?? localPath, arrowScale, arrowColor) : "";
       const maskId = `routeWithNormalLocationMask-${Math.round(minX)}-${Math.round(minY)}-${this.focused ? "on" : "off"}`;
-
+      const completedMarkup =
+        progressConfig && completedRouteD
+          ? `<path d="${completedRouteD}" fill="none" stroke="${progressConfig.completedColor}" stroke-width="${routeStroke}" stroke-linecap="round" stroke-linejoin="round" />`
+          : "";
       this.container.style.left = `${minX}px`;
       this.container.style.top = `${minY}px`;
       this.container.style.width = `${width}px`;
       this.container.style.height = `${height}px`;
-      this.container.innerHTML = `
+      this.container.classList.toggle("is-focused", this.focused);
+      this.progressPin.style.display = progressConfig && progressPoint ? "grid" : "none";
+      if (progressPoint) {
+        this.progressPin.style.left = `${progressPoint.x}px`;
+        this.progressPin.style.top = `${progressPoint.y}px`;
+      }
+      this.svgLayer.innerHTML = `
         <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <!-- mask 用来让箭头只显示在蓝色路线内部，避免箭头压到白色描边外面。 -->
@@ -1345,8 +1437,10 @@ function createRouteWithNormalLocationOverlay(
             </mask>
           </defs>
           <path d="${routeD}" fill="none" stroke="#ffffff" stroke-width="${outlineStroke}" stroke-linecap="round" stroke-linejoin="round" />
-          <path d="${routeD}" fill="none" stroke="${routeColor}" stroke-width="${routeStroke}" stroke-linecap="round" stroke-linejoin="round" />
+          ${completedMarkup}
+          <path d="${remainingRouteD}" fill="none" stroke="${routeColor}" stroke-width="${routeStroke}" stroke-linecap="round" stroke-linejoin="round" />
           <g mask="url(#${maskId})">
+            ${completedArrowMarkup}
             ${arrowMarkup}
           </g>
           <path class="MapRouteOverlay__hitArea" d="${routeD}" fill="none" stroke="transparent" stroke-width="${Math.max(outlineStroke, 24)}" stroke-linecap="round" stroke-linejoin="round" style="pointer-events: stroke; cursor: pointer;" />
@@ -1840,7 +1934,8 @@ export function MapCanvas({
           group.family === "normalNoArrow" ||
           group.family === "normalHasArrow" ||
           group.family === "routeWithNormalLocation" ||
-          group.family === "routeWithInformatedLocation"
+          group.family === "routeWithInformatedLocation" ||
+          group.family === "routeWithProgress"
         ) {
           const path = routeWithNormalLocationPreviewPath;
           const routeMarkerElements =
@@ -1851,6 +1946,11 @@ export function MapCanvas({
                 ]
               : group.family === "routeWithInformatedLocation"
                 ? [createRouteLocationPinElement(markerLabels[0]), createRouteLocationPinElement(markerLabels[2])]
+              : group.family === "routeWithProgress"
+                ? [
+                    createMarkerElement("dot", markerLabels[0], "default", "normal"),
+                    createMarkerElement("dot", markerLabels[2], "default", "normal"),
+                  ]
               : [];
           const setMarkerVariant = (focused: boolean) => {
             routeMarkerElements.forEach((markerElement) => {
@@ -1869,19 +1969,32 @@ export function MapCanvas({
             setMarkerVariant,
             routeWithNormalLocationArrowScale,
             group.family !== "normalNoArrow",
-            group.state ?? previewRouteState,
+            group.family === "routeWithProgress" ? "default" : group.state ?? previewRouteState,
+            undefined,
+            0,
+            group.family === "routeWithProgress"
+              ? {
+                  completedColor: resolveRouteStateColor("completed"),
+                  ratio: routeWithProgressRatio,
+                }
+              : undefined,
           );
           layer.overlays.push(routeOverlay);
 
+          const routeMarkerPositions =
+            [path[0], path[path.length - 1]];
           const markerHandles = await Promise.all(
-            (group.family === "routeWithNormalLocation" || group.family === "routeWithInformatedLocation"
-              ? [path[0], path[path.length - 1]]
+            (group.family === "routeWithNormalLocation" ||
+            group.family === "routeWithInformatedLocation" ||
+            group.family === "routeWithProgress"
+              ? routeMarkerPositions
               : []
             ).map((position, index) => {
               const anchor = group.family === "routeWithInformatedLocation" ? "pin-tip" : "center";
+              const zIndex = group.family === "routeWithProgress" && index === 1 ? 130 : 100;
               return activeMapId
-                ? createAdvancedMarker(googleMaps, map, position, routeMarkerElements[index], anchor, 100)
-                : Promise.resolve(createOverlayMarker(googleMaps, map, position, routeMarkerElements[index], anchor, 100));
+                ? createAdvancedMarker(googleMaps, map, position, routeMarkerElements[index], anchor, zIndex)
+                : Promise.resolve(createOverlayMarker(googleMaps, map, position, routeMarkerElements[index], anchor, zIndex));
             }),
           );
           overlayMarkerHandles.push(...markerHandles);
@@ -1912,7 +2025,8 @@ export function MapCanvas({
             group.family === "normalNoArrow" ||
             group.family === "normalHasArrow" ||
             group.family === "routeWithNormalLocation" ||
-            group.family === "routeWithInformatedLocation",
+            group.family === "routeWithInformatedLocation" ||
+            group.family === "routeWithProgress",
         )
       ) {
         map.fitBounds(getPathBounds(routeWithNormalLocationPreviewPath), 72);
@@ -2217,7 +2331,9 @@ export function MapCanvas({
     const shouldUseRouteOverlay =
       dynamicRouteFamily === "normalNoArrow" ||
       dynamicRouteFamily === "normalHasArrow" ||
-      dynamicRouteFamily === "routeWithNormalLocation";
+      dynamicRouteFamily === "routeWithNormalLocation" ||
+      dynamicRouteFamily === "routeWithInformatedLocation" ||
+      dynamicRouteFamily === "routeWithProgress";
 
     clearDynamicRouteLayer(dynamicRouteRef.current);
     setRouteStatus("loading");
@@ -2240,30 +2356,37 @@ export function MapCanvas({
 
           const path = computedRoute.path;
           const routeStyle = dynamicRouteStyles[route.colorId] ?? dynamicRouteStyles.route1;
-          const routeMarkerPositions =
-            hideDynamicRouteMarkers || dynamicRouteFamily === "normalHasArrow"
-              ? []
-              : middle
-                ? [path[0], path[Math.floor(path.length / 2)], path[path.length - 1]]
-                : [path[0], path[path.length - 1]];
-          const routeMarkerLabels = route.nodes.filter((node) => node.value).map((node) => node.value);
-          const routeMarkerElements = routeMarkerPositions.map((_, index) =>
-            createMarkerElement(
-              controls.markerStyle,
-              routeMarkerLabels[index] ?? markerLabels[index] ?? t("map.destination"),
-              index === 0 ? "default" : index === routeMarkerPositions.length - 1 ? "emphasized" : "completed",
+          const shouldShowEndpointMarkers =
+            !hideDynamicRouteMarkers &&
+            (dynamicRouteFamily === "routeWithNormalLocation" ||
+              dynamicRouteFamily === "routeWithInformatedLocation" ||
+              dynamicRouteFamily === "routeWithProgress");
+          const routeMarkerPositions = shouldShowEndpointMarkers ? [path[0], path[path.length - 1]] : [];
+          const routeMarkerLabels = [route.nodes.find((node) => node.id === "start")?.value, route.nodes.find((node) => node.id === "end")?.value];
+          const routeMarkerElements = routeMarkerPositions.map((_, index) => {
+            const label = routeMarkerLabels[index] ?? markerLabels[index === 0 ? 0 : 2] ?? t("map.destination");
+
+            if (dynamicRouteFamily === "routeWithInformatedLocation") {
+              return createRouteLocationPinElement(label);
+            }
+
+            return createMarkerElement(
+              "dot",
+              label,
+              index === 0 ? "default" : "emphasized",
               "normal",
-            ),
-          );
+            );
+          });
 
           if (shouldUseRouteOverlay) {
             const setMarkerVariant = (focused: boolean) => {
-              if (dynamicRouteFamily !== "routeWithNormalLocation") {
-                return;
-              }
-
               routeMarkerElements.forEach((markerElement) => {
-                markerElement.classList.toggle("MapMarker--point-selected", focused);
+                if (markerElement.classList.contains("MapMarker--route-location-pin")) {
+                  markerElement.classList.toggle("is-selected", focused);
+                } else {
+                  markerElement.classList.toggle("MapMarker--point-default", !focused);
+                  markerElement.classList.toggle("MapMarker--point-selected", focused);
+                }
               });
             };
             layer.overlays.push(
@@ -2277,6 +2400,12 @@ export function MapCanvas({
                 "default",
                 routeStyle,
                 routeIndex * 5,
+                dynamicRouteFamily === "routeWithProgress"
+                  ? {
+                      completedColor: resolveRouteStateColor("completed"),
+                      ratio: routeWithProgressRatio,
+                    }
+                  : undefined,
               ),
             );
           } else {
@@ -2353,9 +2482,10 @@ export function MapCanvas({
           const markerHandles = await Promise.all(
             routeMarkerPositions.map((position, index) => {
               const markerElement = routeMarkerElements[index];
+              const anchor = dynamicRouteFamily === "routeWithInformatedLocation" ? "pin-tip" : "center";
               return activeMapId
-                ? createAdvancedMarker(googleMaps, map, position, markerElement, "bottom", shouldUseRouteOverlay ? 100 : undefined)
-                : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement, "bottom", shouldUseRouteOverlay ? 100 : undefined));
+                ? createAdvancedMarker(googleMaps, map, position, markerElement, anchor, shouldUseRouteOverlay ? 100 : undefined)
+                : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement, anchor, shouldUseRouteOverlay ? 100 : undefined));
             }),
           );
 

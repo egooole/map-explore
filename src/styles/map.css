@@ -575,6 +575,96 @@
   width: 60px;
 }
 
+.MapMarker--route-progress-pin {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  display: block;
+  height: 40px;
+  pointer-events: none;
+  width: 40px;
+}
+
+.MapMarker--route-progress-pin img {
+  display: block;
+  height: 40px;
+  transition: transform 160ms ease;
+  width: 40px;
+}
+
+.MapMarker--route-progress-pin.is-selected img {
+  transform: scale(1.08);
+}
+
+.MapRouteOverlay {
+  overflow: visible;
+}
+
+.MapRouteOverlay__svgLayer {
+  inset: 0;
+  position: absolute;
+}
+
+.MapRouteOverlay__progressPin {
+  --pin-hover-scale: 1.6;
+  --pin-ring-base-scale: 1;
+  --pin-ring-end-scale: 3;
+  display: grid;
+  height: 112px;
+  overflow: visible;
+  pointer-events: none;
+  place-items: center;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  transform-origin: center;
+  width: 112px;
+  z-index: 2;
+}
+
+.MapRouteOverlay.is-focused .MapRouteOverlay__progressPin {
+  --pin-ring-base-scale: var(--pin-hover-scale);
+  --pin-ring-end-scale: calc(var(--pin-hover-scale) * 3);
+}
+
+.MapRouteOverlay__progressRing {
+  animation: MapRouteProgressPulse 1.5s ease-out infinite;
+  background: #2a3ef4;
+  border-radius: 999px;
+  grid-area: 1 / 1;
+  height: 22px;
+  opacity: 0.3;
+  transform: scale(var(--pin-ring-base-scale));
+  width: 22px;
+}
+
+.MapRouteOverlay__progressIcon {
+  display: block;
+  grid-area: 1 / 1;
+  height: 40px;
+  position: relative;
+  transform: scale(1);
+  transform-origin: center;
+  transition: transform 0.2s ease;
+  width: 40px;
+  z-index: 1;
+}
+
+.MapRouteOverlay.is-focused .MapRouteOverlay__progressIcon {
+  transform: scale(var(--pin-hover-scale));
+}
+
+@keyframes MapRouteProgressPulse {
+  from {
+    opacity: 0.3;
+    transform: scale(var(--pin-ring-base-scale));
+  }
+
+  to {
+    opacity: 0.1;
+    transform: scale(var(--pin-ring-end-scale));
+  }
+}
+
 .MapMarker--informated-default.MapMarker--interactive:hover .MapMarker__assetBase,
 .MapMarker--informated-default.is-selected .MapMarker__assetBase,
 .MapMarker--informated-completed.MapMarker--interactive:hover .MapMarker__assetBase,

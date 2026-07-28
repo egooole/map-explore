@@ -45,6 +45,7 @@ export interface ManualComponentSpec {
   previewType: ManualCategoryId;
   previewDistribution?: ManualPreviewDistribution;
   regionIds?: string[];
+  hideStateSwitcher?: boolean;
   markerFamily?: MarkerPreviewFamily;
   markerVariants?: ManualMarkerVariant[];
   routeFamily?: RoutePreviewFamily;
@@ -278,6 +279,7 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }:
   const { t } = useTranslation();
   const lineStateOptions = useMemo(() => resolveLineStateOptions(spec), [spec]);
   const [activePreviewState, setActivePreviewState] = useState<RoutePreviewVariant>("default");
+  const shouldShowStateSwitcher = !spec.hideStateSwitcher && (categoryId === "point" || categoryId === "line");
 
   // 线组件的路线状态来自 lineStateOptions；其他组件使用自身配置的 routeVariants。
   const previewRoutes =
@@ -322,7 +324,7 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }:
         <header className="ManualPanelHeader">
           <h2>{t(spec.nameKey)}</h2>
           <span>{t(spec.descriptionKey)}</span>
-          {categoryId === "point" || categoryId === "line" ? (
+          {shouldShowStateSwitcher ? (
             <ManualStateSwitcher
               ariaLabelKey={categoryId === "point" ? "manual.stateSwitcher.pointAria" : "manual.stateSwitcher.lineAria"}
               options={categoryId === "line" ? lineStateOptions : basePreviewStateOptions}
