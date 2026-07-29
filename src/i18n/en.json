@@ -99,6 +99,70 @@
     "routeApiBlocked": "Routes API is blocked by this API key. Allow Routes API in API restrictions"
   },
   "useCase": {
+    "eyebrow": "Component Cases",
+    "title": "Logistics Business Scenarios",
+    "description": "Show how map components are used in logistics products so partners can understand which business problems they solve.",
+    "caseTabs": "Case list",
+    "productMap": "Map layer in product interface",
+    "panelTitle": "Case Notes",
+    "sections": {
+      "components": "Components Used",
+      "flow": "Click Flow",
+      "outcome": "Problem Solved"
+    },
+    "cases": {
+      "progress": {
+        "title": "Delivery Efficiency Visualization",
+        "summary": "Show completed route, remaining route, and current location to support fulfillment status checks.",
+        "components": {
+          "route": "Route with progress",
+          "pin": "Progress Location"
+        },
+        "flow": {
+          "search": "Operations opens an order or shipment task, and the map focuses on the current route.",
+          "track": "The progress pin shows the current vehicle or parcel position while separating completed and remaining segments.",
+          "handle": "When an exception appears, partners can coordinate from the same map context."
+        },
+        "metrics": {
+          "status": "Turns route status from text into directly readable spatial information.",
+          "exception": "Works for delay, detour, stuck progress, and other fulfillment exceptions."
+        }
+      },
+      "location": {
+        "title": "Warehouse Selection Comparison",
+        "summary": "Use informed location pins for endpoints so the route stays connected to real business entities.",
+        "components": {
+          "route": "Normal route / Has arrow",
+          "pin": "Informated location"
+        },
+        "flow": {
+          "pick": "After selecting a warehouse, sorting center, or destination, the map shows both business endpoints.",
+          "preview": "Route direction and location identity appear together instead of an abstract path only.",
+          "share": "Partners can confirm whether the endpoints are correct from the same interface."
+        },
+        "metrics": {
+          "accuracy": "Reduces location interpretation cost and repeated endpoint confirmation.",
+          "handoff": "Useful for explaining path relationships between warehouses, stores, and stations."
+        }
+      },
+      "route": {
+        "title": "Transportation Route Planning",
+        "summary": "Use directional routes to describe movement from A to B for plan comparison and delivery explanation.",
+        "components": {
+          "route": "Normal route / Has arrow",
+          "node": "Route node"
+        },
+        "flow": {
+          "input": "Users enter a start point, waypoint, and destination to generate a visual route.",
+          "generate": "Route styling follows the component spec for consistency across product pages.",
+          "compare": "It can later expand into multi-route comparison with color-coded plans."
+        },
+        "metrics": {
+          "plan": "Fits delivery plans, transfer lines, and cross-city transportation paths.",
+          "compare": "Turns route choices from static text into comparable map content."
+        }
+      }
+    },
     "deliveredRange": "Estimated delivery Mar 28-30",
     "status": "Package has reached the final destination",
     "carrier": "SF Express",

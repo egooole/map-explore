@@ -99,6 +99,70 @@
     "routeApiBlocked": "Routes API 被当前 API key 阻止，请在 API restrictions 中允许 Routes API"
   },
   "useCase": {
+    "eyebrow": "组件案例",
+    "title": "物流业务场景",
+    "description": "展示地图组件在物流产品中的典型使用方式，帮助协作方理解组件能解决的业务问题。",
+    "caseTabs": "案例列表",
+    "productMap": "产品界面中的地图图层",
+    "panelTitle": "案例说明",
+    "sections": {
+      "components": "使用组件",
+      "flow": "点击 Flow",
+      "outcome": "解决的问题"
+    },
+    "cases": {
+      "progress": {
+        "title": "送达效率可视化",
+        "summary": "展示路线已完成段、剩余段与当前位置，辅助判断履约状态。",
+        "components": {
+          "route": "Route with progress",
+          "pin": "Progress Location"
+        },
+        "flow": {
+          "search": "运营查看某个订单或运输任务后，地图自动定位到当前路线。",
+          "track": "通过进度点识别车辆或包裹当前位置，同时区分已完成和剩余路线。",
+          "handle": "发现异常时，协作方可以基于同一地图信息同步处理。"
+        },
+        "metrics": {
+          "status": "让路线状态从文字描述变成可直接判断的空间信息。",
+          "exception": "适合展示延误、绕路、进度卡点等履约异常。"
+        }
+      },
+      "location": {
+        "title": "选仓方案对比",
+        "summary": "用带信息的地点 Pin 表达起终点，让路线和业务实体保持一致。",
+        "components": {
+          "route": "Normal route / Has arrow",
+          "pin": "Informated location"
+        },
+        "flow": {
+          "pick": "用户选择仓库、分拨中心或目的地后，地图展示两端业务地点。",
+          "preview": "路线方向和地点信息同时出现，避免只看到一条抽象路径。",
+          "share": "协作方可以直接基于同一界面确认起终点是否正确。"
+        },
+        "metrics": {
+          "accuracy": "降低地点理解成本，减少业务方反复确认起终点。",
+          "handoff": "适合跨团队说明仓库、门店、站点之间的路径关系。"
+        }
+      },
+      "route": {
+        "title": "运输路线规划",
+        "summary": "用方向路线表达从 A 到 B 的行进关系，适合做方案比较和交付说明。",
+        "components": {
+          "route": "Normal route / Has arrow",
+          "node": "Route node"
+        },
+        "flow": {
+          "input": "用户输入起点、中途点和终点，系统生成可视化路线。",
+          "generate": "路线样式沿用组件规范，保证在不同产品页里表达一致。",
+          "compare": "后续可扩展为多路线对比，用颜色区分不同方案。"
+        },
+        "metrics": {
+          "plan": "适合说明配送方案、调拨线路、跨城运输路径。",
+          "compare": "让路线选择从静态文字变成可对照的地图内容。"
+        }
+      }
+    },
     "deliveredRange": "预计送达 3 月 28-30 日",
     "status": "包裹已到达最终目的地",
     "carrier": "顺丰速运",

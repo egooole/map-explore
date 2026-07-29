@@ -36,9 +36,21 @@
 
   .MapBrowseScene,
   .UseCaseScene,
+  .UseCaseScene__workspace,
   .ManualHierarchy__layer--map > div,
   .ManualDetail {
     grid-template-columns: 1fr;
+  }
+
+  .UseCaseScene__header {
+    align-items: start;
+    display: grid;
+    gap: 10px;
+  }
+
+  .UseCaseScene__header p {
+    max-width: 72ch;
+    text-align: left;
   }
 
   .ParamPanel {
@@ -84,6 +96,10 @@
     height: 660px;
     max-width: 360px;
     width: 100%;
+  }
+
+  .UseCaseProduct {
+    max-height: none;
   }
 
   .ManualScene {

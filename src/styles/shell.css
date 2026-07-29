@@ -24,12 +24,22 @@
 }
 
 .UseCaseScene {
-  align-items: center;
-  grid-template-columns: minmax(720px, 1fr) var(--param-width);
+  align-content: start;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
 }
 
 .UseCaseScene__product,
 .UseCaseScene__phone {
   display: flex;
   justify-content: center;
+}
+
+.UseCaseScene__workspace {
+  align-items: stretch;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(720px, 1fr) var(--param-width);
+  min-height: 0;
 }
