@@ -1,6 +1,7 @@
 import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import { useEffect } from "react";
 import { Sidebar } from "./components/Sidebar";
+import { GuideScene } from "./scenes/GuideScene";
 import { MapBrowseScene } from "./scenes/MapBrowseScene";
 import { ManualScene } from "./scenes/ManualScene";
 import { UseCaseScene } from "./scenes/UseCaseScene";
@@ -10,6 +11,7 @@ const routeViews: Record<string, WorkbenchView> = {
   "/browse": "browse",
   "/use-case": "use-case",
   "/manual": "manual",
+  "/guide": "guide",
 };
 
 function RouteStoreSync() {
@@ -36,6 +38,7 @@ function App() {
           <Route element={<MapBrowseScene />} path="/browse" />
           <Route element={<UseCaseScene />} path="/use-case" />
           <Route element={<ManualScene />} path="/manual" />
+          <Route element={<GuideScene />} path="/guide" />
           <Route element={<Navigate replace to="/browse" />} path="*" />
         </Routes>
       </main>

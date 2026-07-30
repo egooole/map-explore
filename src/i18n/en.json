@@ -23,6 +23,10 @@
         "label": "Component Manual",
         "description": "Inspect component tokens"
       },
+      "guide": {
+        "label": "Usage Guide",
+        "description": "Install skills and use locally"
+      },
       "entity": {
         "label": "Entity Map",
         "description": "Streets and POI"
@@ -170,6 +174,77 @@
     "copy": "Copy",
     "goodsCount": "3 items",
     "phoneTime": "09:41"
+  },
+  "guide": {
+    "title": "Documentation Usage Guide",
+    "description": "A quick-start page for Map Lab collaborators: understand the component spec, install packaged skills, then use the component library in a local project.",
+    "sections": {
+      "workflow": {
+        "title": "Recommended Workflow",
+        "description": "This area can later become the official onboarding path for teams using the map component library."
+      },
+      "install": {
+        "title": "Local Install Entry",
+        "description": "The commands below are mocked for now and can later be replaced by real skill packages, scripts, or internal download links."
+      },
+      "skills": {
+        "title": "Packaged Skills",
+        "description": "These skills help users read the component spec locally, generate sample code, and connect Figma or design tokens."
+      },
+      "resources": {
+        "title": "Documentation Index",
+        "description": "Common entry points are grouped here so new collaborators can quickly find what they need."
+      }
+    },
+    "steps": {
+      "read": {
+        "title": "Start with the component manual",
+        "description": "Browse by map type and point, line, area, or container to check visual states, token mapping, usage examples, and constraints."
+      },
+      "choose": {
+        "title": "Review business cases",
+        "description": "Use logistics scenarios to understand the problems each component solves inside real product flows."
+      },
+      "apply": {
+        "title": "Connect it locally",
+        "description": "Install the matching skill, then reuse component config, sample code, or map rendering logic in a local project."
+      }
+    },
+    "install": {
+      "commandLabel": "Example command",
+      "command": "codex skill install map-lab-components\ncodex skill run map-lab-components init",
+      "checkSkill": "After installation, local projects can read component specs and sample code.",
+      "checkLocal": "Validate styles in a local dev server before submitting changes to a business repo."
+    },
+    "skills": {
+      "download": "Download",
+      "mapComponents": {
+        "name": "map-lab-components",
+        "description": "Reads point, line, area, and container component specs and generates reusable frontend configuration."
+      },
+      "figmaImport": {
+        "name": "map-lab-figma-sync",
+        "description": "Extracts component states, size, color, and icon assets from Figma nodes for manual synchronization."
+      },
+      "localPreview": {
+        "name": "map-lab-local-preview",
+        "description": "Starts a local map preview to validate Google Maps config and component rendering."
+      }
+    },
+    "resources": {
+      "componentManual": {
+        "title": "Component Manual",
+        "description": "Review each map component's anatomy, states, code entry, and usage constraints."
+      },
+      "useCases": {
+        "title": "Logistics Business Scenarios",
+        "description": "Understand how components support route planning, delivery efficiency, and warehouse selection."
+      },
+      "tokenTable": {
+        "title": "Token and Style Mapping",
+        "description": "Confirm the relationship between design tokens, code tokens, and rendered values."
+      }
+    }
   },
   "manual": {
     "title": "Component Manual",

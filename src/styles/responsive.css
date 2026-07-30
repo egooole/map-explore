@@ -37,8 +37,13 @@
   .MapBrowseScene,
   .UseCaseScene,
   .UseCaseScene__workspace,
+  .GuideScene__layout,
   .ManualHierarchy__layer--map > div,
   .ManualDetail {
+    grid-template-columns: 1fr;
+  }
+
+  .GuideSkillGrid {
     grid-template-columns: 1fr;
   }
 
@@ -107,6 +112,17 @@
     margin: -12px;
     min-height: 100dvh;
     padding: 22px 16px;
+  }
+
+  .GuideScene {
+    border-radius: 0;
+    margin: -12px;
+    min-height: 100dvh;
+    padding: 22px 16px;
+  }
+
+  .GuideResourceList article {
+    grid-template-columns: 1fr;
   }
 
   .ManualScene__header h1 {

@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type WorkbenchView = "browse" | "use-case" | "manual";
+export type WorkbenchView = "browse" | "use-case" | "manual" | "guide";
 export type MapCategory = "entity" | "visualization";
 export type WorkbenchLanguage = "zh" | "en";
 export type MapTheme = "light" | "dark";

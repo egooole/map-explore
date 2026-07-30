@@ -1,4 +1,4 @@
-import { BookOpen, Globe2, Languages, Map, Moon, Play, Route, Sun } from "lucide-react";
+import { BookOpen, CircleHelp, Globe2, Languages, Map, Moon, Play, Route, Sun } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -51,6 +51,7 @@ const viewPaths: Record<WorkbenchView, string> = {
   browse: "/browse",
   "use-case": "/use-case",
   manual: "/manual",
+  guide: "/guide",
 };
 
 export function Sidebar() {
@@ -114,6 +115,13 @@ export function Sidebar() {
             icon={<BookOpen size={18} />}
             label={t("sidebar.items.manual.label")}
             onClick={() => handleView("manual")}
+          />
+          <SidebarNavItem
+            active={view === "guide"}
+            description={t("sidebar.items.guide.description")}
+            icon={<CircleHelp size={18} />}
+            label={t("sidebar.items.guide.label")}
+            onClick={() => handleView("guide")}
           />
         </SidebarNavGroup>
 

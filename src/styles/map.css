@@ -572,7 +572,14 @@
 .MapMarker--route-location-pin img {
   display: block;
   height: 63px;
+  transform: scale(1);
+  transform-origin: 50% 51px;
+  transition: transform 0.2s ease;
   width: 60px;
+}
+
+.MapMarker--route-location-pin.is-selected img {
+  transform: scale(1.18);
 }
 
 .MapMarker--route-progress-pin {
