@@ -1756,7 +1756,7 @@ export function MapCanvas({
             center: resolvePreviewCenter(previewDistribution),
             clickableIcons: mapCategory === "entity",
             disableDefaultUI: !controls.showMapUi,
-            gestureHandling: "greedy",
+            gestureHandling: compact ? "cooperative" : "greedy",
             mapId: activeMapId,
             mapTypeControl: false,
             mapTypeId: preset.mapTypeId,

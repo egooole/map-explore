@@ -176,12 +176,12 @@
 
 .UseCaseProduct__map {
   border-radius: 4px;
-  height: calc(772 / 900 * 100%);
-  left: calc(400 / 1440 * 100%);
+  height: calc(var(--use-case-map-height, 772) / 900 * 100%);
+  left: calc(var(--use-case-map-left, 400) / 1440 * 100%);
   overflow: hidden;
   position: absolute;
-  top: calc(128 / 900 * 100%);
-  width: calc(1024 / 1440 * 100%);
+  top: calc(var(--use-case-map-top, 128) / 900 * 100%);
+  width: calc(var(--use-case-map-width, 1024) / 1440 * 100%);
   z-index: 2;
 }
 
@@ -196,6 +196,200 @@
 
 .UseCaseProduct__map .MapCanvas__google {
   min-height: 0;
+}
+
+.UseCaseRouteOverlay {
+  background: #ffffff;
+  box-sizing: border-box;
+  display: grid;
+  gap: 0;
+  grid-template-rows: auto auto 1fr;
+  height: calc(748 / 900 * 100%);
+  left: calc(80 / 1440 * 100%);
+  padding: calc(24 / 900 * 100%) calc(24 / 1440 * 100%);
+  position: absolute;
+  top: calc(124 / 900 * 100%);
+  width: calc(664 / 1440 * 100%);
+  z-index: 3;
+}
+
+.UseCaseRouteSummary {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 24px;
+}
+
+.UseCaseRouteSummary h2 {
+  color: var(--color-text);
+  font-size: 20px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0;
+  line-height: 28px;
+  margin: 0;
+}
+
+.UseCaseRouteSummary p {
+  align-items: center;
+  color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 14px;
+  gap: 0;
+  line-height: 20px;
+  margin: 0;
+}
+
+.UseCaseRouteSummary span:not(:first-child)::before {
+  color: rgba(0, 0, 0, 0.2);
+  content: "|";
+  padding: 0 8px;
+}
+
+.UseCaseRouteSummary strong {
+  color: rgba(0, 0, 0, 0.92);
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 20px;
+  padding-left: 8px;
+}
+
+.UseCaseRouteTableHeader {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  color: rgba(0, 0, 0, 0.55);
+  display: grid;
+  font-size: 12px;
+  grid-template-columns: 152px 1fr;
+  height: 42px;
+  line-height: 18px;
+  padding-left: 12px;
+}
+
+.UseCaseRouteTableHeader span:first-child {
+  padding-left: 0;
+}
+
+.UseCaseRouteRows {
+  display: grid;
+  width: 100%;
+}
+
+.UseCaseRouteRow {
+  align-items: stretch;
+  background: #ffffff;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  display: grid;
+  grid-template-columns: 28px 124px 1fr;
+  min-height: 116px;
+  min-width: 0;
+}
+
+.UseCaseRouteRow:first-child {
+  border-top: 0;
+}
+
+.UseCaseRouteRow__expand {
+  align-items: flex-start;
+  color: rgba(0, 0, 0, 0.55);
+  display: flex;
+  justify-content: center;
+  padding-top: 13px;
+}
+
+.UseCaseRouteRow__expand svg {
+  transform: rotate(90deg);
+}
+
+.UseCaseRouteRow__actions {
+  align-items: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+}
+
+.UseCaseRouteRow__actions strong {
+  align-items: center;
+  color: rgba(0, 0, 0, 0.92);
+  display: flex;
+  font-size: 14px;
+  font-weight: var(--font-weight-semibold);
+  gap: 2px;
+  line-height: 20px;
+}
+
+.UseCaseRouteRow__actions strong span {
+  background: #1063fe;
+  border-radius: 999px;
+  display: block;
+  height: 4px;
+  width: 15px;
+}
+
+.UseCaseRouteRow button {
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  line-height: 18px;
+  padding: 3px 8px;
+  transition: background 160ms ease, color 160ms ease;
+  white-space: nowrap;
+}
+
+.UseCaseRouteRow__dispatch {
+  background: #009995;
+  color: #ffffff;
+}
+
+.UseCaseRouteRow__dispatch:hover {
+  background: #017b77;
+}
+
+.UseCaseRouteRow__only {
+  background: rgba(23, 23, 24, 0);
+  color: #017b77;
+}
+
+.UseCaseRouteRow__only:hover {
+  background: rgba(0, 153, 149, 0.08);
+}
+
+.UseCaseRouteRow__overview {
+  column-gap: 12px;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  padding: 12px;
+  row-gap: 4px;
+}
+
+.UseCaseRouteRow__overview p {
+  align-items: center;
+  color: rgba(0, 0, 0, 0.92);
+  display: flex;
+  font-size: 12px;
+  gap: 4px;
+  line-height: 18px;
+  margin: 0;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.UseCaseRouteRow__overview svg {
+  color: rgba(0, 0, 0, 0.92);
+  flex: 0 0 auto;
+}
+
+.UseCaseRouteRow__overview em {
+  color: #f59e0b;
+  font-style: normal;
+}
+
+.UseCaseRouteRow__overview .is-alert,
+.UseCaseRouteRow__overview .is-alert svg {
+  color: #ff3b4f;
 }
 
 .UseCaseScene__header {

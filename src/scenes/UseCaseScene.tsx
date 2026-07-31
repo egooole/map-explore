@@ -1,28 +1,68 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
+import { Box, ChevronRight, Clock3, Info, MapPin, Package, Pencil, Truck, UserRound, Warehouse } from "lucide-react";
 import gtsTmsProduct from "../assets/use-case/gts-tms.svg";
+import routePlanningProduct from "../assets/use-case/page.svg";
 import { MapCanvas } from "../components/MapCanvas";
 import { createDefaultControls } from "../components/ParamPanel";
 import { useWorkbenchStore } from "../store/workbenchStore";
 import type { RoutePreviewFamily } from "../types";
 
+interface UseCaseMapFrame {
+  height: number;
+  left: number;
+  top: number;
+  width: number;
+}
+
 interface UseCaseConfig {
   componentKeys: string[];
   flowKeys: string[];
   id: string;
+  mapFrame: UseCaseMapFrame;
   metricKeys: string[];
-  routeFamily: RoutePreviewFamily;
+  productAlt: string;
+  productImage: string;
+  routeFamily?: RoutePreviewFamily;
   summaryKey: string;
   titleKey: string;
 }
+
+interface RoutePlanningCard {
+  distance: string;
+  driver: string;
+  duration: string;
+  id: string;
+  packages: string;
+  pickupPoints: string;
+  routeNo: string;
+  status?: "alert";
+  vehicle: string;
+  volume: string;
+  weight: string;
+}
+
+const defaultProductMapFrame: UseCaseMapFrame = {
+  height: 772,
+  left: 400,
+  top: 128,
+  width: 1024,
+};
 
 const useCaseConfigs: UseCaseConfig[] = [
   {
     componentKeys: ["useCase.cases.route.components.route", "useCase.cases.route.components.node"],
     flowKeys: ["useCase.cases.route.flow.input", "useCase.cases.route.flow.generate", "useCase.cases.route.flow.compare"],
     id: "route",
+    mapFrame: {
+      height: 748,
+      left: 760,
+      top: 124,
+      width: 680,
+    },
     metricKeys: ["useCase.cases.route.metrics.plan", "useCase.cases.route.metrics.compare"],
-    routeFamily: "normalHasArrow",
+    productAlt: "Route planning product interface",
+    productImage: routePlanningProduct,
     summaryKey: "useCase.cases.route.summary",
     titleKey: "useCase.cases.route.title",
   },
@@ -30,7 +70,10 @@ const useCaseConfigs: UseCaseConfig[] = [
     componentKeys: ["useCase.cases.progress.components.route", "useCase.cases.progress.components.pin"],
     flowKeys: ["useCase.cases.progress.flow.search", "useCase.cases.progress.flow.track", "useCase.cases.progress.flow.handle"],
     id: "progress",
+    mapFrame: defaultProductMapFrame,
     metricKeys: ["useCase.cases.progress.metrics.status", "useCase.cases.progress.metrics.exception"],
+    productAlt: "GTS TMS product interface",
+    productImage: gtsTmsProduct,
     routeFamily: "routeWithProgress",
     summaryKey: "useCase.cases.progress.summary",
     titleKey: "useCase.cases.progress.title",
@@ -39,12 +82,65 @@ const useCaseConfigs: UseCaseConfig[] = [
     componentKeys: ["useCase.cases.location.components.route", "useCase.cases.location.components.pin"],
     flowKeys: ["useCase.cases.location.flow.pick", "useCase.cases.location.flow.preview", "useCase.cases.location.flow.share"],
     id: "location",
+    mapFrame: defaultProductMapFrame,
     metricKeys: ["useCase.cases.location.metrics.accuracy", "useCase.cases.location.metrics.handoff"],
+    productAlt: "GTS TMS product interface",
+    productImage: gtsTmsProduct,
     routeFamily: "routeWithInformatedLocation",
     summaryKey: "useCase.cases.location.summary",
     titleKey: "useCase.cases.location.title",
   },
 ];
+
+const routePlanningCards: RoutePlanningCard[] = [
+  {
+    distance: "12 mi",
+    driver: "Rendy Zikri",
+    duration: "1h 35m",
+    id: "route-hongqiao-lingang",
+    packages: "105 packages",
+    pickupPoints: "6 pickup points",
+    routeNo: "41649",
+    vehicle: "Blind van",
+    volume: "100 cbm",
+    weight: "20 kg",
+  },
+  {
+    distance: "12 mi",
+    driver: "No driver yet",
+    duration: "12h 35m",
+    id: "route-putuo-waigaoqiao",
+    packages: "105 packages",
+    pickupPoints: "6 pickup points",
+    routeNo: "41648",
+    status: "alert",
+    vehicle: "Blind van",
+    volume: "100 cbm",
+    weight: "20 kg",
+  },
+  {
+    distance: "12 mi",
+    driver: "No driver yet",
+    duration: "12h 35m",
+    id: "route-songjiang-xinjiangwan",
+    packages: "105 packages",
+    pickupPoints: "6 pickup points",
+    routeNo: "41648",
+    status: "alert",
+    vehicle: "Blind van",
+    volume: "100 cbm",
+    weight: "20 kg",
+  },
+];
+
+function createMapFrameStyle(frame: UseCaseMapFrame): CSSProperties {
+  return {
+    "--use-case-map-height": `${frame.height}`,
+    "--use-case-map-left": `${frame.left}`,
+    "--use-case-map-top": `${frame.top}`,
+    "--use-case-map-width": `${frame.width}`,
+  } as CSSProperties;
+}
 
 export function UseCaseScene() {
   const { t } = useTranslation();
@@ -86,8 +182,90 @@ export function UseCaseScene() {
       <div className="UseCaseScene__workspace">
         <div className="UseCaseScene__product">
           <div className="UseCaseProduct">
-            <img alt="GTS TMS product interface" className="UseCaseProduct__image" src={gtsTmsProduct} />
-            <div className="UseCaseProduct__map" aria-label={t("useCase.productMap")}>
+            <img alt={activeCase.productAlt} className="UseCaseProduct__image" src={activeCase.productImage} />
+            {activeCase.id === "route" ? (
+              <div className="UseCaseRouteOverlay" aria-label="Route detail">
+                <header className="UseCaseRouteSummary">
+                  <h2>Route detail</h2>
+                  <p>
+                    <span>Total routes:</span>
+                    <strong>2</strong>
+                    <span>Total jobs:</span>
+                    <strong>12</strong>
+                    <span>Total packages:</span>
+                    <strong>210</strong>
+                  </p>
+                </header>
+                <div className="UseCaseRouteTableHeader">
+                  <span>Route</span>
+                  <span>Overview</span>
+                </div>
+                <div className="UseCaseRouteRows">
+                  {routePlanningCards.map((route) => (
+                    <article className="UseCaseRouteRow" key={route.id}>
+                      <div className="UseCaseRouteRow__expand" aria-hidden="true">
+                        <ChevronRight size={16} strokeWidth={1.75} />
+                      </div>
+                      <div className="UseCaseRouteRow__actions">
+                        <strong>
+                          <span />
+                          {route.routeNo}
+                        </strong>
+                        <button className="UseCaseRouteRow__dispatch" type="button">
+                          Dispatch route
+                        </button>
+                        <button className="UseCaseRouteRow__only" type="button">
+                          View it only
+                        </button>
+                      </div>
+                      <div className="UseCaseRouteRow__overview">
+                        <p>
+                          <Clock3 size={14} />
+                          <span>Est.Duration:</span>
+                          <em>{route.duration}</em>
+                        </p>
+                        <p>
+                          <MapPin size={14} />
+                          <span>Est.Distance:</span>
+                          <em>{route.distance}</em>
+                        </p>
+                        <p>
+                          <Warehouse size={14} />
+                          <span>{route.pickupPoints}</span>
+                        </p>
+                        <p>
+                          <Package size={14} />
+                          <span>{route.packages}</span>
+                        </p>
+                        <p>
+                          <Box size={14} />
+                          <span>{route.volume}</span>
+                        </p>
+                        <p>
+                          <Box size={14} />
+                          <span>{route.weight}</span>
+                        </p>
+                        <p>
+                          <Truck size={14} />
+                          <span>{route.vehicle}</span>
+                          <Info size={13} />
+                        </p>
+                        <p className={route.status === "alert" ? "is-alert" : undefined}>
+                          <UserRound size={14} />
+                          <span>{route.driver}</span>
+                          <Pencil size={13} />
+                        </p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ) : null}
+            <div
+              className="UseCaseProduct__map"
+              aria-label={t("useCase.productMap")}
+              style={createMapFrameStyle(activeCase.mapFrame)}
+            >
               <MapCanvas
                 compact
                 controls={controls}

@@ -12,9 +12,9 @@
 
   .Sidebar {
     height: auto;
-    max-height: 100dvh;
+    max-height: none;
     min-height: 0;
-    position: sticky;
+    position: relative;
     top: 0;
     width: 100%;
     z-index: 20;
@@ -22,11 +22,14 @@
 
   .Sidebar__nav {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-height: none;
+    overflow: visible;
   }
 
   .MainStage {
     height: auto;
     min-height: 100dvh;
+    min-width: 0;
     overflow: visible;
   }
 
