@@ -1,16 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import customShopMarker from "../assets/custom-location/shop.svg?raw";
-import customUserMarker from "../assets/custom-location/user.svg?raw";
-import customWarehouseMarker from "../assets/custom-location/warehouse.svg?raw";
-import informatedCompletedMarker from "../assets/informated-location/completed.svg";
-import informatedDefaultMarker from "../assets/informated-location/default.svg";
-import informatedDisableMarker from "../assets/informated-location/disable.svg";
-import informatedEmphasizedMarker from "../assets/informated-location/emphasized.svg";
-import informatedSelectedMarker from "../assets/informated-location/selected.svg";
 import routeLocationPin from "../assets/route/location-pin.svg";
 import routeProgressLocationPin from "../assets/route/progress-location.svg";
 import { cloudMapIds, mapKey, mapLabCloudMapIdSource, mapPresets } from "../config/mapPresets";
+import { createPointMarkerElement } from "../map-components/point";
 import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
 import type {
   CustomMarkerContent,
@@ -702,7 +695,6 @@ const areaPositions: GoogleLatLng[] = [
 ];
 
 const scriptId = "map-lab-google-maps";
-const interactivePointVariants: MarkerPreviewVariant[] = ["default", "completed", "emphasized"];
 const regionManifestUrl = `${import.meta.env.BASE_URL}geo/manifest.json`;
 let regionManifestPromise: Promise<RegionManifest> | null = null;
 const regionGeoJsonCache = new Map<string, Promise<GeoJsonFeatureCollection>>();
@@ -726,14 +718,6 @@ const regionDataStyles = {
     strokeColor: "#2A3EF4",
     strokeWeight: 2,
   },
-};
-
-const informatedMarkerAssets: Record<MarkerPreviewVariant, string> = {
-  completed: informatedCompletedMarker,
-  default: informatedDefaultMarker,
-  emphasized: informatedEmphasizedMarker,
-  muted: informatedDisableMarker,
-  selected: informatedSelectedMarker,
 };
 
 function loadRegionManifest() {
@@ -786,28 +770,6 @@ function createRegionLabelElement(region: RegionManifestEntry) {
     <span><em>Selected</em><b>--</b></span>
   `;
   return label;
-}
-
-const customMarkerAssets: Partial<Record<CustomMarkerContent, string>> = {
-  shop: customShopMarker,
-  user: customUserMarker,
-  warehouse: customWarehouseMarker,
-};
-
-const customMarkerStateColors: Partial<Record<MarkerPreviewVariant, string>> = {
-  completed: "#9C9EAD",
-  default: "#2A3EF4",
-  muted: "#C9D2FC",
-};
-
-/**
- * Custom 点的 SVG 是用 ?raw 以内联字符串形式加载的。
- * 这样才能把 SVG 内部的主色从默认蓝色替换成当前状态色；
- * 如果用 <img src="...">，外部 CSS 只能加滤镜，不能精准改 SVG 里的 fill。
- */
-function createCustomMarkerAsset(asset: string, previewVariant?: MarkerPreviewVariant) {
-  const stateColor = customMarkerStateColors[previewVariant ?? "default"] ?? customMarkerStateColors.default;
-  return asset.replace(/var\(--fill-0,\s*#2A3EF4\)/gi, stateColor ?? "#2A3EF4");
 }
 
 /**
@@ -883,68 +845,6 @@ function loadGoogleMaps(lang: WorkbenchLanguage) {
   });
 
   return window.__mapLabGoogleMapsPromise;
-}
-
-/**
- * 创建地图上的点组件 DOM。
- * previewFamily 决定点的类型：normal / informated / cumulative / custom。
- * previewVariant 决定状态：default / muted / completed / emphasized / selected。
- * 这里返回的是 HTMLElement，后面会交给 AdvancedMarker 或 OverlayView 放到地图上。
- */
-function createMarkerElement(
-  style: MarkerStyle,
-  label: string,
-  previewVariant?: MarkerPreviewVariant,
-  previewFamily: MarkerPreviewFamily = "normal",
-  count?: number,
-  customContent?: CustomMarkerContent,
-) {
-  const marker = document.createElement("div");
-  const previewClass = previewFamily === "normal" ? "point" : previewFamily;
-  marker.className = previewVariant ? `MapMarker MapMarker--${previewClass}-${previewVariant}` : `MapMarker MapMarker--${style}`;
-  marker.innerHTML =
-    previewVariant && previewFamily === "informated"
-      ? `<span class="MapMarker__asset"><img alt="" class="MapMarker__assetBase" src="${informatedMarkerAssets[previewVariant]}" /><img alt="" class="MapMarker__assetSelected" src="${informatedSelectedMarker}" /></span>`
-      : previewVariant && previewFamily === "cumulative"
-        ? `<span class="MapMarker__cluster"><b>${count ?? ""}</b></span>`
-      : previewVariant && previewFamily === "custom" && customContent
-        ? customMarkerAssets[customContent]
-          ? `<span class="MapMarker__customAsset">${createCustomMarkerAsset(customMarkerAssets[customContent], previewVariant)}</span>`
-          : `<span class="MapMarker__customTextPin"><b>${customContent === "number" ? "2" : "O"}</b></span>`
-      : style === "dot" && !previewVariant
-        ? "<span></span>"
-        : "<span><i></i></span>";
-
-  // 只有默认、已完成、强化这几种状态支持 hover / selected 交互；Disable 不参与点击选择。
-  if (previewVariant && interactivePointVariants.includes(previewVariant)) {
-    marker.classList.add("MapMarker--interactive");
-    marker.tabIndex = 0;
-    marker.setAttribute("aria-label", label);
-    marker.setAttribute("role", "button");
-    marker.addEventListener("click", () => {
-      const canvas = marker.closest(".MapCanvas");
-      canvas?.querySelectorAll(".MapMarker.is-selected").forEach((selectedMarker) => {
-        if (selectedMarker !== marker) {
-          selectedMarker.classList.remove("is-selected");
-        }
-      });
-      marker.classList.toggle("is-selected");
-    });
-    marker.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" || event.key === " ") {
-        event.preventDefault();
-        marker.click();
-      }
-    });
-  }
-
-  // 统一给点加一个 tooltip，方便在地图上 hover 时知道当前点的语义。
-  const tooltip = document.createElement("div");
-  tooltip.className = "MapMarker__tooltip";
-  tooltip.textContent = label;
-  marker.appendChild(tooltip);
-
-  return marker;
 }
 
 function createRouteLocationPinElement(label: string) {
@@ -1136,11 +1036,6 @@ function createRouteElement(family: RoutePreviewFamily, variant: RoutePreviewVar
       route.click();
     }
   });
-
-  const tooltip = document.createElement("div");
-  tooltip.className = "MapMarker__tooltip";
-  tooltip.textContent = label;
-  route.appendChild(tooltip);
 
   return route;
 }
@@ -1941,15 +1836,15 @@ export function MapCanvas({
           const routeMarkerElements =
             group.family === "routeWithNormalLocation"
               ? [
-                  createMarkerElement("dot", markerLabels[0], "default", "normal"),
-                  createMarkerElement("dot", markerLabels[2], "default", "normal"),
+                  createPointMarkerElement({ family: "normal", label: markerLabels[0], style: "dot", variant: "default" }),
+                  createPointMarkerElement({ family: "normal", label: markerLabels[2], style: "dot", variant: "default" }),
                 ]
               : group.family === "routeWithInformatedLocation"
                 ? [createRouteLocationPinElement(markerLabels[0]), createRouteLocationPinElement(markerLabels[2])]
               : group.family === "routeWithProgress"
                 ? [
-                    createMarkerElement("dot", markerLabels[0], "default", "normal"),
-                    createMarkerElement("dot", markerLabels[2], "default", "normal"),
+                    createPointMarkerElement({ family: "normal", label: markerLabels[0], style: "dot", variant: "default" }),
+                    createPointMarkerElement({ family: "normal", label: markerLabels[2], style: "dot", variant: "default" }),
                   ]
               : [];
           const setMarkerVariant = (focused: boolean) => {
@@ -2064,14 +1959,14 @@ export function MapCanvas({
 
         const markerHandles = await Promise.all(
           markerItems.map(({ family, marker, position }) => {
-            const markerElement = createMarkerElement(
-              controls.markerStyle,
-              marker.label,
-              marker.id,
+            const markerElement = createPointMarkerElement({
+              count: marker.count,
+              customContent: marker.customContent,
               family,
-              marker.count,
-              marker.customContent,
-            );
+              label: marker.label,
+              style: controls.markerStyle,
+              variant: marker.id,
+            });
             if (family === "cumulative" && marker.count) {
               markerElement.addEventListener("click", () => {
                 map.setZoom(Math.min((map.getZoom() ?? renderPreviewZoom ?? controls.zoom) + 1, 8));
@@ -2095,7 +1990,10 @@ export function MapCanvas({
 
       markersRef.current = await Promise.all(
         routePositions.map((position, index) => {
-          const markerElement = createMarkerElement(controls.markerStyle, markerLabels[index]);
+          const markerElement = createPointMarkerElement({
+            label: markerLabels[index],
+            style: controls.markerStyle,
+          });
           return activeMapId
             ? createAdvancedMarker(googleMaps, map, position, markerElement)
             : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement));
@@ -2370,12 +2268,12 @@ export function MapCanvas({
               return createRouteLocationPinElement(label);
             }
 
-            return createMarkerElement(
-              "dot",
+            return createPointMarkerElement({
+              family: "normal",
               label,
-              index === 0 ? "default" : "emphasized",
-              "normal",
-            );
+              style: "dot",
+              variant: index === 0 ? "default" : "emphasized",
+            });
           });
 
           if (shouldUseRouteOverlay) {

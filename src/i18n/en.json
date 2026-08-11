@@ -341,7 +341,7 @@
         "extended": "Use emphasized or selected states for high-priority nodes when the map needs a clear current focus.",
         "constraints": "Avoid using emphasized states for many points in the same viewport so the base map, routes, and key POI remain readable."
       },
-      "code": "type PointMarkerVariant = \"default\" | \"muted\" | \"completed\" | \"emphasized\";\n\nasync function renderPointMarker(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: PointMarkerVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = `MapMarker MapMarker--advanced MapMarker--point-${variant}`;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
+      "code": "import { createPointMarkerElement } from \"./map-components/point\";\n\nasync function renderNormalPoint(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: \"default\" | \"muted\" | \"completed\" | \"emphasized\") {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = createPointMarkerElement({\n    family: \"normal\",\n    label: \"Normal point\",\n    style: \"dot\",\n    variant,\n  });\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
     "informatedLocation": {
       "name": "Informated location",
@@ -370,7 +370,7 @@
         "extended": "Use emphasized or selected states for selected warehouses, active delivery nodes, or high-priority operation points.",
         "constraints": "Information-rich points carry more visual weight than normal points; control density when many are visible in the same viewport."
       },
-      "code": "type InformatedLocationVariant = \"default\" | \"disabled\" | \"completed\" | \"emphasized\";\n\nasync function renderInformatedLocation(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: InformatedLocationVariant) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const visualVariant = variant === \"disabled\" ? \"muted\" : variant;\n  const content = document.createElement(\"div\");\n  content.className = `MapMarker MapMarker--advanced MapMarker--informated-${visualVariant}`;\n\n  return new AdvancedMarkerElement({\n    content,\n    map,\n    position,\n  });\n}"
+      "code": "import { createPointMarkerElement } from \"./map-components/point\";\n\nasync function renderInformatedLocation(map: google.maps.Map, position: google.maps.LatLngLiteral, variant: \"default\" | \"muted\" | \"completed\" | \"emphasized\") {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = createPointMarkerElement({\n    family: \"informated\",\n    label: \"Informated location\",\n    style: \"dot\",\n    variant,\n  });\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
     "cumulativeLocation": {
       "name": "Cumulative location",
@@ -390,7 +390,7 @@
         "extended": "Progressively split by the current zoom level, for example 42 becomes 10 + 32, then 3 + 7 + 12 + 20.",
         "constraints": "Cluster radius should adapt to zoom; once the leaf layer is reached, render Normal points instead of numbered bubbles."
       },
-      "code": "interface ClusterNode {\n  count: number;\n  position: google.maps.LatLngLiteral;\n  children?: ClusterNode[];\n}\n\nfunction renderByZoom(node: ClusterNode, zoom: number) {\n  if (zoom >= 7 && !node.children?.length) {\n    return <NormalPoint position={node.position} />;\n  }\n\n  if (zoom >= 5 && node.children?.length) {\n    return node.children.map((child) => renderByZoom(child, zoom));\n  }\n\n  return <CumulativeLocation count={node.count} position={node.position} />;\n}\n\nconst example = {\n  count: 42,\n  children: [\n    { count: 10, children: [{ count: 3 }, { count: 7 }] },\n    { count: 32, children: [{ count: 12 }, { count: 20 }] },\n  ],\n};"
+      "code": "import { createPointMarkerElement } from \"./map-components/point\";\n\ninterface ClusterNode {\n  count: number;\n  position: google.maps.LatLngLiteral;\n  children?: ClusterNode[];\n}\n\nasync function renderCluster(map: google.maps.Map, node: ClusterNode, zoom: number) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const isLeaf = zoom >= 7 && !node.children?.length;\n  const content = createPointMarkerElement({\n    count: node.count,\n    family: isLeaf ? \"normal\" : \"cumulative\",\n    label: isLeaf ? \"Normal point\" : `${node.count} locations`,\n    style: \"dot\",\n    variant: \"default\",\n  });\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position: node.position,\n  });\n}"
     },
     "customLocation": {
       "name": "Custom",
@@ -419,7 +419,7 @@
         "extended": "Can become a future template entry for stores, campaign locations, exception points, or custom operational POI.",
         "constraints": "Control the number of custom content types in one map view so letters, numbers, and icons do not become hard to scan."
       },
-      "code": "type CustomLocationContent = \"letter\" | \"number\" | \"warehouse\" | \"shop\" | \"user\";\n\nasync function renderCustomLocation(map: google.maps.Map, position: google.maps.LatLngLiteral, contentType: CustomLocationContent) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = document.createElement(\"div\");\n  content.className = \"MapMarker MapMarker--advanced MapMarker--custom-default\";\n  content.dataset.content = contentType;\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
+      "code": "import { createPointMarkerElement } from \"./map-components/point\";\nimport type { CustomMarkerContent } from \"./types\";\n\nasync function renderCustomLocation(map: google.maps.Map, position: google.maps.LatLngLiteral, customContent: CustomMarkerContent) {\n  const { AdvancedMarkerElement } = await google.maps.importLibrary(\"marker\");\n  const content = createPointMarkerElement({\n    customContent,\n    family: \"custom\",\n    label: \"Custom location\",\n    style: \"dot\",\n    variant: \"default\",\n  });\n\n  return new AdvancedMarkerElement({\n    anchorLeft: \"-50%\",\n    anchorTop: \"-50%\",\n    content,\n    map,\n    position,\n  });\n}"
     },
     "normalRoute": {
       "variants": {

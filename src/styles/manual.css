@@ -97,8 +97,8 @@
 }
 
 .ManualHierarchy__layer--map button.is-active {
-  background: var(--color-primary-soft);
-  border-color: rgba(15, 98, 254, 0.28);
+  background: #1e1e1e;
+  border-color: var(--color-border-strong);
 }
 
 .ManualHierarchy__layer--map strong {
@@ -132,7 +132,7 @@
 }
 
 .ManualHierarchy__layer--category button.is-active {
-  background: var(--color-surface);
+  background: #1e1e1e;
   box-shadow: 0 1px 2px rgba(18, 24, 40, 0.08);
   color: var(--color-text);
 }
@@ -237,9 +237,9 @@
 }
 
 .ManualStateSwitcher button.is-active {
-  background: var(--color-primary-soft);
+  background: #1e1e1e;
   box-shadow: 0 1px 2px rgba(18, 24, 40, 0.08);
-  color: var(--color-primary);
+  color: #ffffff;
 }
 
 .ManualMapRegion {

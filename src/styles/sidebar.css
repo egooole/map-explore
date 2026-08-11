@@ -111,7 +111,7 @@
 
 .SidebarNavItem__icon {
   align-items: center;
-  color: #2A3EF4;
+  color: var(--color-sidebar-text);
   display: flex;
   justify-content: center;
 }
@@ -135,13 +135,13 @@
 }
 
 .SidebarNavItem.is-active {
-  background: #ebebeb;
+  background: #1e1e1e;
   box-shadow: none;
-  color: #2A3EF4;
+  color: #ffffff;
 }
 
 .SidebarNavItem.is-active .SidebarNavItem__icon {
-  color: #2A3EF4;
+  color: #ffffff;
 }
 
 .SidebarFooter {
@@ -155,6 +155,6 @@
 }
 
 .SidebarFooter a {
-  color: var(--color-primary);
+  color: #ffffff;
   text-decoration: none;
 }

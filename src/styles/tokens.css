@@ -1,29 +1,31 @@
 :root {
   /* 全局颜色 token：工作台大部分页面都从这里取色，改这里会影响整个产品视觉基调。 */
-  --color-app-bg: #f5f6f8;
-  --color-sidebar: #ffffff;
-  --color-sidebar-soft: #f8f9fb;
-  --color-sidebar-text: #111318;
-  --color-sidebar-muted: #606775;
-  --color-primary: #2a3ef4;
-  --color-primary-strong: #2232c3;
-  --color-primary-soft: #eef1ff;
-  --color-surface: #ffffff;
-  --color-surface-muted: #f6f7f9;
-  --color-surface-raised: #ffffff;
-  --color-border: #e5e8ee;
-  --color-border-strong: #d1d7e0;
-  --color-text: #111318;
-  --color-muted: #606775;
-  --color-tertiary: #8c95a3;
-  --color-success: #00a35c;
-  --color-warning: #f6a609;
-  --color-danger: #ef3e54;
+  color-scheme: dark;
+  --color-app-bg: #000000;
+  --color-sidebar: #000000;
+  --color-sidebar-soft: #121212;
+  --color-sidebar-text: #ffffff;
+  --color-sidebar-muted: rgba(255, 255, 255, 0.62);
+  --color-map-primary: #2a3ef4;
+  --color-primary: #ffffff;
+  --color-primary-strong: #ffffff;
+  --color-primary-soft: #1e1e1e;
+  --color-surface: #0a0a0a;
+  --color-surface-muted: #141414;
+  --color-surface-raised: #1e1e1e;
+  --color-border: #292929;
+  --color-border-strong: #3a3a3a;
+  --color-text: #ffffff;
+  --color-muted: rgba(255, 255, 255, 0.62);
+  --color-tertiary: rgba(255, 255, 255, 0.44);
+  --color-success: #31c47c;
+  --color-warning: #f6b83f;
+  --color-danger: #ff6678;
 
   /* 阴影 token：panel/card/floating 分别用于贴地面板、普通卡片和浮层。 */
-  --shadow-panel: 0 1px 2px rgba(18, 24, 40, 0.05);
-  --shadow-card: 0 1px 2px rgba(18, 24, 40, 0.04);
-  --shadow-floating: 0 18px 44px rgba(18, 24, 40, 0.16);
+  --shadow-panel: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.36);
+  --shadow-floating: 0 18px 44px rgba(0, 0, 0, 0.56);
 
   /* 圆角 token：sm 用于按钮/输入框，md/lg/xl 用于更大的容器。 */
   --radius-sm: 6px;

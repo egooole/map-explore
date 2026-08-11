@@ -29,7 +29,7 @@
 .MapCanvas__state {
   /* 地图加载/错误状态的居中提示。 */
   align-items: center;
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(10, 10, 10, 0.94);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-panel);
@@ -48,8 +48,8 @@
 
 .MapCanvas__routeState {
   align-items: center;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(225, 229, 236, 0.94);
+  background: rgba(10, 10, 10, 0.94);
+  border: 1px solid rgba(58, 58, 58, 0.94);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-panel);
   color: var(--color-muted);
@@ -71,8 +71,8 @@
 .MapCanvas__meta,
 .MapCanvas__poi {
   align-items: center;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(225, 229, 236, 0.94);
+  background: rgba(10, 10, 10, 0.94);
+  border: 1px solid rgba(58, 58, 58, 0.94);
   border-radius: var(--radius-sm);
   box-shadow: var(--shadow-panel);
   display: flex;
@@ -120,7 +120,7 @@
 .MapMarker > span {
   /* 默认 pin marker 的基础形态；后面的 point/informated/custom 会覆盖它。 */
   align-items: center;
-  background: var(--color-primary);
+  background: var(--color-map-primary);
   border: 3px solid #ffffff;
   border-radius: 999px 999px 999px 4px;
   box-sizing: border-box;
@@ -1264,22 +1264,6 @@
 .MapRoutePreview--normalHasArrow.is-selected .MapRoutePreview__routeTooltip {
   opacity: 1;
   transform: translateY(0);
-}
-
-.MapMarker__tooltip {
-  background: #ffffff;
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  box-shadow: var(--shadow-panel);
-  color: var(--color-text);
-  font-size: 12px;
-  font-weight: var(--font-weight-semibold);
-  left: 50%;
-  padding: 5px 8px;
-  position: absolute;
-  top: -34px;
-  transform: translateX(-50%);
-  white-space: nowrap;
 }
 
 .MapRegionLabel {

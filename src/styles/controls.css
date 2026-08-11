@@ -77,8 +77,8 @@
 }
 
 .BrowseComponentPicker__tabs button.is-active {
-  background: var(--color-surface);
-  color: var(--color-primary);
+  background: #1e1e1e;
+  color: #ffffff;
   box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
 }
 
@@ -115,8 +115,8 @@
 }
 
 .BrowseComponentPicker__list button.is-active {
-  background: var(--color-primary-soft);
-  color: var(--color-primary-strong);
+  background: #1e1e1e;
+  color: #ffffff;
 }
 
 .BrowseComponentPicker__list strong {
@@ -367,9 +367,9 @@
 
 .ParamRow input:focus,
 .ParamRow select:focus {
-  background: #ffffff;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(15, 98, 254, 0.12);
+  background: var(--color-surface-raised);
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
   outline: none;
 }
 
@@ -398,7 +398,7 @@
 .ParamRow > button:hover,
 .Switch:hover {
   background: var(--color-primary-soft);
-  border-color: rgba(15, 98, 254, 0.24);
+  border-color: var(--color-border-strong);
   color: var(--color-primary-strong);
 }
 
@@ -410,7 +410,7 @@
 }
 
 .Switch span {
-  background: #c4cad4;
+  background: #4a4a4a;
   border-radius: 999px;
   height: 18px;
   position: relative;
@@ -418,7 +418,7 @@
 }
 
 .Switch span::after {
-  background: white;
+  background: #ffffff;
   border-radius: 999px;
   content: "";
   height: 14px;
