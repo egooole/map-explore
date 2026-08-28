@@ -536,6 +536,91 @@
             }
           ]
         }
+      ],
+      "manualCategories": [
+        {
+          "id": "point",
+          "labelKey": "manual.categories.flyline",
+          "components": [
+            {
+              "id": "visualization-flyline-informated-location",
+              "nameKey": "manual.informatedLocation.name",
+              "descriptionKey": "manual.informatedLocation.description",
+              "previewType": "point",
+              "markerFamily": "informated",
+              "markerVariants": [
+                { "id": "default", "labelKey": "manual.informatedLocation.variants.default" },
+                { "id": "muted", "labelKey": "manual.informatedLocation.variants.disabled" },
+                { "id": "completed", "labelKey": "manual.informatedLocation.variants.completed" },
+                { "id": "emphasized", "labelKey": "manual.informatedLocation.variants.emphasized" },
+                { "id": "selected", "labelKey": "manual.informatedLocation.variants.selected" }
+              ],
+              "styleRows": [
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.informatedLocation.style.variantSet" },
+                { "labelKey": "manual.rows.size", "valueKey": "manual.informatedLocation.style.sizes" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.informatedLocation.style.color" },
+                { "labelKey": "manual.rows.icon", "valueKey": "manual.informatedLocation.style.icon" },
+                { "labelKey": "manual.rows.shadow", "valueKey": "manual.informatedLocation.style.shadow" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.rows.component", "valueKey": "manual.informatedLocation.fakeMod.component" },
+                { "labelKey": "manual.rows.property", "valueKey": "manual.informatedLocation.fakeMod.property" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.informatedLocation.fakeMod.figmaNodes" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.informatedLocation.code"
+              },
+              "usage": {
+                "primary": {
+                  "tagKey": "manual.usageTags.primary",
+                  "bulletKeys": ["manual.informatedLocation.usage.primary"]
+                },
+                "extended": {
+                  "tagKey": "manual.usageTags.extended",
+                  "bulletKeys": ["manual.informatedLocation.usage.extended"]
+                },
+                "constraints": {
+                  "tagKey": "manual.usageTags.constraints",
+                  "bulletKeys": ["manual.informatedLocation.usage.constraints"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "area",
+          "labelKey": "manual.categories.area",
+          "components": [
+            {
+              "id": "visualization-area-placeholder-01",
+              "nameKey": "manual.areaSelection.name",
+              "descriptionKey": "manual.areaSelection.description",
+              "previewType": "area",
+              "regionIds": ["huangpu"],
+              "styleRows": [
+                { "labelKey": "manual.rows.variant", "valueKey": "manual.areaSelection.style.variantSet" },
+                { "labelKey": "manual.rows.color", "valueKey": "manual.areaSelection.style.color" },
+                { "labelKey": "manual.rows.strokeWidth", "valueKey": "manual.areaSelection.style.strokeWidth" },
+                { "labelKey": "manual.rows.label", "valueKey": "manual.areaSelection.style.label" }
+              ],
+              "fakeModRows": [
+                { "labelKey": "manual.rows.component", "valueKey": "manual.areaSelection.fakeMod.component" },
+                { "labelKey": "manual.rows.property", "valueKey": "manual.areaSelection.fakeMod.property" },
+                { "labelKey": "manual.rows.figmaNodes", "valueKey": "manual.areaSelection.fakeMod.figmaNodes" }
+              ],
+              "code": {
+                "language": "tsx",
+                "valueKey": "manual.areaSelection.code"
+              },
+              "usage": {
+                "primary": { "tagKey": "manual.usageTags.primary", "bulletKeys": ["manual.areaSelection.usage.primary"] },
+                "extended": { "tagKey": "manual.usageTags.extended", "bulletKeys": ["manual.areaSelection.usage.extended"] },
+                "constraints": { "tagKey": "manual.usageTags.constraints", "bulletKeys": ["manual.areaSelection.usage.constraints"] }
+              }
+            }
+          ]
+        }
       ]
     }
   ]

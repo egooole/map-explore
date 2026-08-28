@@ -15,6 +15,30 @@
   overscroll-behavior: contain;
 }
 
+.WorkbenchPageHeader {
+  border-bottom: 1px solid var(--color-border);
+  display: grid;
+  gap: 8px;
+  padding: 0 0 20px;
+}
+
+.WorkbenchPageHeader h1 {
+  color: var(--color-text);
+  font-size: 30px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.WorkbenchPageHeader p {
+  color: var(--color-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 720px;
+  text-wrap: pretty;
+}
+
 .MapBrowseScene,
 .UseCaseScene {
   display: grid;
@@ -25,6 +49,7 @@
 
 .UseCaseScene {
   align-content: start;
+  padding: 24px;
   display: grid;
   gap: 16px;
   grid-template-columns: 1fr;

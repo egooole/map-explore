@@ -271,6 +271,7 @@
     },
     "categories": {
       "point": "点",
+      "flyline": "飞线",
       "line": "线",
       "area": "面",
       "container": "容器"

@@ -9,36 +9,6 @@
   padding: 24px;
 }
 
-.ManualScene__header {
-  /* 手册顶部标题区：border-bottom 是标题和内容区之间的分割线。 */
-  background: transparent;
-  border-bottom: 1px solid var(--color-border);
-  padding: 0 0 20px;
-}
-
-.ManualScene__header h1 {
-  color: var(--color-text);
-  font-size: 30px;
-  font-weight: var(--font-weight-semibold);
-  line-height: 1.2;
-  margin: 0;
-}
-
-.ManualScene__header p {
-  color: var(--color-muted);
-  font-size: 15px;
-  line-height: 1.6;
-  margin: 8px 0 0;
-  max-width: 680px;
-}
-
-.ManualScene__breadcrumb {
-  color: var(--color-primary) !important;
-  font-size: 12px !important;
-  font-weight: var(--font-weight-bold);
-  margin: 0 0 10px !important;
-}
-
 .ManualHierarchy {
   /* 三层信息架构区域：地图类型 / 组件分类 / 具体组件入口。 */
   display: grid;

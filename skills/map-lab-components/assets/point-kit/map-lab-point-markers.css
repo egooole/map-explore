@@ -1,0 +1,249 @@
+:root {
+  --map-lab-primary: #2a3ef4;
+  --map-lab-primary-focused: #2232c3;
+  --map-lab-disabled: #c9d2fc;
+  --map-lab-completed: #9c9ead;
+  --map-lab-white: #ffffff;
+}
+
+.MapLabMarker {
+  background: transparent;
+  border: 0;
+  pointer-events: auto;
+  position: relative;
+}
+
+.MapLabMarker > span {
+  align-items: center;
+  background: var(--map-lab-primary);
+  border: 4px solid var(--map-lab-white);
+  border-radius: 999px;
+  box-shadow: 0 4px 11px rgb(15 23 42 / 18%), 0 1px 2px rgb(15 23 42 / 16%);
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  transition: background 120ms ease, border-width 120ms ease, box-shadow 120ms ease,
+    height 120ms ease, width 120ms ease;
+}
+
+.MapLabMarker--point-default > span,
+.MapLabMarker--point-muted > span,
+.MapLabMarker--point-completed > span {
+  height: 24px;
+  width: 24px;
+}
+
+.MapLabMarker--point-emphasized > span,
+.MapLabMarker--point-selected > span,
+.MapLabMarker--point-default.MapLabMarker--interactive:hover > span,
+.MapLabMarker--point-default.is-selected > span,
+.MapLabMarker--point-completed.MapLabMarker--interactive:hover > span,
+.MapLabMarker--point-completed.is-selected > span {
+  border-width: 6px;
+  box-shadow: 0 8px 18px rgb(15 98 254 / 24%), 0 2px 5px rgb(15 23 42 / 18%);
+  height: 40px;
+  width: 40px;
+}
+
+.MapLabMarker--point-default > span,
+.MapLabMarker--point-emphasized > span,
+.MapLabMarker--point-selected > span {
+  background: var(--map-lab-primary);
+}
+
+.MapLabMarker--point-muted > span {
+  background: var(--map-lab-disabled);
+}
+
+.MapLabMarker--point-completed > span {
+  background: var(--map-lab-completed);
+}
+
+.MapLabMarker--informated-default > .MapLabMarker__asset,
+.MapLabMarker--informated-muted > .MapLabMarker__asset,
+.MapLabMarker--informated-completed > .MapLabMarker__asset {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  display: block;
+  height: 62px;
+  overflow: visible;
+  position: relative;
+  width: 59px;
+}
+
+.MapLabMarker--informated-emphasized > .MapLabMarker__asset,
+.MapLabMarker--informated-selected > .MapLabMarker__asset,
+.MapLabMarker--informated-default.MapLabMarker--interactive:hover > .MapLabMarker__asset,
+.MapLabMarker--informated-default.is-selected > .MapLabMarker__asset,
+.MapLabMarker--informated-completed.MapLabMarker--interactive:hover > .MapLabMarker__asset,
+.MapLabMarker--informated-completed.is-selected > .MapLabMarker__asset {
+  height: 99px;
+  width: 95px;
+}
+
+.MapLabMarker__assetBase,
+.MapLabMarker__assetSelected {
+  display: block;
+  height: 100%;
+  inset: 0;
+  max-width: none;
+  position: absolute;
+  width: 100%;
+}
+
+.MapLabMarker__assetSelected {
+  display: none;
+}
+
+.MapLabMarker--informated-default.MapLabMarker--interactive:hover .MapLabMarker__assetBase,
+.MapLabMarker--informated-default.is-selected .MapLabMarker__assetBase,
+.MapLabMarker--informated-completed.MapLabMarker--interactive:hover .MapLabMarker__assetBase,
+.MapLabMarker--informated-completed.is-selected .MapLabMarker__assetBase {
+  display: none;
+}
+
+.MapLabMarker--informated-default.MapLabMarker--interactive:hover .MapLabMarker__assetSelected,
+.MapLabMarker--informated-default.is-selected .MapLabMarker__assetSelected,
+.MapLabMarker--informated-completed.MapLabMarker--interactive:hover .MapLabMarker__assetSelected,
+.MapLabMarker--informated-completed.is-selected .MapLabMarker__assetSelected {
+  display: block;
+}
+
+.MapLabMarker__cluster {
+  background: var(--map-lab-primary);
+  border: 4px solid var(--map-lab-white);
+  box-shadow: 0 5px 14px rgb(15 23 42 / 24%), 0 1px 3px rgb(15 23 42 / 16%);
+  color: var(--map-lab-white);
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  height: 40px;
+  line-height: 1;
+  width: 40px;
+}
+
+.MapLabMarker--cumulative-muted > .MapLabMarker__cluster {
+  background: var(--map-lab-disabled);
+}
+
+.MapLabMarker--cumulative-completed > .MapLabMarker__cluster {
+  background: var(--map-lab-completed);
+}
+
+.MapLabMarker--cumulative-emphasized > .MapLabMarker__cluster,
+.MapLabMarker--cumulative-selected > .MapLabMarker__cluster,
+.MapLabMarker--cumulative-default.MapLabMarker--interactive:hover > .MapLabMarker__cluster,
+.MapLabMarker--cumulative-default.is-selected > .MapLabMarker__cluster,
+.MapLabMarker--cumulative-completed.MapLabMarker--interactive:hover > .MapLabMarker__cluster,
+.MapLabMarker--cumulative-completed.is-selected > .MapLabMarker__cluster {
+  border-width: 8px;
+  box-shadow: 0 11px 28px rgb(15 23 42 / 28%), 0 4px 12px rgb(36 80 255 / 20%);
+  font-size: 22px;
+  height: 64px;
+  width: 64px;
+}
+
+.MapLabMarker__cluster b {
+  display: block;
+  font: inherit;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.MapLabMarker__customAsset {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  display: block;
+  height: 62px;
+  overflow: visible;
+  position: relative;
+  transition: filter 120ms ease, transform 120ms ease;
+  width: 59px;
+}
+
+.MapLabMarker__customAsset svg {
+  display: block;
+  height: 100%;
+  max-width: none;
+  width: 100%;
+}
+
+.MapLabMarker__customTextPin {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: var(--map-lab-white);
+  display: block;
+  font-family: Arial, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  height: 40px;
+  line-height: 24px;
+  overflow: visible;
+  position: relative;
+  width: 40px;
+}
+
+.MapLabMarker__customTextPin::before {
+  background: var(--map-lab-white);
+  border-radius: 999px 999px 999px 10px;
+  box-shadow: 0 0 12px rgb(15 23 42 / 20%);
+  content: "";
+  height: 35px;
+  left: 2.5px;
+  position: absolute;
+  top: 1.13px;
+  transform: rotate(-45deg);
+  width: 35px;
+}
+
+.MapLabMarker__customTextPin::after {
+  background: var(--map-lab-primary);
+  border-radius: 999px;
+  content: "";
+  height: 29px;
+  left: 5.5px;
+  position: absolute;
+  top: 4.25px;
+  width: 29px;
+}
+
+.MapLabMarker--custom-muted .MapLabMarker__customTextPin::after {
+  background: var(--map-lab-disabled);
+}
+
+.MapLabMarker--custom-completed .MapLabMarker__customTextPin::after {
+  background: var(--map-lab-completed);
+}
+
+.MapLabMarker__customTextPin b {
+  display: flex;
+  height: 24px;
+  justify-content: center;
+  left: 12px;
+  letter-spacing: 0;
+  line-height: 24px;
+  position: absolute;
+  top: 6.75px;
+  width: 16px;
+  z-index: 1;
+}
+
+.MapLabMarker--interactive {
+  cursor: pointer;
+}
+
+.MapLabMarker--interactive:focus-visible {
+  outline: 3px solid rgb(42 62 244 / 35%);
+  outline-offset: 4px;
+}
+
+.MapLabMarker--custom-default.MapLabMarker--interactive:hover > span,
+.MapLabMarker--custom-default.is-selected > span,
+.MapLabMarker--custom-completed.MapLabMarker--interactive:hover > span,
+.MapLabMarker--custom-completed.is-selected > span {
+  filter: drop-shadow(0 6px 12px rgb(36 80 255 / 18%));
+  transform: translateY(-1px);
+}

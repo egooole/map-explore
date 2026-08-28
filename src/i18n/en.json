@@ -271,6 +271,7 @@
     },
     "categories": {
       "point": "Point",
+      "flyline": "Flyline",
       "line": "Line",
       "area": "Area",
       "container": "Container"

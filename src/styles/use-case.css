@@ -157,6 +157,7 @@
   border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 12px;
   box-shadow: var(--shadow-panel);
+  container-type: inline-size;
   max-height: calc(100dvh - 40px);
   max-width: 1180px;
   overflow: hidden;
@@ -201,12 +202,12 @@
 .UseCaseRouteOverlay {
   background: #ffffff;
   box-sizing: border-box;
-  display: grid;
-  gap: 0;
-  grid-template-rows: auto auto 1fr;
+  display: flex;
+  flex-direction: column;
+  gap: 1.6667cqw;
   height: calc(748 / 900 * 100%);
   left: calc(80 / 1440 * 100%);
-  padding: calc(24 / 900 * 100%) calc(24 / 1440 * 100%);
+  padding: 1.6667cqw;
   position: absolute;
   top: calc(124 / 900 * 100%);
   width: calc(664 / 1440 * 100%);
@@ -215,16 +216,15 @@
 
 .UseCaseRouteSummary {
   display: grid;
-  gap: 4px;
-  margin-bottom: 24px;
+  gap: 0.2778cqw;
 }
 
 .UseCaseRouteSummary h2 {
-  color: var(--color-text);
-  font-size: 20px;
+  color: rgba(0, 0, 0, 0.92);
+  font-size: 0.9722cqw;
   font-weight: var(--font-weight-semibold);
   letter-spacing: 0;
-  line-height: 28px;
+  line-height: 1.3889cqw;
   margin: 0;
 }
 
@@ -233,24 +233,24 @@
   color: rgba(0, 0, 0, 0.55);
   display: flex;
   flex-wrap: wrap;
-  font-size: 14px;
+  font-size: 0.8333cqw;
   gap: 0;
-  line-height: 20px;
+  line-height: 1.25cqw;
   margin: 0;
 }
 
 .UseCaseRouteSummary span:not(:first-child)::before {
   color: rgba(0, 0, 0, 0.2);
   content: "|";
-  padding: 0 8px;
+  padding: 0 0.5556cqw;
 }
 
 .UseCaseRouteSummary strong {
   color: rgba(0, 0, 0, 0.92);
-  font-size: 14px;
+  font-size: 0.8333cqw;
   font-weight: var(--font-weight-semibold);
-  line-height: 20px;
-  padding-left: 8px;
+  line-height: 1.25cqw;
+  padding-left: 0.5556cqw;
 }
 
 .UseCaseRouteTableHeader {
@@ -259,11 +259,12 @@
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   color: rgba(0, 0, 0, 0.55);
   display: grid;
-  font-size: 12px;
-  grid-template-columns: 152px 1fr;
-  height: 42px;
-  line-height: 18px;
-  padding-left: 12px;
+  flex: 0 0 auto;
+  font-size: 0.8333cqw;
+  grid-template-columns: 10.5556cqw 1fr;
+  height: 2.9167cqw;
+  line-height: 1.25cqw;
+  padding-left: 0.8333cqw;
 }
 
 .UseCaseRouteTableHeader span:first-child {
@@ -278,10 +279,10 @@
 .UseCaseRouteRow {
   align-items: stretch;
   background: #ffffff;
-  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  border-top: 0.0694cqw solid rgba(0, 0, 0, 0.1);
   display: grid;
-  grid-template-columns: 28px 124px 1fr;
-  min-height: 116px;
+  grid-template-columns: 1.9444cqw 8.6111cqw 1fr;
+  min-height: 8.0556cqw;
   min-width: 0;
 }
 
@@ -294,47 +295,49 @@
   color: rgba(0, 0, 0, 0.55);
   display: flex;
   justify-content: center;
-  padding-top: 13px;
+  padding-top: 0.9028cqw;
 }
 
 .UseCaseRouteRow__expand svg {
+  height: 1.1111cqw;
   transform: rotate(90deg);
+  width: 1.1111cqw;
 }
 
 .UseCaseRouteRow__actions {
   align-items: flex-start;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 12px;
+  gap: 0.5556cqw;
+  padding: 0.8333cqw;
 }
 
 .UseCaseRouteRow__actions strong {
   align-items: center;
   color: rgba(0, 0, 0, 0.92);
   display: flex;
-  font-size: 14px;
+  font-size: 0.9722cqw;
   font-weight: var(--font-weight-semibold);
-  gap: 2px;
-  line-height: 20px;
+  gap: 0.1389cqw;
+  line-height: 1.3889cqw;
 }
 
 .UseCaseRouteRow__actions strong span {
   background: #1063fe;
   border-radius: 999px;
   display: block;
-  height: 4px;
-  width: 15px;
+  height: 0.2778cqw;
+  width: 1.0417cqw;
 }
 
 .UseCaseRouteRow button {
   border: 0;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 0.8333cqw;
   font-weight: var(--font-weight-medium);
-  line-height: 18px;
-  padding: 3px 8px;
+  line-height: 1.25cqw;
+  padding: 0.2083cqw 0.5556cqw;
   transition: background 160ms ease, color 160ms ease;
   white-space: nowrap;
 }
@@ -358,20 +361,20 @@
 }
 
 .UseCaseRouteRow__overview {
-  column-gap: 12px;
+  column-gap: 0.8333cqw;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-  padding: 12px;
-  row-gap: 4px;
+  padding: 0.8333cqw;
+  row-gap: 0.2778cqw;
 }
 
 .UseCaseRouteRow__overview p {
   align-items: center;
   color: rgba(0, 0, 0, 0.92);
   display: flex;
-  font-size: 12px;
-  gap: 4px;
-  line-height: 18px;
+  font-size: 0.8333cqw;
+  gap: 0.2778cqw;
+  line-height: 1.25cqw;
   margin: 0;
   min-width: 0;
   white-space: nowrap;
@@ -380,6 +383,8 @@
 .UseCaseRouteRow__overview svg {
   color: rgba(0, 0, 0, 0.92);
   flex: 0 0 auto;
+  height: 0.9722cqw;
+  width: 0.9722cqw;
 }
 
 .UseCaseRouteRow__overview em {
@@ -392,39 +397,11 @@
   color: #ff3b4f;
 }
 
-.UseCaseScene__header {
-  display: block;
-}
-
-.UseCaseScene__header div {
-  display: grid;
-  gap: 8px;
-}
-
 .UseCaseInfoPanel header span {
   color: var(--color-primary);
   font-size: 12px;
   font-weight: var(--font-weight-semibold);
   line-height: 1.4;
-}
-
-.UseCaseScene__header h1 {
-  color: var(--color-text);
-  font-size: 24px;
-  font-weight: var(--font-weight-semibold);
-  letter-spacing: 0;
-  line-height: 1.25;
-  margin: 0;
-}
-
-.UseCaseScene__header p {
-  color: var(--color-muted);
-  font-size: 13px;
-  line-height: 1.55;
-  margin: 0;
-  max-width: 520px;
-  text-align: left;
-  text-wrap: pretty;
 }
 
 .UseCaseTabs {

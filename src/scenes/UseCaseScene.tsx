@@ -1,5 +1,6 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
+import { WorkbenchPageHeader } from "../components/WorkbenchPageHeader";
 import { Box, ChevronRight, Clock3, Info, MapPin, Package, Pencil, Truck, UserRound, Warehouse } from "lucide-react";
 import gtsTmsProduct from "../assets/use-case/gts-tms.svg";
 import routePlanningProduct from "../assets/use-case/page.svg";
@@ -157,12 +158,7 @@ export function UseCaseScene() {
 
   return (
     <section className="UseCaseScene">
-      <header className="UseCaseScene__header">
-        <div>
-          <h1>{t("useCase.title")}</h1>
-          <p>{t("useCase.description")}</p>
-        </div>
-      </header>
+      <WorkbenchPageHeader description={t("useCase.description")} title={t("useCase.title")} />
 
       <nav className="UseCaseTabs" aria-label={t("useCase.caseTabs")}>
         {useCaseConfigs.map((item) => (

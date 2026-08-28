@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ComponentCard, ManualCategoryId, ManualComponentSpec } from "../components/ComponentCard";
+import { WorkbenchPageHeader } from "../components/WorkbenchPageHeader";
 import componentSpecs from "../config/componentSpecs.json";
 import { MapCategory, useWorkbenchStore } from "../store/workbenchStore";
 
@@ -15,6 +16,7 @@ interface ManualMapType {
   labelKey: string;
   descriptionKey: string;
   categories: ManualCategory[];
+  manualCategories?: ManualCategory[];
 }
 
 interface ManualSpecDocument {
@@ -27,7 +29,11 @@ export function ManualScene() {
   const { t } = useTranslation();
   const { mapCategory, lang, mapTheme, setMapCategory } = useWorkbenchStore();
   const mapTypes = manualSpecDocument.mapTypes;
-  const activeMapType = mapTypes.find((item) => item.id === mapCategory) ?? mapTypes[0];
+  const selectedMapType = mapTypes.find((item) => item.id === mapCategory) ?? mapTypes[0];
+  const activeMapType = {
+    ...selectedMapType,
+    categories: selectedMapType.manualCategories ?? selectedMapType.categories,
+  };
   const [activeCategoryId, setActiveCategoryId] = useState<ManualCategoryId>(activeMapType.categories[0]?.id ?? "point");
   const activeCategory = activeMapType.categories.find((category) => category.id === activeCategoryId) ?? activeMapType.categories[0];
 
@@ -37,18 +43,9 @@ export function ManualScene() {
     }
   }, [activeCategoryId, activeMapType]);
 
-  const breadcrumb = useMemo(
-    () => (activeMapType && activeCategory ? `${t(activeMapType.labelKey)} / ${t(activeCategory.labelKey)}` : ""),
-    [activeCategory, activeMapType, t],
-  );
-
   return (
     <section className="ManualScene">
-      <header className="ManualScene__header">
-        <p className="ManualScene__breadcrumb">{breadcrumb}</p>
-        <h1>{t("manual.title")}</h1>
-        <p>{t("manual.intro")}</p>
-      </header>
+      <WorkbenchPageHeader description={t("manual.intro")} title={t("manual.title")} />
 
       <nav className="ManualHierarchy" aria-label={t("manual.hierarchy")}>
         <section className="ManualHierarchy__layer ManualHierarchy__layer--map">

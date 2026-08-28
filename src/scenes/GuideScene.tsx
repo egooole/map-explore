@@ -1,5 +1,6 @@
 import { CheckCircle2, Download, FileText, PackageCheck, TerminalSquare } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { WorkbenchPageHeader } from "../components/WorkbenchPageHeader";
 
 const guideStepKeys = ["read", "choose", "apply"] as const;
 const guideSkillKeys = ["mapComponents", "figmaImport", "localPreview"] as const;
@@ -10,12 +11,7 @@ export function GuideScene() {
 
   return (
     <section className="GuideScene">
-      <header className="GuideScene__header">
-        <div>
-          <h1>{t("guide.title")}</h1>
-          <p>{t("guide.description")}</p>
-        </div>
-      </header>
+      <WorkbenchPageHeader description={t("guide.description")} title={t("guide.title")} />
 
       <div className="GuideScene__layout">
         <section className="GuidePanel GuidePanel--primary">

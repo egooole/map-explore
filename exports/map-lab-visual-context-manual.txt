@@ -1,0 +1,2599 @@
+MAP LAB 视觉样式上下文导出（#/manual）
+生成目的：交给另一个 AI 修改颜色、字体、间距、圆角和动效，不用于改业务功能。
+
+=== 技术栈 ===
+- React 18 + TypeScript + Vite 6
+- React Router（HashRouter，目标页面为 #/manual）
+- Zustand 管理工作台状态
+- react-i18next 管理中英文文案
+- lucide-react 提供通用图标
+- Google Maps JavaScript API + AdvancedMarkerElement 负责地图渲染
+- 样式方案：普通全局 CSS；没有 Tailwind、CSS Modules、styled-components
+- UI 组件库：没有第三方 UI 组件库；界面组件均为项目内自定义 React 组件
+
+=== 设计系统 / Token 结论 ===
+- 存在统一 token 文件：src/styles/tokens.css
+- 已集中维护颜色、阴影、圆角、布局宽度、字体族和字重
+- 间距与字号尚未形成完整 token 尺度，仍有不少数值直接写在各 CSS 文件中
+- 地图组件颜色与状态样式部分仍分布在 MapCanvas.tsx、map.css、ComponentCard.tsx 和 map-components/point/index.ts
+
+=== 给视觉修改 AI 的边界 ===
+可以修改：CSS 变量、颜色、字体、字号、行高、间距、圆角、阴影、边框、布局和纯视觉动效。
+不要修改：路由、状态结构、Google Maps 初始化、数据加载、事件处理、组件 ID、配置 key 和业务文案 key。
+
+=== 超过 500 行：仅列路径与作用，未附全文 ===
+- src/components/MapCanvas.tsx：2483 行。Google Maps、Advanced Marker、Polyline、Polygon 和手册地图预览的核心渲染器。视觉调整涉及地图元素时需单独提供。
+- src/styles/map.css：1313 行。地图、Marker、Route、区域高亮与动效样式。视觉调整涉及地图内容时需单独提供。
+- src/styles/use-case.css：567 行。Use Case 页面样式，不属于 #/manual 本轮核心范围。
+- src/config/componentSpecs.json：627 行。组件手册的信息架构、组件清单、样式说明和代码展示配置。
+- src/i18n/zh.json：617 行。中文界面文案和组件说明。
+- src/i18n/en.json：617 行。英文界面文案和组件说明。
+
+=== 本轮主动跳过 ===
+- node_modules、.git、dist/build、图片、SVG、GeoJSON、锁文件
+- .env / .env.local / API Key / Map ID 等环境配置
+- 与 #/manual 无直接关系的 Guide、Use Case 业务组件源码
+
+// === package.json ===
+```json
+{
+  "name": "map-style-workbench",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "geo:download": "node scripts/geo-data/download-boundaries.mjs",
+    "geo:process": "node scripts/geo-data/process-boundaries.mjs",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "i18next": "^24.2.0",
+    "lucide-react": "^0.468.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-i18next": "^15.4.0",
+    "react-router-dom": "^7.1.1",
+    "vite": "^6.0.7",
+    "zustand": "^5.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "@types/react": "^18.3.18",
+    "@types/react-dom": "^18.3.5",
+    "typescript": "^5.7.2"
+  }
+}
+```
+
+// === src/main.tsx ===
+```tsx
+import React from "react";
+import ReactDOM from "react-dom/client";
+import { HashRouter } from "react-router-dom";
+import "./i18n";
+import "./styles/tokens.css";
+import "./styles/global.css";
+import App from "./App";
+
+function redirectDirectRouteToHashRoute() {
+  if (window.location.hash) {
+    return;
+  }
+
+  const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
+  const pathname = window.location.pathname.replace(/\/$/, "");
+  const isDirectAppRoute = pathname === `${basePath}/browse` || pathname === `${basePath}/manual` || pathname === `${basePath}/use-case`;
+
+  if (!isDirectAppRoute) {
+    return;
+  }
+
+  const routePath = pathname.slice(basePath.length) || "/browse";
+  window.history.replaceState(null, "", `${basePath}/#${routePath}${window.location.search}`);
+}
+
+redirectDirectRouteToHashRoute();
+
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <HashRouter>
+      <App />
+    </HashRouter>
+  </React.StrictMode>,
+);
+```
+
+// === src/App.tsx ===
+```tsx
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { useEffect } from "react";
+import { Sidebar } from "./components/Sidebar";
+import { GuideScene } from "./scenes/GuideScene";
+import { MapBrowseScene } from "./scenes/MapBrowseScene";
+import { ManualScene } from "./scenes/ManualScene";
+import { UseCaseScene } from "./scenes/UseCaseScene";
+import { useWorkbenchStore, WorkbenchView } from "./store/workbenchStore";
+
+const routeViews: Record<string, WorkbenchView> = {
+  "/browse": "browse",
+  "/use-case": "use-case",
+  "/manual": "manual",
+  "/guide": "guide",
+};
+
+function RouteStoreSync() {
+  const location = useLocation();
+  const setView = useWorkbenchStore((state) => state.setView);
+
+  useEffect(() => {
+    const nextView = routeViews[location.pathname];
+    if (nextView) {
+      setView(nextView);
+    }
+  }, [location.pathname, setView]);
+
+  return null;
+}
+
+function App() {
+  return (
+    <div className="AppShell">
+      <RouteStoreSync />
+      <Sidebar />
+      <main className="MainStage">
+        <Routes>
+          <Route element={<MapBrowseScene />} path="/browse" />
+          <Route element={<UseCaseScene />} path="/use-case" />
+          <Route element={<ManualScene />} path="/manual" />
+          <Route element={<GuideScene />} path="/guide" />
+          <Route element={<Navigate replace to="/browse" />} path="*" />
+        </Routes>
+      </main>
+    </div>
+  );
+}
+
+export default App;
+```
+
+// === src/styles/tokens.css ===
+```css
+:root {
+  /* 全局颜色 token：工作台大部分页面都从这里取色，改这里会影响整个产品视觉基调。 */
+  color-scheme: dark;
+  --color-app-bg: #000000;
+  --color-sidebar: #000000;
+  --color-sidebar-soft: #121212;
+  --color-sidebar-text: #ffffff;
+  --color-sidebar-muted: rgba(255, 255, 255, 0.62);
+  --color-map-primary: #2a3ef4;
+  --color-primary: #ffffff;
+  --color-primary-strong: #ffffff;
+  --color-primary-soft: #1e1e1e;
+  --color-surface: #0a0a0a;
+  --color-surface-muted: #141414;
+  --color-surface-raised: #1e1e1e;
+  --color-border: #292929;
+  --color-border-strong: #3a3a3a;
+  --color-text: #ffffff;
+  --color-muted: rgba(255, 255, 255, 0.62);
+  --color-tertiary: rgba(255, 255, 255, 0.44);
+  --color-success: #31c47c;
+  --color-warning: #f6b83f;
+  --color-danger: #ff6678;
+
+  /* 阴影 token：panel/card/floating 分别用于贴地面板、普通卡片和浮层。 */
+  --shadow-panel: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.36);
+  --shadow-floating: 0 18px 44px rgba(0, 0, 0, 0.56);
+
+  /* 圆角 token：sm 用于按钮/输入框，md/lg/xl 用于更大的容器。 */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+  --sidebar-width: 252px;
+  --param-width: 320px;
+
+  /* 字体 token：优先使用 TikTok Design System 字体，没有安装时回退到系统字体。 */
+  --font-sans: "TikTok Text", "TikTok Sans", "TikTok Display", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", system-ui, sans-serif;
+
+  /* 字重 token：避免在各组件里散落 760/820 这类临时值。 */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+}
+```
+
+// === src/styles/global.css ===
+```css
+@import "./shell.css";
+@import "./sidebar.css";
+@import "./controls.css";
+@import "./map.css";
+@import "./use-case.css";
+@import "./manual.css";
+@import "./guide.css";
+@import "./responsive.css";
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--color-app-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-kerning: normal;
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  text-rendering: optimizeLegibility;
+}
+
+@media (max-width: 1100px) {
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 3px solid rgba(255, 255, 255, 0.42);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: #1e1e1e;
+  color: #ffffff;
+}
+```
+
+// === src/styles/shell.css ===
+```css
+.AppShell {
+  background: var(--color-app-bg);
+  display: flex;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  width: 100%;
+}
+.MainStage {
+  flex: 1;
+  height: 100dvh;
+  min-width: 0;
+  overflow: auto;
+  padding: 20px;
+  overscroll-behavior: contain;
+}
+
+.WorkbenchPageHeader {
+  border-bottom: 1px solid var(--color-border);
+  display: grid;
+  gap: 8px;
+  padding: 0 0 20px;
+}
+
+.WorkbenchPageHeader h1 {
+  color: var(--color-text);
+  font-size: 30px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.WorkbenchPageHeader p {
+  color: var(--color-muted);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
+  max-width: 720px;
+  text-wrap: pretty;
+}
+
+.MapBrowseScene,
+.UseCaseScene {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) var(--param-width);
+  min-height: calc(100dvh - 40px);
+}
+
+.UseCaseScene {
+  align-content: start;
+  padding: 24px;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+
+.UseCaseScene__product,
+.UseCaseScene__phone {
+  display: flex;
+  justify-content: center;
+}
+
+.UseCaseScene__workspace {
+  align-items: stretch;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(720px, 1fr) var(--param-width);
+  min-height: 0;
+}
+```
+
+// === src/styles/sidebar.css ===
+```css
+.Sidebar {
+  background: var(--color-sidebar);
+  border-right: 1px solid var(--color-border);
+  color: var(--color-sidebar-text);
+  display: flex;
+  flex: 0 0 var(--sidebar-width);
+  flex-direction: column;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  padding: 16px 8px;
+  position: sticky;
+  top: 0;
+}
+
+.SidebarHeader {
+  align-items: center;
+  border-bottom: 0;
+  display: flex;
+  gap: 8px;
+  padding: 0 8px 12px;
+}
+
+.SidebarHeader__logo {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  display: flex;
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.SidebarHeader__logo img {
+  display: block;
+  height: 22px;
+  width: auto;
+}
+
+.SidebarHeader h1 {
+  font-size: 14px;
+  font-weight: var(--font-weight-regular);
+  line-height: 20px;
+  margin: 0;
+}
+
+.SidebarHeader p {
+  color: var(--color-sidebar-muted);
+  display: none;
+}
+
+.Sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  gap: 0;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0;
+}
+
+.SidebarNavGroup {
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: 2px;
+  align-content: start;
+  padding: 8px 0;
+}
+
+.SidebarNavGroup:first-child {
+  border-top: 0;
+}
+
+.SidebarNavGroup h2 {
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  position: absolute;
+  white-space: nowrap;
+  width: 1px;
+}
+
+.SidebarNavGroup > div {
+  display: grid;
+  gap: 2px;
+  align-content: start;
+}
+
+.SidebarNavItem {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  color: var(--color-sidebar-text);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: 16px minmax(0, 1fr);
+  height: 36px;
+  min-height: 0;
+  padding: 8px;
+  text-align: left;
+  transition: background 160ms ease, color 160ms ease;
+  width: 100%;
+}
+
+.SidebarNavItem:hover {
+  background: var(--color-surface-muted);
+}
+
+.SidebarNavItem__icon {
+  align-items: center;
+  color: var(--color-sidebar-text);
+  display: flex;
+  justify-content: center;
+}
+
+.SidebarNavItem__icon svg {
+  height: 16px;
+  stroke-width: 1.8;
+  width: 16px;
+}
+
+.SidebarNavItem__copy {
+  display: grid;
+  min-width: 0;
+}
+
+.SidebarNavItem__copy span {
+  font-size: 14px;
+  font-weight: var(--font-weight-regular);
+  line-height: 20px;
+  overflow-wrap: anywhere;
+}
+
+.SidebarNavItem.is-active {
+  background: #1e1e1e;
+  box-shadow: none;
+  color: #ffffff;
+}
+
+.SidebarNavItem.is-active .SidebarNavItem__icon {
+  color: #ffffff;
+}
+
+.SidebarFooter {
+  align-items: center;
+  color: var(--color-sidebar-muted);
+  display: flex;
+  font-size: 12px;
+  justify-content: space-between;
+  margin-top: auto;
+  padding: 12px 8px 0;
+}
+
+.SidebarFooter a {
+  color: #ffffff;
+  text-decoration: none;
+}
+```
+
+// === src/styles/controls.css ===
+```css
+.ParamPanel {
+  align-self: stretch;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 18px;
+}
+
+.BrowseInspector {
+  align-self: stretch;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-width: 0;
+}
+
+.BrowseInspector .ParamPanel {
+  align-self: auto;
+}
+
+.BrowseComponentPicker {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 18px;
+}
+
+.BrowseComponentPicker header {
+  display: grid;
+  gap: 4px;
+}
+
+.BrowseComponentPicker header h2 {
+  color: var(--color-text);
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.BrowseComponentPicker header span {
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.BrowseComponentPicker__tabs {
+  background: var(--color-app-bg);
+  border-radius: var(--radius-sm);
+  display: grid;
+  gap: 3px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 3px;
+}
+
+.BrowseComponentPicker__tabs button {
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--radius-sm) - 3px);
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  min-height: 32px;
+  padding: 0 8px;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.BrowseComponentPicker__tabs button:hover {
+  color: var(--color-text);
+}
+
+.BrowseComponentPicker__tabs button.is-active {
+  background: #1e1e1e;
+  color: #ffffff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.BrowseComponentPicker__list,
+.BrowseCheckboxList {
+  display: grid;
+  gap: 6px;
+  max-height: 310px;
+  overflow: auto;
+  padding-right: 2px;
+}
+
+.BrowseCheckboxList {
+  max-height: none;
+  overflow: visible;
+}
+
+.BrowseComponentPicker__list button {
+  background: var(--color-app-bg);
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  display: grid;
+  gap: 3px;
+  min-height: 58px;
+  padding: 10px 11px;
+  text-align: left;
+  transition: background 160ms ease, color 160ms ease;
+  width: 100%;
+}
+
+.BrowseComponentPicker__list button:hover {
+  background: var(--color-primary-soft);
+}
+
+.BrowseComponentPicker__list button.is-active {
+  background: #1e1e1e;
+  color: #ffffff;
+}
+
+.BrowseComponentPicker__list strong {
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.35;
+}
+
+.BrowseComponentPicker__list span {
+  color: var(--color-muted);
+  display: -webkit-box;
+  font-size: 12px;
+  line-height: 1.4;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.BrowseCheckboxItem {
+  align-items: center;
+  background: var(--color-app-bg);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  display: grid;
+  gap: 9px;
+  grid-template-columns: 16px minmax(0, 1fr);
+  min-height: 44px;
+  padding: 7px 10px;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.BrowseCheckboxItem:hover {
+  background: var(--color-primary-soft);
+}
+
+.BrowseCheckboxItem input {
+  height: 1px;
+  opacity: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.BrowseCheckboxItem__box {
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 4px;
+  display: flex;
+  height: 16px;
+  justify-content: center;
+  width: 16px;
+}
+
+.BrowseCheckboxItem__box::after {
+  border: solid #ffffff;
+  border-width: 0 2px 2px 0;
+  content: "";
+  height: 8px;
+  opacity: 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+  width: 4px;
+}
+
+.BrowseCheckboxItem input:checked + .BrowseCheckboxItem__box {
+  background: #2A3EF4;
+  border-color: #2A3EF4;
+}
+
+.BrowseCheckboxItem input:checked + .BrowseCheckboxItem__box::after {
+  opacity: 1;
+}
+
+.BrowseCheckboxItem input:focus-visible + .BrowseCheckboxItem__box {
+  box-shadow: 0 0 0 3px rgba(42, 62, 244, 0.18);
+}
+
+.BrowseCheckboxItem__copy {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.BrowseCheckboxItem__copy strong {
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.25;
+}
+
+.BrowseCheckboxItem__copy small {
+  color: var(--color-muted);
+  display: block;
+  font-size: 12px;
+  line-height: 1.35;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.ParamPanel h2 {
+  font-size: 15px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.4;
+  margin: 0;
+  padding-bottom: 2px;
+}
+
+.ParamPanel__route {
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: 10px;
+  padding-top: 14px;
+}
+
+.ParamPanel__route h3 {
+  color: var(--color-tertiary);
+  font-size: 12px;
+  line-height: 1.4;
+  margin: 0;
+}
+
+.ParamPanel__routeHeader {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+.ParamPanel__routeHeader button,
+.RouteList__delete,
+.RouteList__name,
+.RouteList__visibility {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  display: inline-flex;
+  font: inherit;
+}
+
+.ParamPanel__routeHeader button {
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  min-height: 28px;
+  padding: 0 8px;
+}
+
+.ParamPanel__routeHeader button:hover,
+.RouteList__item:hover {
+  background: var(--color-primary-soft);
+}
+
+.RouteList {
+  display: grid;
+  gap: 6px;
+}
+
+.RouteList__item.is-active {
+  background: var(--color-primary-soft);
+}
+
+.RouteList__item {
+  grid-template-columns: 16px minmax(0, 1fr) 28px;
+}
+
+.RouteList__delete {
+  color: var(--color-muted);
+  height: 28px;
+  justify-content: center;
+  width: 28px;
+}
+
+.RouteList__visibility[aria-pressed="true"] {
+  background: #2A3EF4;
+  border-color: #2A3EF4;
+}
+
+.RouteList__visibility[aria-pressed="true"]::after {
+  opacity: 1;
+}
+
+.RouteList__name {
+  background: transparent;
+  border: 0;
+  color: inherit;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.RouteList__name strong {
+  align-items: center;
+  display: inline-flex;
+  gap: 6px;
+}
+
+.RouteList__swatch {
+  border: 2px solid #ffffff;
+  border-radius: 999px;
+  box-shadow: 0 0 0 1px rgba(17, 24, 39, 0.12);
+  flex: 0 0 auto;
+  height: 12px;
+  width: 12px;
+}
+
+.RouteList__swatch--route1 {
+  background: #2A3EF4;
+}
+
+.RouteList__swatch--route2 {
+  background: #009995;
+}
+
+.RouteList__swatch--route3 {
+  background: #9583FF;
+}
+
+.ParamRow {
+  display: grid;
+  gap: 7px;
+}
+
+.ParamRow > span {
+  color: var(--color-muted);
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.ParamRow input,
+.ParamRow select {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  min-height: 40px;
+  min-width: 0;
+  padding: 0 10px;
+  transition: background 180ms ease, border-color 180ms ease, box-shadow 180ms ease;
+  width: 100%;
+}
+
+.ParamRow input:hover,
+.ParamRow select:hover {
+  border-color: var(--color-border-strong);
+}
+
+.ParamRow input:focus,
+.ParamRow select:focus {
+  background: var(--color-surface-raised);
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12);
+  outline: none;
+}
+
+.ParamRow__inline {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(0, 1fr) 72px;
+}
+
+.ParamRow__inline button,
+.ParamRow > button,
+.Switch {
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+  display: inline-flex;
+  font-weight: var(--font-weight-bold);
+  justify-content: center;
+  min-height: 40px;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease, transform 180ms ease;
+}
+
+.ParamRow__inline button:hover,
+.ParamRow > button:hover,
+.Switch:hover {
+  background: var(--color-primary-soft);
+  border-color: var(--color-border-strong);
+  color: var(--color-primary-strong);
+}
+
+.Switch {
+  gap: 10px;
+  justify-content: flex-start;
+  padding: 0 10px;
+  width: 100%;
+}
+
+.Switch span {
+  background: #4a4a4a;
+  border-radius: 999px;
+  height: 18px;
+  position: relative;
+  width: 34px;
+}
+
+.Switch span::after {
+  background: #ffffff;
+  border-radius: 999px;
+  content: "";
+  height: 14px;
+  left: 2px;
+  position: absolute;
+  top: 2px;
+  transition: transform 180ms ease;
+  width: 14px;
+}
+
+.Switch.is-on span {
+  background: var(--color-success);
+}
+
+.Switch.is-on span::after {
+  transform: translateX(16px);
+}
+
+.Switch b {
+  color: var(--color-text);
+  font-size: 13px;
+}
+```
+
+// === src/styles/manual.css ===
+```css
+.ManualScene {
+  /* 组件手册页面根容器：控制整个手册内容区的背景、内边距和纵向节奏。 */
+  background: var(--color-surface);
+  border-radius: var(--radius-md);
+  color: var(--color-text);
+  display: grid;
+  gap: 22px;
+  min-height: calc(100dvh - 48px);
+  padding: 24px;
+}
+
+.ManualHierarchy {
+  /* 三层信息架构区域：地图类型 / 组件分类 / 具体组件入口。 */
+  display: grid;
+  gap: 14px;
+}
+
+.ManualHierarchy__layer {
+  display: grid;
+  gap: 10px;
+}
+
+.ManualHierarchy__layer h2 {
+  color: var(--color-tertiary);
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.ManualHierarchy__layer > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.ManualHierarchy__layer button {
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: background 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.ManualHierarchy__layer button:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.ManualHierarchy__layer button.is-active {
+  color: var(--color-text);
+}
+
+.ManualHierarchy__layer--map > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ManualHierarchy__layer--map button {
+  background: var(--color-surface-raised);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 5px;
+  min-height: 68px;
+  padding: 12px 14px;
+  text-align: left;
+}
+
+.ManualHierarchy__layer--map button.is-active {
+  background: #1e1e1e;
+  border-color: var(--color-border-strong);
+}
+
+.ManualHierarchy__layer--map strong {
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.ManualHierarchy__layer--map span {
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ManualHierarchy__layer--category > div {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  width: fit-content;
+}
+
+.ManualHierarchy__layer--category button {
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: var(--font-weight-bold);
+  min-height: 38px;
+  min-width: 72px;
+  padding: 0 16px;
+}
+
+.ManualHierarchy__layer--category button.is-active {
+  background: #1e1e1e;
+  box-shadow: 0 1px 2px rgba(18, 24, 40, 0.08);
+  color: var(--color-text);
+}
+
+.ManualComponentList {
+  display: grid;
+  gap: 14px;
+}
+
+.ManualDetail {
+  /* 单个组件详情卡片：左侧地图预览，右侧组件信息。 */
+  align-items: start;
+  background: var(--color-surface-muted);
+  border: 0;
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 20px;
+  grid-template-columns: minmax(440px, 1.1fr) minmax(360px, 0.9fr);
+  min-height: 408px;
+  padding: 18px;
+  transition: background 180ms ease;
+}
+
+.ManualDetail__left,
+.ManualDetail__right {
+  display: grid;
+  gap: 12px;
+}
+
+.ManualDetail__left {
+  grid-template-rows: auto minmax(250px, 1fr) auto;
+}
+
+.ManualDetail__right {
+  /* 右侧信息区的竖线和间距；如果想让左右更分离，可以调 padding-left 或 border。 */
+  align-content: start;
+  border-left: 1px solid var(--color-border);
+  padding-left: 20px;
+}
+
+.ManualPanelHeader {
+  display: grid;
+  gap: 4px;
+}
+
+.ManualPanelHeader p {
+  color: var(--color-primary);
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+  line-height: 1.35;
+  margin: 0;
+}
+
+.ManualPanelHeader h2 {
+  color: var(--color-text);
+  font-size: 21px;
+  line-height: 1.28;
+  margin: 0;
+}
+
+.ManualPanelHeader span {
+  color: var(--color-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.ManualPanelHeader--compact {
+  gap: 6px;
+}
+
+.ManualPanelHeader--compact span {
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ManualStateSwitcher {
+  /* 状态切换按钮组：直接跟在组件标题下方，不额外做卡片容器。 */
+  align-items: center;
+  display: inline-flex;
+  gap: 3px;
+  justify-self: start;
+  margin-top: 4px;
+}
+
+.ManualStateSwitcher button {
+  background: transparent;
+  border: 0;
+  border-radius: calc(var(--radius-sm) - 2px);
+  color: var(--color-muted);
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1;
+  min-height: 28px;
+  padding: 0 11px;
+  transition: background 160ms ease, color 160ms ease, box-shadow 160ms ease;
+}
+
+.ManualStateSwitcher button:hover {
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+}
+
+.ManualStateSwitcher button.is-active {
+  background: #1e1e1e;
+  box-shadow: 0 1px 2px rgba(18, 24, 40, 0.08);
+  color: #ffffff;
+}
+
+.ManualMapRegion {
+  /* 地图预览容器：这里决定地图在组件卡片里的圆角、边框和最小高度。 */
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  height: 100%;
+  min-height: 250px;
+  overflow: hidden;
+  position: relative;
+}
+
+.ManualMapRegion .MapCanvas {
+  height: 100%;
+  min-height: 250px;
+}
+
+.ManualMapRegion .MapCanvas__meta,
+.ManualMapRegion .MapCanvas__poi {
+  display: none;
+}
+
+.ManualSpecSection,
+.ManualInfoPanel {
+  border-bottom: 1px solid var(--color-border);
+  display: grid;
+  gap: 6px;
+  padding: 0 0 12px;
+}
+
+.ManualSpecSection h3,
+.ManualInfoPanel h3 {
+  color: var(--color-text);
+  font-size: 13px;
+  font-weight: var(--font-weight-bold);
+  margin: 0;
+}
+
+.ManualInfoRows {
+  display: grid;
+  margin: 0;
+}
+
+.ManualInfoRows__row {
+  /* 组件信息列表的 key/value 行；grid-template-columns 控制左侧标签和右侧内容比例。 */
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(72px, 0.42fr) minmax(0, 1fr);
+  padding: 7px 0;
+}
+
+.ManualInfoRows__row:first-child {
+  border-top: 0;
+}
+
+.ManualInfoRows__row dt,
+.ManualInfoRows__row dd {
+  font-size: 12px;
+  line-height: 1.45;
+  margin: 0;
+}
+
+.ManualInfoRows__row dt {
+  color: var(--color-tertiary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.ManualInfoRows__row dd {
+  color: var(--color-text);
+}
+
+.ManualColorTokens {
+  display: grid;
+  gap: 8px;
+}
+
+.ManualColorTokens dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.ManualColorTokens__pair {
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: 4px;
+  padding-top: 8px;
+}
+
+.ManualColorTokens__pair:first-child {
+  border-top: 0;
+  padding-top: 0;
+}
+
+.ManualColorTokens__pair > div {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: minmax(88px, 0.28fr) minmax(0, 1fr);
+}
+
+.ManualColorTokens dt,
+.ManualColorTokens dd {
+  font-size: 12px;
+  line-height: 1.42;
+  margin: 0;
+}
+
+.ManualColorTokens dt {
+  color: var(--color-tertiary);
+  font-weight: var(--font-weight-regular);
+}
+
+.ManualColorTokens dd {
+  color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.ManualCodeBlock {
+  border-bottom: 1px solid var(--color-border);
+  display: grid;
+  gap: 8px;
+  padding-bottom: 12px;
+}
+
+.ManualCodeBlock button {
+  align-items: center;
+  background: transparent;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-muted);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: var(--font-weight-bold);
+  gap: 8px;
+  justify-content: flex-start;
+  justify-self: start;
+  min-height: 34px;
+  padding: 0 10px;
+}
+
+.ManualCodeBlock button:hover {
+  background: var(--color-surface-muted);
+  border-color: var(--color-border-strong);
+  color: var(--color-text);
+}
+
+.ManualCodeBlock svg:last-child {
+  transition: transform 180ms ease;
+}
+
+.ManualCodeBlock svg.is-open {
+  transform: rotate(180deg);
+}
+
+.ManualCodeBlock pre {
+  /* 折叠展开后的代码块：max-height 控制代码区域不要占据太多页面高度。 */
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.55;
+  margin: 0;
+  max-height: 160px;
+  overflow: auto;
+  padding: 12px;
+}
+
+.ManualUsagePanel {
+  display: grid;
+  gap: 8px;
+}
+
+.ManualUsageList {
+  display: grid;
+  margin: 0;
+}
+
+.ManualUsageItem {
+  /* 使用场景列表项：左边是短标签，右边是 bullet 说明。 */
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: minmax(92px, 0.22fr) minmax(0, 1fr);
+  padding: 10px 0;
+}
+
+.ManualUsageItem--extended {
+  border-top-color: var(--color-border);
+}
+
+.ManualUsageItem--constraints {
+  border-top-color: var(--color-border);
+}
+
+.ManualUsageItem dt,
+.ManualUsageItem dd {
+  margin: 0;
+}
+
+.ManualUsageItem span {
+  background: var(--color-primary-soft);
+  border-radius: 999px;
+  color: var(--color-primary-strong);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  justify-self: start;
+  line-height: 1;
+  padding: 6px 9px;
+}
+
+.ManualUsageItem ul {
+  color: var(--color-muted);
+  display: grid;
+  font-size: 12px;
+  gap: 5px;
+  line-height: 1.48;
+  margin: 0;
+  padding-left: 18px;
+}
+```
+
+// === src/styles/responsive.css ===
+```css
+@media (max-width: 1100px) {
+  .AppShell {
+    height: auto;
+    display: block;
+    min-height: 100dvh;
+    overflow: visible;
+  }
+
+  .Sidebar {
+    height: auto;
+    max-height: none;
+    min-height: 0;
+    position: relative;
+    top: 0;
+    width: 100%;
+    z-index: 20;
+  }
+
+  .Sidebar__nav {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    max-height: none;
+    overflow: visible;
+  }
+
+  .MainStage {
+    height: auto;
+    min-height: 100dvh;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .SidebarFooter {
+    padding-bottom: 4px;
+  }
+
+  .MapBrowseScene,
+  .UseCaseScene,
+  .UseCaseScene__workspace,
+  .GuideScene__layout,
+  .ManualHierarchy__layer--map > div,
+  .ManualDetail {
+    grid-template-columns: 1fr;
+  }
+
+  .GuideSkillGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .ParamPanel {
+    min-height: auto;
+  }
+
+  .ManualDetail {
+    min-height: 0;
+  }
+
+  .ManualDetail__right {
+    border-left: 0;
+    border-top: 1px solid var(--color-border);
+    padding-left: 0;
+    padding-top: 16px;
+  }
+
+  .ManualDetail__left {
+    grid-template-rows: auto minmax(320px, auto) auto;
+  }
+}
+
+@media (max-width: 720px) {
+  .MainStage {
+    padding: 12px;
+  }
+
+  .Sidebar {
+    height: auto;
+    max-height: 100dvh;
+    padding: 14px 10px;
+  }
+
+  .Sidebar__nav {
+    grid-template-columns: 1fr;
+  }
+
+  .MapCanvas {
+    min-height: 420px;
+  }
+
+  .PhoneFrame {
+    height: 660px;
+    max-width: 360px;
+    width: 100%;
+  }
+
+  .UseCaseProduct {
+    max-height: none;
+  }
+
+  .ManualScene,
+  .UseCaseScene {
+    border-radius: 0;
+    margin: -12px;
+    min-height: 100dvh;
+    padding: 22px 16px;
+  }
+
+  .GuideScene {
+    border-radius: 0;
+    margin: -12px;
+    min-height: 100dvh;
+    padding: 22px 16px;
+  }
+
+  .GuideResourceList article {
+    grid-template-columns: 1fr;
+  }
+
+  .WorkbenchPageHeader h1 {
+    font-size: 28px;
+  }
+
+  .ManualDetail {
+    border-radius: var(--radius-lg);
+    gap: 16px;
+    padding: 16px;
+  }
+
+  .ManualHierarchy__layer--category > div {
+    width: 100%;
+  }
+
+  .ManualHierarchy__layer--category button {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ManualInfoRows__row {
+    grid-template-columns: 1fr;
+  }
+
+  .ManualUsageItem {
+    grid-template-columns: 1fr;
+  }
+
+  .ManualMapRegion,
+  .ManualMapRegion .MapCanvas {
+    min-height: 260px;
+  }
+
+  .ManualMapRegion {
+    height: 260px;
+  }
+}
+```
+
+// === src/scenes/ManualScene.tsx ===
+```tsx
+import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { ComponentCard, ManualCategoryId, ManualComponentSpec } from "../components/ComponentCard";
+import { WorkbenchPageHeader } from "../components/WorkbenchPageHeader";
+import componentSpecs from "../config/componentSpecs.json";
+import { MapCategory, useWorkbenchStore } from "../store/workbenchStore";
+
+interface ManualCategory {
+  id: ManualCategoryId;
+  labelKey: string;
+  components: ManualComponentSpec[];
+}
+
+interface ManualMapType {
+  id: MapCategory;
+  labelKey: string;
+  descriptionKey: string;
+  categories: ManualCategory[];
+  manualCategories?: ManualCategory[];
+}
+
+interface ManualSpecDocument {
+  mapTypes: ManualMapType[];
+}
+
+const manualSpecDocument = componentSpecs as unknown as ManualSpecDocument;
+
+export function ManualScene() {
+  const { t } = useTranslation();
+  const { mapCategory, lang, mapTheme, setMapCategory } = useWorkbenchStore();
+  const mapTypes = manualSpecDocument.mapTypes;
+  const selectedMapType = mapTypes.find((item) => item.id === mapCategory) ?? mapTypes[0];
+  const activeMapType = {
+    ...selectedMapType,
+    categories: selectedMapType.manualCategories ?? selectedMapType.categories,
+  };
+  const [activeCategoryId, setActiveCategoryId] = useState<ManualCategoryId>(activeMapType.categories[0]?.id ?? "point");
+  const activeCategory = activeMapType.categories.find((category) => category.id === activeCategoryId) ?? activeMapType.categories[0];
+
+  useEffect(() => {
+    if (!activeMapType.categories.some((category) => category.id === activeCategoryId)) {
+      setActiveCategoryId(activeMapType.categories[0]?.id ?? "point");
+    }
+  }, [activeCategoryId, activeMapType]);
+
+  return (
+    <section className="ManualScene">
+      <WorkbenchPageHeader description={t("manual.intro")} title={t("manual.title")} />
+
+      <nav className="ManualHierarchy" aria-label={t("manual.hierarchy")}>
+        <section className="ManualHierarchy__layer ManualHierarchy__layer--map">
+          <h2>{t("manual.layers.mapType")}</h2>
+          <div>
+            {mapTypes.map((mapType) => (
+              <button
+                className={mapType.id === activeMapType.id ? "is-active" : ""}
+                key={mapType.id}
+                onClick={() => setMapCategory(mapType.id)}
+                type="button"
+              >
+                <strong>{t(mapType.labelKey)}</strong>
+                <span>{t(mapType.descriptionKey)}</span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <section className="ManualHierarchy__layer ManualHierarchy__layer--category">
+          <h2>{t("manual.layers.componentCategory")}</h2>
+          <div role="tablist" aria-label={t("manual.layers.componentCategory")}>
+            {activeMapType.categories.map((category) => (
+              <button
+                aria-selected={category.id === activeCategory.id}
+                className={category.id === activeCategory.id ? "is-active" : ""}
+                key={category.id}
+                onClick={() => setActiveCategoryId(category.id)}
+                role="tab"
+                type="button"
+              >
+                {t(category.labelKey)}
+              </button>
+            ))}
+          </div>
+        </section>
+
+      </nav>
+
+      <div className="ManualComponentList" aria-label={t("manual.layers.component")}>
+        {activeCategory.components.map((component) => (
+          <ComponentCard
+            categoryId={activeCategory.id}
+            key={component.id}
+            lang={lang}
+            mapCategory={activeMapType.id}
+            mapTheme={mapTheme}
+            spec={component}
+          />
+        ))}
+      </div>
+    </section>
+  );
+}
+```
+
+// === src/components/WorkbenchPageHeader.tsx ===
+```tsx
+interface WorkbenchPageHeaderProps {
+  description: string;
+  title: string;
+}
+
+/** 工作台内容页共用的标题区，统一标题、说明文字与内容分割线。 */
+export function WorkbenchPageHeader({ description, title }: WorkbenchPageHeaderProps) {
+  return (
+    <header className="WorkbenchPageHeader">
+      <h1>{title}</h1>
+      <p>{description}</p>
+    </header>
+  );
+}
+```
+
+// === src/components/ComponentCard.tsx ===
+```tsx
+import { ChevronDown, Code2 } from "lucide-react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { createPreviewMarkers, getPreviewZoom } from "../config/manualPreview";
+import type { MapCategory, MapTheme, WorkbenchLanguage } from "../store/workbenchStore";
+import type {
+  CustomMarkerContent,
+  MapControlsState,
+  MarkerPreviewFamily,
+  MarkerPreviewVariant,
+  RoutePreviewFamily,
+  RoutePreviewVariant,
+} from "../types";
+import { MapCanvas } from "./MapCanvas";
+
+export type ManualCategoryId = "point" | "line" | "area" | "container";
+type ManualPreviewDistribution = "local" | "china" | "chinaCluster";
+
+export interface ManualInfoRow {
+  labelKey: string;
+  value?: string;
+  valueKey?: string;
+}
+
+export interface ManualUsageGroup {
+  tagKey: string;
+  bulletKeys: string[];
+}
+
+export interface ManualMarkerVariant {
+  customContent?: CustomMarkerContent;
+  id: MarkerPreviewVariant;
+  labelKey: string;
+}
+
+export interface ManualRouteVariant {
+  id: RoutePreviewVariant;
+  labelKey: string;
+}
+
+export interface ManualComponentSpec {
+  id: string;
+  nameKey: string;
+  descriptionKey: string;
+  previewType: ManualCategoryId;
+  previewDistribution?: ManualPreviewDistribution;
+  regionIds?: string[];
+  hideStateSwitcher?: boolean;
+  markerFamily?: MarkerPreviewFamily;
+  markerVariants?: ManualMarkerVariant[];
+  routeFamily?: RoutePreviewFamily;
+  routeVariants?: ManualRouteVariant[];
+  styleRows: ManualInfoRow[];
+  fakeModRows: ManualInfoRow[];
+  code: {
+    language: string;
+    value?: string;
+    valueKey?: string;
+  };
+  usage: {
+    primary: ManualUsageGroup;
+    extended: ManualUsageGroup;
+    constraints: ManualUsageGroup;
+  };
+}
+
+interface ComponentCardProps {
+  spec: ManualComponentSpec;
+  categoryId: ManualCategoryId;
+  mapCategory: MapCategory;
+  lang: WorkbenchLanguage;
+  mapTheme: MapTheme;
+}
+
+/**
+ * 组件信息表里的 value 可以是直接写死的字符串，也可以是 i18n key。
+ * 这个函数统一把它解析成最终展示文本。
+ */
+function resolveValue(row: ManualInfoRow, t: (key: string) => string) {
+  return row.valueKey ? t(row.valueKey) : row.value ?? "";
+}
+
+/**
+ * 颜色行的 Token Mapping。
+ * key 是 componentSpecs / i18n 中的颜色说明字段，value 是当前组件涉及到的色值。
+ * 后续你给 Code Token 后，可以在这里或数据配置里把占位内容换成真实 code token。
+ */
+const colorTokenValuesByKey: Record<string, string[]> = {
+  "manual.pointMarker.style.color": ["#2A3EF4", "#C9D2FC", "#9C9EAD", "#2232C3"],
+  "manual.informatedLocation.style.color": ["#2A3EF4", "#C9D2FC", "#9C9EAD", "#2232C3"],
+  "manual.cumulativeLocation.style.color": ["#2450FF", "#FFFFFF"],
+  "manual.customLocation.style.color": ["#2A3EF4", "#FFFFFF"],
+  "manual.normalRoute.style.color": ["#2A3EF4", "#C9D2FC", "#9C9EAD", "#2232C3"],
+  "manual.routeWithLocation.style.color": ["#2A3EF4", "#C9D2FC", "#9C9EAD", "#2232C3"],
+  "manual.routeWithProgress.style.color": ["#9C9EAD", "#2A3EF4", "#C9D2FC"],
+  "manual.areaSelection.style.color": ["#2A3EF4", "#C9D2FC"],
+};
+
+/**
+ * 点/线组件共用的状态切换选项。
+ * muted 在代码里表示 Disable；文案层展示为 Disable。
+ */
+const basePreviewStateOptions: Array<{ id: RoutePreviewVariant; labelKey: string }> = [
+  { id: "default", labelKey: "manual.stateSwitcher.default" },
+  { id: "muted", labelKey: "manual.stateSwitcher.disable" },
+  { id: "completed", labelKey: "manual.stateSwitcher.completed" },
+];
+
+/**
+ * 从信息行里提取颜色。
+ * 优先读 colorTokenValuesByKey 的人工配置；没有配置时，从文本里自动提取 #HEX 色值。
+ */
+function resolveColorTokenValues(row: ManualInfoRow, value: string) {
+  if (row.valueKey && colorTokenValuesByKey[row.valueKey]) {
+    return colorTokenValuesByKey[row.valueKey];
+  }
+
+  const hexValues = value.match(/#[0-9a-fA-F]{3,8}\b/g) ?? [];
+  return [...new Set(hexValues.map((item) => item.toUpperCase()))];
+}
+
+/**
+ * 线组件可能有额外状态，比如 selected / inProgress。
+ * 这里先保证 Default / Disable / Completed 永远在前面，再拼接组件自己配置的扩展状态。
+ */
+function resolveLineStateOptions(spec: ManualComponentSpec) {
+  const configuredStates = spec.routeVariants?.filter((variant) => variant.id !== "selected" && variant.id !== "inProgress") ?? [];
+  const configuredExtraStates = configuredStates.filter(
+    (variant) => !basePreviewStateOptions.some((option) => option.id === variant.id),
+  );
+
+  return [...basePreviewStateOptions, ...configuredExtraStates];
+}
+
+/**
+ * 状态切换控件。
+ * 点组件和线组件都复用这一套 UI，避免每个组件单独实现按钮逻辑。
+ */
+function ManualStateSwitcher({
+  ariaLabelKey,
+  onChange,
+  options,
+  value,
+}: {
+  ariaLabelKey: string;
+  onChange: (value: RoutePreviewVariant) => void;
+  options: Array<{ id: RoutePreviewVariant; labelKey: string }>;
+  value: RoutePreviewVariant;
+}) {
+  const { t } = useTranslation();
+
+  if (!options.length) {
+    return null;
+  }
+
+  return (
+    <div className="ManualStateSwitcher" role="group" aria-label={t(ariaLabelKey)}>
+      {options.map((option) => (
+        <button
+          aria-pressed={value === option.id}
+          className={value === option.id ? "is-active" : ""}
+          key={option.id}
+          onClick={() => onChange(option.id)}
+          type="button"
+        >
+          {t(option.labelKey)}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * 颜色信息的展示方式。
+ * 每一个颜色都会展示 Design Token（当前先放具体色值）和 Code Token（先占位）。
+ */
+function ColorTokenPairs({ row, value }: { row: ManualInfoRow; value: string }) {
+  const { t } = useTranslation();
+  const tokenValues = resolveColorTokenValues(row, value);
+
+  return (
+    <div className="ManualColorTokens">
+      <dl>
+        {tokenValues.map((tokenValue) => (
+          <div className="ManualColorTokens__pair" key={tokenValue}>
+            <div>
+              <dt>{t("manual.tokenMapping.designToken")}</dt>
+              <dd>{tokenValue}</dd>
+            </div>
+            <div>
+              <dt>{t("manual.tokenMapping.codeToken")}</dt>
+              <dd>{t("manual.tokenMapping.codeTokenPlaceholder")}</dd>
+            </div>
+          </div>
+        ))}
+      </dl>
+    </div>
+  );
+}
+
+/**
+ * 右侧“组件信息”的普通列表。
+ * 如果当前行是颜色行，就切换成 ColorTokenPairs；其他行按普通 key/value 展示。
+ */
+function InfoRows({ rows }: { rows: ManualInfoRow[] }) {
+  const { t } = useTranslation();
+
+  return (
+    <dl className="ManualInfoRows">
+      {rows.map((row) => {
+        const value = resolveValue(row, t);
+        const isColorRow = row.labelKey === "manual.rows.color";
+
+        return (
+          <div className="ManualInfoRows__row" key={`${row.labelKey}-${row.valueKey ?? row.value}`}>
+            <dt>{t(row.labelKey)}</dt>
+            <dd>{isColorRow ? <ColorTokenPairs row={row} value={value} /> : value}</dd>
+          </div>
+        );
+      })}
+    </dl>
+  );
+}
+
+/**
+ * 前端代码默认折叠。
+ * 这样代码不会抢组件预览的视觉层级，只有用户点击“查看代码”时才展开。
+ */
+function CodeDisclosure({ code }: { code: ManualComponentSpec["code"] }) {
+  const { t } = useTranslation();
+  const [expanded, setExpanded] = useState(false);
+  const codeValue = code.valueKey ? t(code.valueKey) : code.value ?? "";
+
+  return (
+    <section className="ManualCodeBlock">
+      <button aria-expanded={expanded} onClick={() => setExpanded((value) => !value)} type="button">
+        <Code2 size={15} />
+        <span>{expanded ? t("manual.content.hideCode") : t("manual.content.showCode")}</span>
+        <ChevronDown className={expanded ? "is-open" : ""} size={16} />
+      </button>
+      {expanded ? (
+        <pre aria-label={t("manual.content.frontendCode")}>
+          <code>{codeValue}</code>
+        </pre>
+      ) : null}
+    </section>
+  );
+}
+
+/**
+ * 使用场景列表项。
+ * tone 用来区分主要场景、扩展场景、使用约束，视觉上保持同一模块但有不同语义。
+ */
+function UsageGroup({ group, tone }: { group: ManualUsageGroup; tone: "primary" | "extended" | "constraints" }) {
+  const { t } = useTranslation();
+
+  return (
+    <div className={`ManualUsageItem ManualUsageItem--${tone}`}>
+      <dt>
+        <span>{t(group.tagKey)}</span>
+      </dt>
+      <dd>
+        <ul>
+          {group.bulletKeys.map((key) => (
+            <li key={key}>{t(key)}</li>
+          ))}
+        </ul>
+      </dd>
+    </div>
+  );
+}
+
+/**
+ * 组件手册里每一个组件的详情卡片。
+ * 左侧：标题、状态切换、地图预览、使用场景。
+ * 右侧：组件信息、FakeMod/配置、代码折叠。
+ */
+export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }: ComponentCardProps) {
+  const { t } = useTranslation();
+  const lineStateOptions = useMemo(() => resolveLineStateOptions(spec), [spec]);
+  const [activePreviewState, setActivePreviewState] = useState<RoutePreviewVariant>("default");
+  const shouldShowStateSwitcher = !spec.hideStateSwitcher && (categoryId === "point" || categoryId === "line");
+
+  // 线组件的路线状态来自 lineStateOptions；其他组件使用自身配置的 routeVariants。
+  const previewRoutes =
+    categoryId === "line"
+      ? lineStateOptions.map((option) => ({ id: option.id, label: t(option.labelKey) }))
+      : spec.routeVariants?.map((variant) => ({ id: variant.id, label: t(variant.labelKey) }));
+
+  // 预览地图的控制参数。组件手册里不依赖右侧参数面板，因此这里给一组稳定的默认值。
+  const previewControls = useMemo<MapControlsState>(
+    () => {
+      const routeNodes: MapControlsState["routeNodes"] = [
+        { id: "start", value: "Placeholder start" },
+        { id: "middle", value: "Placeholder middle" },
+        { id: "end", value: "Placeholder end" },
+      ];
+      return {
+        activeRouteId: "route-1",
+        markerStyle: categoryId === "point" ? "pin" : "default",
+        routeNodes,
+        routes: [{ colorId: "route1", id: "route-1", name: "Route 1", nodes: routeNodes, visible: true }],
+        showMapUi: spec.previewDistribution === "chinaCluster",
+        zoom: getPreviewZoom(spec),
+      };
+    },
+    [categoryId, spec],
+  );
+
+  // 点组件状态切换时，重新生成对应状态的 marker 数据；每个组件独立维护自己的 activePreviewState。
+  const previewMarkers = useMemo(
+    () =>
+      createPreviewMarkers(
+        spec,
+        t,
+        categoryId === "point" && activePreviewState !== "inProgress" ? activePreviewState : undefined,
+      ),
+    [activePreviewState, categoryId, spec, t],
+  );
+
+  return (
+    <article className="ManualDetail" id={`manual-component-${spec.id}`}>
+      <section className="ManualDetail__left" aria-label={t("manual.panels.content")}>
+        <header className="ManualPanelHeader">
+          <h2>{t(spec.nameKey)}</h2>
+          <span>{t(spec.descriptionKey)}</span>
+          {shouldShowStateSwitcher ? (
+            <ManualStateSwitcher
+              ariaLabelKey={categoryId === "point" ? "manual.stateSwitcher.pointAria" : "manual.stateSwitcher.lineAria"}
+              options={categoryId === "line" ? lineStateOptions : basePreviewStateOptions}
+              value={activePreviewState}
+              onChange={setActivePreviewState}
+            />
+          ) : null}
+        </header>
+
+        <div className="ManualMapRegion">
+          <MapCanvas
+            compact
+            controls={previewControls}
+            lang={lang}
+            mapCategory={mapCategory}
+            mapTheme={mapTheme}
+            previewFeature={spec.previewType}
+            previewDistribution={spec.previewDistribution}
+            previewRegionIds={spec.regionIds}
+            previewMarkerFamily={spec.markerFamily}
+            previewMarkers={previewMarkers}
+            previewRouteFamily={spec.routeFamily}
+            previewRouteState={activePreviewState}
+            previewRoutes={previewRoutes}
+          />
+        </div>
+
+        <section className="ManualUsagePanel">
+          <header className="ManualPanelHeader ManualPanelHeader--compact">
+            <p>{t("manual.panels.usage")}</p>
+            <span>{t("manual.usageIntro")}</span>
+          </header>
+          <dl className="ManualUsageList">
+            <UsageGroup group={spec.usage.primary} tone="primary" />
+            <UsageGroup group={spec.usage.extended} tone="extended" />
+            <UsageGroup group={spec.usage.constraints} tone="constraints" />
+          </dl>
+        </section>
+      </section>
+
+      <section className="ManualDetail__right" aria-label={t("manual.content.componentInformation")}>
+        <section className="ManualInfoPanel">
+          <h3>{t("manual.content.componentInformation")}</h3>
+          <InfoRows rows={[...spec.styleRows, ...spec.fakeModRows]} />
+        </section>
+        <CodeDisclosure code={spec.code} />
+      </section>
+    </article>
+  );
+}
+```
+
+// === src/components/Sidebar.tsx ===
+```tsx
+import { BookOpen, CircleHelp, Globe2, Languages, Map, Moon, Play, Route, Sun } from "lucide-react";
+import type { ReactNode } from "react";
+import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
+import shopBagLogo from "../assets/tiktok-shop-bag-logo.svg";
+import i18n from "../i18n";
+import {
+  MapCategory,
+  MapTheme,
+  useWorkbenchStore,
+  WorkbenchLanguage,
+  WorkbenchView,
+} from "../store/workbenchStore";
+
+interface SidebarNavItemProps {
+  icon: ReactNode;
+  label: string;
+  description?: string;
+  active: boolean;
+  onClick: () => void;
+}
+
+function SidebarNavItem({ icon, label, active, onClick }: SidebarNavItemProps) {
+  return (
+    <button className={`SidebarNavItem ${active ? "is-active" : ""}`} onClick={onClick} type="button">
+      <span className="SidebarNavItem__icon" aria-hidden="true">
+        {icon}
+      </span>
+      <span className="SidebarNavItem__copy">
+        <span>{label}</span>
+      </span>
+    </button>
+  );
+}
+
+interface SidebarNavGroupProps {
+  title: string;
+  children: ReactNode;
+}
+
+function SidebarNavGroup({ title, children }: SidebarNavGroupProps) {
+  return (
+    <section className="SidebarNavGroup" aria-label={title}>
+      <h2>{title}</h2>
+      <div>{children}</div>
+    </section>
+  );
+}
+
+const viewPaths: Record<WorkbenchView, string> = {
+  browse: "/browse",
+  "use-case": "/use-case",
+  manual: "/manual",
+  guide: "/guide",
+};
+
+export function Sidebar() {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { view, mapCategory, lang, mapTheme, setView, setMapCategory, setLang, setMapTheme } = useWorkbenchStore();
+
+  const handleView = (nextView: WorkbenchView) => {
+    setView(nextView);
+    if (location.pathname !== viewPaths[nextView]) {
+      navigate(viewPaths[nextView]);
+    }
+  };
+
+  const handleCategory = (nextCategory: MapCategory) => {
+    setMapCategory(nextCategory);
+  };
+
+  const handleLang = (nextLang: WorkbenchLanguage) => {
+    setLang(nextLang);
+    i18n.changeLanguage(nextLang);
+    document.documentElement.lang = nextLang === "zh" ? "zh-CN" : "en";
+  };
+
+  const handleMapTheme = (nextTheme: MapTheme) => {
+    setMapTheme(nextTheme);
+  };
+
+  return (
+    <aside className="Sidebar">
+      <header className="SidebarHeader">
+        <div className="SidebarHeader__logo" aria-hidden="true">
+          <img alt="" src={shopBagLogo} />
+        </div>
+        <div>
+          <h1>{t("app.productName")}</h1>
+          <p>{t("app.tagline")}</p>
+        </div>
+      </header>
+
+      <nav className="Sidebar__nav" aria-label={t("app.productName")}>
+        <SidebarNavGroup title={t("sidebar.viewGroup")}>
+          <SidebarNavItem
+            active={view === "browse"}
+            description={t("sidebar.items.browse.description")}
+            icon={<Map size={18} />}
+            label={t("sidebar.items.browse.label")}
+            onClick={() => handleView("browse")}
+          />
+          <SidebarNavItem
+            active={view === "use-case"}
+            description={t("sidebar.items.useCase.description")}
+            icon={<Play size={18} />}
+            label={t("sidebar.items.useCase.label")}
+            onClick={() => handleView("use-case")}
+          />
+          <SidebarNavItem
+            active={view === "manual"}
+            description={t("sidebar.items.manual.description")}
+            icon={<BookOpen size={18} />}
+            label={t("sidebar.items.manual.label")}
+            onClick={() => handleView("manual")}
+          />
+          <SidebarNavItem
+            active={view === "guide"}
+            description={t("sidebar.items.guide.description")}
+            icon={<CircleHelp size={18} />}
+            label={t("sidebar.items.guide.label")}
+            onClick={() => handleView("guide")}
+          />
+        </SidebarNavGroup>
+
+        <SidebarNavGroup title={t("sidebar.mapCategoryGroup")}>
+          <SidebarNavItem
+            active={mapCategory === "entity"}
+            description={t("sidebar.items.entity.description")}
+            icon={<Globe2 size={18} />}
+            label={t("sidebar.items.entity.label")}
+            onClick={() => handleCategory("entity")}
+          />
+          <SidebarNavItem
+            active={mapCategory === "visualization"}
+            description={t("sidebar.items.visualization.description")}
+            icon={<Route size={18} />}
+            label={t("sidebar.items.visualization.label")}
+            onClick={() => handleCategory("visualization")}
+          />
+        </SidebarNavGroup>
+
+        <SidebarNavGroup title={t("sidebar.languageGroup")}>
+          <SidebarNavItem
+            active={lang === "zh"}
+            description={t("sidebar.items.zh.description")}
+            icon={<Languages size={18} />}
+            label={t("sidebar.items.zh.label")}
+            onClick={() => handleLang("zh")}
+          />
+          <SidebarNavItem
+            active={lang === "en"}
+            description={t("sidebar.items.en.description")}
+            icon={<Languages size={18} />}
+            label={t("sidebar.items.en.label")}
+            onClick={() => handleLang("en")}
+          />
+        </SidebarNavGroup>
+
+        <SidebarNavGroup title={t("sidebar.appearanceGroup")}>
+          <SidebarNavItem
+            active={mapTheme === "light"}
+            description={t("sidebar.items.light.description")}
+            icon={<Sun size={18} />}
+            label={t("sidebar.items.light.label")}
+            onClick={() => handleMapTheme("light")}
+          />
+          <SidebarNavItem
+            active={mapTheme === "dark"}
+            description={t("sidebar.items.dark.description")}
+            icon={<Moon size={18} />}
+            label={t("sidebar.items.dark.label")}
+            onClick={() => handleMapTheme("dark")}
+          />
+        </SidebarNavGroup>
+      </nav>
+
+      <footer className="SidebarFooter">
+        <span>{t("app.version")}</span>
+        <a href="mailto:feedback@example.com">{t("app.feedback")}</a>
+      </footer>
+    </aside>
+  );
+}
+```
+
+// === src/config/manualPreview.ts ===
+```typescript
+import type { ManualComponentSpec, ManualMarkerVariant } from "../components/ComponentCard";
+import type { MarkerPreviewState, MarkerPreviewVariant, RoutePreviewState } from "../types";
+
+/**
+ * 局部点组件预览的状态分布。
+ * 数组里的顺序会映射到地图上的点位顺序，用来做“有疏有密、状态随机”的视觉效果。
+ */
+const pointPreviewPattern: MarkerPreviewVariant[] = [
+  "default",
+  "completed",
+  "muted",
+  "default",
+  "emphasized",
+  "completed",
+  "default",
+  "muted",
+  "completed",
+  "default",
+  "emphasized",
+  "default",
+];
+
+/**
+ * 全国点位预览的状态分布。
+ * 比局部预览更长，因为全国地图上会展示更多点。
+ */
+const chinaPointPreviewPattern: MarkerPreviewVariant[] = [
+  "default",
+  "completed",
+  "muted",
+  "default",
+  "emphasized",
+  "completed",
+  "default",
+  "muted",
+  "completed",
+  "default",
+  "emphasized",
+  "default",
+  "default",
+  "completed",
+  "muted",
+  "emphasized",
+  "default",
+  "completed",
+  "muted",
+  "default",
+  "completed",
+  "default",
+  "emphasized",
+  "muted",
+  "completed",
+  "default",
+  "muted",
+  "completed",
+  "default",
+  "emphasized",
+];
+
+/**
+ * Cumulative location 的聚合数字。
+ * 这些数字会显示在聚合气泡里，模拟“当前气泡聚合了多少个点”。
+ */
+const chinaClusterPreviewCounts = [18, 42, 12, 126, 86, 64, 38, 52, 220, 148, 34, 76, 28, 15];
+
+/**
+ * 根据组件配置生成地图上的点预览数据。
+ * previewState 来自状态切换按钮；传入后会强制所有点展示同一状态。
+ * 不传 previewState 时，会按 pointPreviewPattern 做混合状态分布。
+ */
+export function createPreviewMarkers(
+  spec: ManualComponentSpec,
+  translate: (key: string) => string,
+  previewState?: MarkerPreviewVariant,
+): MarkerPreviewState[] | undefined {
+  if (!spec.markerVariants?.length) {
+    return undefined;
+  }
+
+  if (spec.markerFamily === "custom") {
+    // Custom 组件要保留每个点自己的内容类型：字母、数字、仓库、商家、用户。
+    // 状态切换只改变颜色，不改变 customContent。
+    return pointPreviewPattern.map((_, index) => {
+      const marker = spec.markerVariants?.[index % spec.markerVariants.length];
+      return {
+        customContent: marker?.customContent,
+        id: previewState ?? marker?.id ?? "default",
+        label: marker ? translate(marker.labelKey) : translate("manual.customLocation.name"),
+      };
+    });
+  }
+
+  if (spec.previewDistribution === "chinaCluster") {
+    // 聚合组件保留 count 数字；状态切换只改变聚合点颜色。
+    const baseMarker = spec.markerVariants.find((marker) => marker.id === "default") ?? spec.markerVariants[0];
+    return chinaClusterPreviewCounts.map((count) => ({
+      count,
+      id: previewState ?? baseMarker.id,
+      label: `${translate(baseMarker.labelKey)} ${count}`,
+    }));
+  }
+
+  if (previewState) {
+    // 普通点 / 信息点在状态切换时，地图上所有点统一展示被选中的状态。
+    const fallbackMarker = spec.markerVariants.find((marker) => marker.id === previewState) ?? spec.markerVariants[0];
+    const previewPattern = spec.previewDistribution === "china" ? chinaPointPreviewPattern : pointPreviewPattern;
+
+    return previewPattern.map(() => ({
+      id: previewState,
+      label: fallbackMarker ? translate(fallbackMarker.labelKey) : translate(spec.nameKey),
+    }));
+  }
+
+  // 默认预览：按 pattern 混合展示默认、完成、弱化、强化等状态。
+  const markersById = new Map(spec.markerVariants.map((marker) => [marker.id, marker]));
+  const previewPattern = spec.previewDistribution === "china" ? chinaPointPreviewPattern : pointPreviewPattern;
+  return previewPattern
+    .map((variant) => markersById.get(variant))
+    .filter((marker): marker is ManualMarkerVariant => Boolean(marker))
+    .map((marker) => ({ id: marker.id, label: translate(marker.labelKey) }));
+}
+
+/**
+ * 根据组件配置生成路线预览数据。
+ * 当前主要用于静态路线组件；状态切换后的 route state 会继续传给 MapCanvas。
+ */
+export function createPreviewRoutes(spec: ManualComponentSpec, translate: (key: string) => string): RoutePreviewState[] | undefined {
+  return spec.routeVariants?.map((variant) => ({
+    id: variant.id,
+    label: translate(variant.labelKey),
+  }));
+}
+
+/**
+ * 每种组件的默认预览 zoom。
+ * 全国点/聚合点 zoom 更小；线/面/容器需要看到局部结构；普通点默认更近一些。
+ */
+export function getPreviewZoom(spec: ManualComponentSpec) {
+  if (spec.previewDistribution === "china" || spec.previewDistribution === "chinaCluster") {
+    return 4;
+  }
+
+  if (spec.previewType === "line" || spec.previewType === "area" || spec.previewType === "container") {
+    return 12;
+  }
+
+  return 13;
+}
+```
+
+// === src/map-components/point/index.ts ===
+```typescript
+import customShopMarker from "../../assets/custom-location/shop.svg?raw";
+import customUserMarker from "../../assets/custom-location/user.svg?raw";
+import customWarehouseMarker from "../../assets/custom-location/warehouse.svg?raw";
+import informatedCompletedMarker from "../../assets/informated-location/completed.svg";
+import informatedDefaultMarker from "../../assets/informated-location/default.svg";
+import informatedDisableMarker from "../../assets/informated-location/disable.svg";
+import informatedEmphasizedMarker from "../../assets/informated-location/emphasized.svg";
+import informatedSelectedMarker from "../../assets/informated-location/selected.svg";
+import type { CustomMarkerContent, MarkerPreviewFamily, MarkerPreviewVariant, MarkerStyle } from "../../types";
+
+export interface PointMarkerElementOptions {
+  count?: number;
+  customContent?: CustomMarkerContent;
+  family?: MarkerPreviewFamily;
+  label: string;
+  style: MarkerStyle;
+  variant?: MarkerPreviewVariant;
+}
+
+export const interactivePointVariants: MarkerPreviewVariant[] = ["default", "completed", "emphasized"];
+
+const informatedMarkerAssets: Record<MarkerPreviewVariant, string> = {
+  completed: informatedCompletedMarker,
+  default: informatedDefaultMarker,
+  emphasized: informatedEmphasizedMarker,
+  muted: informatedDisableMarker,
+  selected: informatedSelectedMarker,
+};
+
+const customMarkerAssets: Partial<Record<CustomMarkerContent, string>> = {
+  shop: customShopMarker,
+  user: customUserMarker,
+  warehouse: customWarehouseMarker,
+};
+
+const customMarkerStateColors: Partial<Record<MarkerPreviewVariant, string>> = {
+  completed: "#9C9EAD",
+  default: "#2A3EF4",
+  muted: "#C9D2FC",
+};
+
+function createCustomMarkerAsset(asset: string, variant?: MarkerPreviewVariant) {
+  const stateColor = customMarkerStateColors[variant ?? "default"] ?? customMarkerStateColors.default;
+  return asset.replace(/var\(--fill-0,\s*#2A3EF4\)/gi, stateColor ?? "#2A3EF4");
+}
+
+function createMarkerContent({
+  count,
+  customContent,
+  family,
+  style,
+  variant,
+}: Omit<PointMarkerElementOptions, "label">) {
+  if (variant && family === "informated") {
+    return `<span class="MapMarker__asset"><img alt="" class="MapMarker__assetBase" src="${informatedMarkerAssets[variant]}" /><img alt="" class="MapMarker__assetSelected" src="${informatedSelectedMarker}" /></span>`;
+  }
+
+  if (variant && family === "cumulative") {
+    return `<span class="MapMarker__cluster"><b>${count ?? ""}</b></span>`;
+  }
+
+  if (variant && family === "custom" && customContent) {
+    if (customMarkerAssets[customContent]) {
+      return `<span class="MapMarker__customAsset">${createCustomMarkerAsset(customMarkerAssets[customContent], variant)}</span>`;
+    }
+
+    return `<span class="MapMarker__customTextPin"><b>${customContent === "number" ? "2" : "O"}</b></span>`;
+  }
+
+  if (style === "dot" && !variant) {
+    return "<span></span>";
+  }
+
+  return "<span><i></i></span>";
+}
+
+export function createPointMarkerElement({
+  count,
+  customContent,
+  family = "normal",
+  label,
+  style,
+  variant,
+}: PointMarkerElementOptions) {
+  const marker = document.createElement("div");
+  const previewClass = family === "normal" ? "point" : family;
+  marker.className = variant ? `MapMarker MapMarker--${previewClass}-${variant}` : `MapMarker MapMarker--${style}`;
+  marker.innerHTML = createMarkerContent({ count, customContent, family, style, variant });
+
+  if (variant && interactivePointVariants.includes(variant)) {
+    marker.classList.add("MapMarker--interactive");
+    marker.tabIndex = 0;
+    marker.setAttribute("aria-label", label);
+    marker.setAttribute("role", "button");
+    marker.addEventListener("click", () => {
+      const canvas = marker.closest(".MapCanvas");
+      canvas?.querySelectorAll(".MapMarker.is-selected").forEach((selectedMarker) => {
+        if (selectedMarker !== marker) {
+          selectedMarker.classList.remove("is-selected");
+        }
+      });
+      marker.classList.toggle("is-selected");
+    });
+    marker.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        marker.click();
+      }
+    });
+  }
+
+  return marker;
+}
+```
+
+// === src/store/workbenchStore.ts ===
+```typescript
+import { create } from "zustand";
+
+export type WorkbenchView = "browse" | "use-case" | "manual" | "guide";
+export type MapCategory = "entity" | "visualization";
+export type WorkbenchLanguage = "zh" | "en";
+export type MapTheme = "light" | "dark";
+
+interface WorkbenchState {
+  view: WorkbenchView;
+  mapCategory: MapCategory;
+  lang: WorkbenchLanguage;
+  mapTheme: MapTheme;
+  setView: (view: WorkbenchView) => void;
+  setMapCategory: (mapCategory: MapCategory) => void;
+  setLang: (lang: WorkbenchLanguage) => void;
+  setMapTheme: (mapTheme: MapTheme) => void;
+}
+
+export const useWorkbenchStore = create<WorkbenchState>((set) => ({
+  view: "browse",
+  mapCategory: "entity",
+  lang: "zh",
+  mapTheme: "light",
+  setView: (view) => set({ view }),
+  setMapCategory: (mapCategory) => set({ mapCategory }),
+  setLang: (lang) => set({ lang }),
+  setMapTheme: (mapTheme) => set({ mapTheme }),
+}));
+```
+
+// === src/types.ts ===
+```typescript
+export type MarkerStyle = "default" | "pin" | "dot" | "custom";
+export type MarkerPreviewVariant = "default" | "muted" | "completed" | "emphasized" | "selected";
+export type MarkerPreviewFamily = "normal" | "informated" | "cumulative" | "custom";
+export type CustomMarkerContent = "letter" | "number" | "warehouse" | "shop" | "user";
+export type RoutePreviewVariant = "default" | "muted" | "completed" | "selected" | "inProgress";
+export type RoutePreviewFamily =
+  | "normalNoArrow"
+  | "normalHasArrow"
+  | "routeWithNormalLocation"
+  | "routeWithInformatedLocation"
+  | "routeWithProgress";
+
+export interface MarkerPreviewState {
+  count?: number;
+  customContent?: CustomMarkerContent;
+  id: MarkerPreviewVariant;
+  label: string;
+}
+
+export interface RoutePreviewState {
+  id: RoutePreviewVariant;
+  label: string;
+}
+
+export interface RouteNode {
+  id: "start" | "middle" | "end";
+  value: string;
+}
+
+export interface ManagedRoute {
+  colorId: "route1" | "route2" | "route3";
+  id: string;
+  name: string;
+  nodes: RouteNode[];
+  visible: boolean;
+}
+
+export interface MapControlsState {
+  activeRouteId: string;
+  zoom: number;
+  markerStyle: MarkerStyle;
+  routes: ManagedRoute[];
+  showMapUi: boolean;
+  routeNodes: RouteNode[];
+}
+```
+

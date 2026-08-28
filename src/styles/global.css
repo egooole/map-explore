@@ -30,6 +30,13 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+@media (max-width: 1100px) {
+  body {
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+}
+
 button,
 input,
 select {
