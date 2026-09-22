@@ -1,6 +1,6 @@
 import { create } from "zustand";
 
-export type WorkbenchView = "browse" | "use-case" | "manual" | "guide";
+export type WorkbenchView = "home" | "browse" | "use-case" | "manual" | "guide";
 export type MapCategory = "entity" | "visualization";
 export type WorkbenchLanguage = "zh" | "en";
 export type MapTheme = "light" | "dark";
@@ -17,7 +17,7 @@ interface WorkbenchState {
 }
 
 export const useWorkbenchStore = create<WorkbenchState>((set) => ({
-  view: "browse",
+  view: "home",
   mapCategory: "entity",
   lang: "zh",
   mapTheme: "light",

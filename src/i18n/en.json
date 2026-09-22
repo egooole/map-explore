@@ -11,6 +11,10 @@
     "languageGroup": "Language",
     "appearanceGroup": "Map Style",
     "items": {
+      "home": {
+        "label": "Home",
+        "description": "Explore Map Lab"
+      },
       "browse": {
         "label": "Map Browse",
         "description": "Tune map styles live"
@@ -51,6 +55,71 @@
         "label": "Dark map",
         "description": "Dark basemap"
       }
+    }
+  },
+  "home": {
+    "hero": {
+      "title": "Build consistent map experiences for global logistics",
+      "description": "Map Lab unifies spatial objects, interaction standards, and frontend components so warehouse location, driver dispatch, vehicle routing, parcel tracking, and network planning stay consistent across markets.",
+      "explore": "Explore map capabilities",
+      "components": "Browse components"
+    },
+    "summary": {
+      "endToEnd": { "title": "End-to-end", "description": "From design standards to frontend components" },
+      "model": { "title": "Location · Route · Area", "description": "A unified spatial object model" },
+      "global": { "title": "Global & Multi-scenario", "description": "Reusable across markets and logistics scenarios" }
+    },
+    "sections": {
+      "context": { "eyebrow": "WHY MAP LAB", "title": "Complex logistics needs a unified spatial language", "description": "Global markets, diverse scenarios, and dense information cause the same map capabilities to be rebuilt repeatedly. Map Lab keeps the experience consistent." },
+      "capabilities": { "eyebrow": "SPATIAL MODEL", "title": "One spatial language, three core capabilities", "description": "Location, Route, and Area form the base model of logistics maps and the shared grammar for component composition." },
+      "components": { "eyebrow": "COMPONENT SYSTEM", "title": "Composable logistics map components", "description": "From basic locations to progress routes and service areas, every component has consistent states and can be composed into real products." },
+      "cases": { "eyebrow": "IN PRODUCT", "title": "Built into real logistics products", "description": "Components are not isolated styles. Stable composition patterns turn them into operable, dispatchable, and trackable product capabilities." },
+      "start": { "eyebrow": "GET STARTED", "title": "Start your Map Lab experience now", "description": "Enter through the path for your role and move quickly from standards and components to a shippable logistics map solution." }
+    },
+    "context": {
+      "global": { "title": "Global", "description": "Differences in basemaps, addresses, languages, and information density create very different map environments for the same logistics task." },
+      "scenario": { "title": "Multi-scenario", "description": "Warehousing, dispatch, fulfillment, tracking, and network planning evolve separately and often rebuild the same spatial capabilities." },
+      "complex": { "title": "Complex", "description": "Locations, routes, areas, and live states appear together and need stable hierarchy and interaction rules." }
+    },
+    "capabilities": {
+      "objects": "Logistics objects",
+      "value": "Business value",
+      "location": { "title": "Location", "question": "Where is the object?", "definition": "Express locatable, selectable, and clusterable logistics entities through a unified location component.", "objects": "Warehouses, drivers, vehicles, merchants, parcels, sites", "value": "Consistent object recognition and state expression" },
+      "route": { "title": "Route", "question": "How does the object move?", "definition": "Express planned routes, actual tracks, movement direction, and task progress.", "objects": "Planned routes, actual tracks, transport tasks", "value": "Make dispatch and fulfillment understandable" },
+      "area": { "title": "Area", "question": "Where does business happen?", "definition": "Use boundaries and ranges to express service capacity, operating areas, and warehouse coverage.", "objects": "Pickup zones, service ranges, operating regions", "value": "Support coverage decisions and network planning" }
+    },
+    "components": {
+      "categoryAria": "Choose a spatial capability category",
+      "stateAria": "Choose a component state",
+      "listAria": "Choose a map component",
+      "openManual": "Open the complete component manual",
+      "states": { "default": "Default", "hover": "Hover", "selected": "Selected" },
+      "items": {
+        "normalLocation": { "title": "Normal Location", "description": "A standard location point for basic position, state, and density relationships." },
+        "informatedLocation": { "title": "Informated Location", "description": "An information-rich pin with a business icon for stronger object recognition." },
+        "cumulativeLocation": { "title": "Cumulative Location", "description": "Clusters and separates high-volume locations by zoom level to reduce map noise." },
+        "customLocation": { "title": "Custom Location", "description": "An extensible location container for letters, numbers, and business icons." },
+        "normalRoute": { "title": "Normal Route", "description": "A foundational route for planned paths and actual tracks." },
+        "directionalRoute": { "title": "Directional Route", "description": "Uses directional arrows to explain movement along a route." },
+        "routeWithEndpoints": { "title": "Route with endpoints", "description": "Combines a route with origin and destination so the task relationship is immediately clear." },
+        "progressRoute": { "title": "Progress Route", "description": "Separates completed and remaining segments and marks the live task position." },
+        "areaSelection": { "title": "Area Selection", "description": "Highlights a single service or operating area with clear state feedback." },
+        "multipleAreas": { "title": "Multiple Areas", "description": "Compares the coverage and spatial relationships of multiple regions." },
+        "regionLabel": { "title": "Region Label", "description": "Displays a name and key business data at an area's center." }
+      }
+    },
+    "cases": {
+      "aria": "Choose a logistics product case",
+      "open": "View all business cases",
+      "labels": { "problem": "Business problem", "components": "Map Lab components", "outcome": "Product capability" },
+      "operations": { "index": "CASE 01", "title": "Logistics operations monitoring", "problem": "Large networks contain many facilities, transport tasks, and exceptions, making operational risks hard to locate quickly.", "components": "Location · Progress Route · Multiple Areas", "outcome": "Monitor network health, task progress, and regional risk in one map." },
+      "dispatch": { "index": "CASE 02", "title": "Delivery dispatch", "problem": "Teams must compare routes and assign drivers under capacity, time, and service-area constraints.", "components": "Informated Location · Directional Route · Area Selection", "outcome": "Create a dispatch workflow that is comparable, selectable, and executable." },
+      "tracking": { "index": "CASE 03", "title": "Parcel tracking", "problem": "Across many handoffs, users need to understand current position, completed movement, and expected delivery.", "components": "Custom Location · Progress Route · Region Label", "outcome": "Turn a complex fulfillment chain into a continuous, trustworthy tracking experience." },
+      "network": { "index": "CASE 04", "title": "Logistics network planning", "problem": "Network planning must evaluate facility locations, coverage relationships, and cross-region transport links together.", "components": "Cumulative Location · Normal Route · Multiple Areas", "outcome": "Support site selection, coverage evaluation, and network scenario comparison." }
+    },
+    "start": {
+      "designer": { "role": "DESIGNER", "title": "Design from a unified experience", "item1": "Map experience standards", "item2": "Figma component library", "item3": "Logistics business templates", "cta": "Open component manual" },
+      "engineer": { "role": "ENGINEER", "title": "Integrate map capabilities into products", "item1": "Environment configuration", "item2": "Component APIs", "item3": "Integration examples and developer docs", "cta": "Open usage guide" }
     }
   },
   "params": {

@@ -11,6 +11,10 @@
     "languageGroup": "语言 Language",
     "appearanceGroup": "地图样式 Map Style",
     "items": {
+      "home": {
+        "label": "首页",
+        "description": "了解 Map Lab"
+      },
       "browse": {
         "label": "地图浏览",
         "description": "实时调整地图样式"
@@ -50,6 +54,147 @@
       "dark": {
         "label": "暗色底图",
         "description": "Dark map"
+      }
+    }
+  },
+  "home": {
+    "hero": {
+      "title": "为全球物流业务构建一致的地图体验",
+      "description": "Map Lab 将物流空间对象、交互规范与前端组件统一起来，让仓库定位、司机调度、车辆路线、包裹追踪与网络规划在不同市场中保持一致。",
+      "explore": "探索地图能力",
+      "components": "浏览组件"
+    },
+    "summary": {
+      "endToEnd": { "title": "End-to-end", "description": "从设计规范到前端组件" },
+      "model": { "title": "Location · Route · Area", "description": "统一的空间对象模型" },
+      "global": { "title": "Global & Multi-scenario", "description": "跨市场、跨物流场景复用" }
+    },
+    "sections": {
+      "context": {
+        "eyebrow": "WHY MAP LAB",
+        "title": "复杂的物流业务，需要统一的空间表达",
+        "description": "全球化、多场景与高信息密度让相似的地图能力被反复建设。Map Lab 用同一种空间语言保持体验一致。"
+      },
+      "capabilities": {
+        "eyebrow": "SPATIAL MODEL",
+        "title": "一种空间语言，三类基础能力",
+        "description": "Location、Route 与 Area 构成物流地图的基础模型，也构成组件组合的共同语法。"
+      },
+      "components": {
+        "eyebrow": "COMPONENT SYSTEM",
+        "title": "可组合的物流地图组件",
+        "description": "从基础位置到进度路线与服务区域，每个组件都拥有统一状态，并可组合进入真实业务。"
+      },
+      "cases": {
+        "eyebrow": "IN PRODUCT",
+        "title": "进入真实物流产品",
+        "description": "组件不是孤立的样式。它们通过稳定的组合方式，转化为可运营、可调度、可追踪的产品能力。"
+      },
+      "start": {
+        "eyebrow": "GET STARTED",
+        "title": "即刻开启你的 Map Lab 体验",
+        "description": "按你的角色进入对应入口，从规范与组件开始，快速形成可落地的物流地图方案。"
+      }
+    },
+    "context": {
+      "global": { "title": "Global", "description": "跨国家的底图、地址、语言和信息密度差异，让同一种物流任务呈现完全不同的地图环境。" },
+      "scenario": { "title": "Multi-scenario", "description": "仓配、调度、履约、追踪和网络规划各自发展，容易重复建设相同的空间能力。" },
+      "complex": { "title": "Complex", "description": "位置、路线、区域与实时状态同时出现，需要稳定的信息层级与交互规则。" }
+    },
+    "capabilities": {
+      "objects": "物流对象",
+      "value": "业务价值",
+      "location": {
+        "title": "Location",
+        "question": "对象在哪里",
+        "definition": "用统一的位置组件表达可定位、可选择、可聚合的物流实体。",
+        "objects": "仓库、司机、车辆、商家、包裹、站点",
+        "value": "统一对象识别与状态表达"
+      },
+      "route": {
+        "title": "Route",
+        "question": "对象如何移动",
+        "definition": "表达计划路线、实际轨迹、移动方向以及任务执行进度。",
+        "objects": "计划路线、实际轨迹、运输任务",
+        "value": "让调度与履约过程可理解"
+      },
+      "area": {
+        "title": "Area",
+        "question": "业务在哪里发生",
+        "definition": "用边界与范围表达服务能力、运营区域和仓库覆盖关系。",
+        "objects": "揽派区、服务范围、运营区域",
+        "value": "支持范围判断与网络规划"
+      }
+    },
+    "components": {
+      "categoryAria": "选择空间能力分类",
+      "stateAria": "选择组件状态",
+      "listAria": "选择地图组件",
+      "openManual": "查看完整组件手册",
+      "states": { "default": "Default", "hover": "Hover", "selected": "Selected" },
+      "items": {
+        "normalLocation": { "title": "Normal Location", "description": "用于表达基础位置、状态和密度关系的标准定位点。" },
+        "informatedLocation": { "title": "Informated Location", "description": "带业务图标的信息型定位点，强化对象类型识别。" },
+        "cumulativeLocation": { "title": "Cumulative Location", "description": "随缩放层级聚合与拆分大量位置对象，降低地图信息噪声。" },
+        "customLocation": { "title": "Custom Location", "description": "承载字母、数字或业务图标的可扩展位置容器。" },
+        "normalRoute": { "title": "Normal Route", "description": "用于计划路径与实际轨迹的基础路线表达。" },
+        "directionalRoute": { "title": "Directional Route", "description": "通过方向箭头说明对象沿路线移动的方向。" },
+        "routeWithEndpoints": { "title": "Route with endpoints", "description": "组合路线与起终点，让任务关系在地图中一眼可见。" },
+        "progressRoute": { "title": "Progress Route", "description": "区分已完成和剩余路段，并标记实时任务位置。" },
+        "areaSelection": { "title": "Area Selection", "description": "高亮单个服务或运营区域，并支持状态反馈。" },
+        "multipleAreas": { "title": "Multiple Areas", "description": "同时比较多个区域的覆盖范围和空间关系。" },
+        "regionLabel": { "title": "Region Label", "description": "在区域中心展示名称与关键业务数据。" }
+      }
+    },
+    "cases": {
+      "aria": "选择物流产品案例",
+      "open": "查看完整业务案例",
+      "labels": { "problem": "业务问题", "components": "接入组件", "outcome": "产品能力" },
+      "operations": {
+        "index": "CASE 01",
+        "title": "物流运营监控",
+        "problem": "全球网络中同时存在大量设施、运输任务与异常状态，运营人员难以快速定位风险。",
+        "components": "Location · Progress Route · Multiple Areas",
+        "outcome": "在一张地图中掌握网络健康度、任务进度和区域风险。"
+      },
+      "dispatch": {
+        "index": "CASE 02",
+        "title": "配送调度",
+        "problem": "需要在运力、时效与服务范围限制下，快速比较路线并分配司机。",
+        "components": "Informated Location · Directional Route · Area Selection",
+        "outcome": "形成可比较、可选择、可执行的调度工作流。"
+      },
+      "tracking": {
+        "index": "CASE 03",
+        "title": "包裹追踪",
+        "problem": "包裹在多节点流转中，用户需要理解当前位置、已完成路径和预计送达。",
+        "components": "Custom Location · Progress Route · Region Label",
+        "outcome": "把复杂履约链路转化为连续、可信的追踪体验。"
+      },
+      "network": {
+        "index": "CASE 04",
+        "title": "物流网络规划",
+        "problem": "仓网规划需要同时判断节点位置、覆盖关系与跨区域运输连接。",
+        "components": "Cumulative Location · Normal Route · Multiple Areas",
+        "outcome": "支持设施选址、覆盖评估与网络结构方案比较。"
+      }
+    },
+    "start": {
+      "designer": {
+        "role": "DESIGNER",
+        "title": "从统一体验开始设计",
+        "item1": "地图体验规范",
+        "item2": "Figma 组件库",
+        "item3": "物流业务模板",
+        "cta": "进入组件手册"
+      },
+      "engineer": {
+        "role": "ENGINEER",
+        "title": "把地图能力接入产品",
+        "item1": "环境配置",
+        "item2": "组件 API",
+        "item3": "接入示例与开发文档",
+        "cta": "查看使用指南"
       }
     }
   },

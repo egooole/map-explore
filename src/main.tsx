@@ -13,13 +13,14 @@ function redirectDirectRouteToHashRoute() {
 
   const basePath = import.meta.env.BASE_URL.replace(/\/$/, "");
   const pathname = window.location.pathname.replace(/\/$/, "");
-  const isDirectAppRoute = pathname === `${basePath}/browse` || pathname === `${basePath}/manual` || pathname === `${basePath}/use-case`;
+  const directAppRoutes = ["/home", "/browse", "/use-case", "/manual", "/guide"];
+  const isDirectAppRoute = directAppRoutes.some((route) => pathname === `${basePath}${route}`);
 
   if (!isDirectAppRoute) {
     return;
   }
 
-  const routePath = pathname.slice(basePath.length) || "/browse";
+  const routePath = pathname.slice(basePath.length) || "/home";
   window.history.replaceState(null, "", `${basePath}/#${routePath}${window.location.search}`);
 }
 

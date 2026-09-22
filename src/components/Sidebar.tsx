@@ -1,4 +1,4 @@
-import { BookOpen, CircleHelp, Globe2, Languages, Map, Moon, Play, Route, Sun } from "lucide-react";
+import { BookOpen, CircleHelp, Globe2, Home, Languages, Map, Moon, Play, Route, Sun } from "lucide-react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -48,6 +48,7 @@ function SidebarNavGroup({ title, children }: SidebarNavGroupProps) {
 }
 
 const viewPaths: Record<WorkbenchView, string> = {
+  home: "/home",
   browse: "/browse",
   "use-case": "/use-case",
   manual: "/manual",
@@ -95,6 +96,13 @@ export function Sidebar() {
 
       <nav className="Sidebar__nav" aria-label={t("app.productName")}>
         <SidebarNavGroup title={t("sidebar.viewGroup")}>
+          <SidebarNavItem
+            active={view === "home"}
+            description={t("sidebar.items.home.description")}
+            icon={<Home size={18} />}
+            label={t("sidebar.items.home.label")}
+            onClick={() => handleView("home")}
+          />
           <SidebarNavItem
             active={view === "browse"}
             description={t("sidebar.items.browse.description")}

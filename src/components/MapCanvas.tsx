@@ -36,7 +36,10 @@ declare global {
 type GoogleMapsGlobal = {
   maps: {
     ControlPosition: Record<string, number>;
-    importLibrary: (library: "marker") => Promise<GoogleMarkerLibrary>;
+    importLibrary: {
+      (library: "core"): Promise<GoogleCoreLibrary>;
+      (library: "marker"): Promise<GoogleMarkerLibrary>;
+    };
     Data: new (options: { map?: GoogleMap }) => GoogleDataLayer;
     Map: new (element: HTMLElement, options: Record<string, unknown>) => GoogleMap;
     OverlayView: typeof GoogleOverlayView;
@@ -44,6 +47,13 @@ type GoogleMapsGlobal = {
     Polygon: new (options: Record<string, unknown>) => GooglePolygon;
     Polyline: new (options: Record<string, unknown>) => GooglePolyline;
     Size: new (width: number, height: number) => unknown;
+  };
+};
+
+type GoogleCoreLibrary = {
+  ColorScheme: {
+    DARK: unknown;
+    LIGHT: unknown;
   };
 };
 
@@ -137,6 +147,13 @@ interface PreviewMarkerItem {
   position: GoogleLatLng;
 }
 
+interface CumulativeClusterNode {
+  count: number;
+  depth: number;
+  position: GoogleLatLngLiteral;
+  seed: number;
+}
+
 interface GeoJsonFeatureCollection {
   features: Array<Record<string, unknown>>;
   name?: string;
@@ -195,7 +212,7 @@ type MapMarkerAnchor = "bottom" | "center" | "pin-tip";
  * - previewMarkerFamily / previewRouteFamily：决定预览哪一种组件样式。
  * - previewRouteState：组件手册里状态切换按钮传进来的路线状态。
  */
-interface MapCanvasProps {
+export interface MapCanvasProps {
   mapCategory: MapCategory;
   lang: WorkbenchLanguage;
   controls: MapControlsState;
@@ -206,6 +223,7 @@ interface MapCanvasProps {
   previewDistribution?: "local" | "china" | "chinaCluster";
   previewFeature?: "point" | "line" | "area" | "container";
   previewRegionIds?: string[];
+  previewRegionState?: "default" | "selected";
   hidePreviewContent?: boolean;
   previewMarkerFamily?: MarkerPreviewFamily;
   previewMarkerGroups?: PreviewMarkerGroup[];
@@ -1054,7 +1072,8 @@ function resolvePreviewPositions(previewDistribution: MapCanvasProps["previewDis
 
 function offsetGroupedPreviewPosition(
   position: GoogleLatLng,
-  groupIndex: number,
+  family: MarkerPreviewFamily,
+  markerIndex: number,
   groupCount: number,
   previewDistribution: MapCanvasProps["previewDistribution"],
 ) {
@@ -1062,23 +1081,111 @@ function offsetGroupedPreviewPosition(
     return position;
   }
 
-  const offsets: GoogleLatLngLiteral[] = [
+  // 多种点同时展示时按组件类型固定分区，并加入轻微的不规则偏移。
+  // 固定使用 family 而不是勾选后的数组序号，避免切换筛选时其余点位跳动。
+  const familyOffsets: Record<Exclude<MarkerPreviewFamily, "cumulative">, GoogleLatLngLiteral> = {
+    normal: { lat: 0.009, lng: -0.014 },
+    informated: { lat: 0.013, lng: 0.017 },
+    custom: { lat: -0.014, lng: 0.012 },
+  };
+  const naturalOffsets: GoogleLatLngLiteral[] = [
     { lat: 0, lng: 0 },
-    { lat: 0.0018, lng: 0.0022 },
-    { lat: -0.0016, lng: 0.0018 },
-    { lat: 0.0016, lng: -0.002 },
+    { lat: 0.0035, lng: -0.0025 },
+    { lat: -0.0028, lng: 0.004 },
+    { lat: 0.0018, lng: 0.0055 },
+    { lat: -0.004, lng: -0.0015 },
+    { lat: 0.0045, lng: 0.002 },
   ];
-  const offset = offsets[groupIndex % offsets.length];
+  const familyOffset = family === "cumulative" ? { lat: 0, lng: 0 } : familyOffsets[family];
+  const naturalOffset = naturalOffsets[markerIndex % naturalOffsets.length];
   const lat = typeof position.lat === "function" ? position.lat() : position.lat;
   const lng = typeof position.lng === "function" ? position.lng() : position.lng;
 
   return {
-    lat: lat + offset.lat,
-    lng: lng + offset.lng,
+    lat: lat + familyOffset.lat + naturalOffset.lat,
+    lng: lng + familyOffset.lng + naturalOffset.lng,
   };
 }
 
-function resolveCumulativePreviewItems(zoom: number, previewMarkers: MarkerPreviewState[] | undefined): PreviewMarkerItem[] {
+function splitCumulativeCluster(node: CumulativeClusterNode): CumulativeClusterNode[] {
+  if (node.count <= 1) {
+    return [node];
+  }
+
+  // 3:4 的拆分比例让 28 首次放大后稳定拆成 12 + 16，且所有层级数量守恒。
+  const firstCount = Math.max(1, Math.round((node.count * 3) / 7));
+  const secondCount = node.count - firstCount;
+  const distance = 4.2 / 2 ** node.depth;
+  const angle = (((node.seed * 47 + node.depth * 73) % 360) * Math.PI) / 180;
+  const latOffset = Math.sin(angle) * distance * 0.62;
+  const lngOffset = Math.cos(angle) * distance;
+
+  return [
+    {
+      count: firstCount,
+      depth: node.depth + 1,
+      position: {
+        lat: node.position.lat + latOffset,
+        lng: node.position.lng + lngOffset,
+      },
+      seed: node.seed * 2 + 1,
+    },
+    {
+      count: secondCount,
+      depth: node.depth + 1,
+      position: {
+        lat: node.position.lat - latOffset,
+        lng: node.position.lng - lngOffset,
+      },
+      seed: node.seed * 2 + 2,
+    },
+  ];
+}
+
+function resolveHierarchicalCumulativePreviewItems(
+  zoom: number,
+  previewMarkers: MarkerPreviewState[] | undefined,
+): PreviewMarkerItem[] {
+  const targetDepth = Math.max(0, Math.floor(zoom) - 4);
+  let nodes: CumulativeClusterNode[] = (previewMarkers ?? []).map((marker, index) => {
+    const position = chinaClusterPreviewPositions[index % chinaClusterPreviewPositions.length];
+    return {
+      count: marker.count ?? 1,
+      depth: 0,
+      position: {
+        lat: typeof position.lat === "function" ? position.lat() : position.lat,
+        lng: typeof position.lng === "function" ? position.lng() : position.lng,
+      },
+      seed: index + 1,
+    };
+  });
+
+  for (let depth = 0; depth < targetDepth; depth += 1) {
+    nodes = nodes.flatMap(splitCumulativeCluster);
+  }
+
+  const normalVariants: MarkerPreviewVariant[] = ["default", "completed", "muted", "emphasized"];
+  return nodes.map((node, index) => ({
+    family: node.count === 1 ? "normal" : "cumulative",
+    marker:
+      node.count === 1
+        ? {
+            id: normalVariants[index % normalVariants.length],
+            label: previewMarkers?.[0]?.label ?? "Normal point",
+          }
+        : {
+            count: node.count,
+            id: "default",
+            label: `Cluster ${node.count}`,
+          },
+    position: node.position,
+  }));
+}
+
+function resolveCombinedCumulativePreviewItems(
+  zoom: number,
+  previewMarkers: MarkerPreviewState[] | undefined,
+): PreviewMarkerItem[] {
   if (zoom >= 7) {
     const variants: MarkerPreviewVariant[] = ["default", "completed", "muted", "default", "emphasized", "completed"];
     return chinaLeafPointPreviewPositions.map((position, index) => ({
@@ -1523,6 +1630,7 @@ export function MapCanvas({
   previewDistribution = "local",
   previewFeature,
   previewRegionIds,
+  previewRegionState = "default",
   previewMarkerFamily = "normal",
   previewMarkerGroups,
   previewMarkers,
@@ -1550,7 +1658,7 @@ export function MapCanvas({
   const [debouncedRoutes, setDebouncedRoutes] = useState(controls.routes);
   const preset = mapPresets[mapCategory][lang];
   const activeMapId = preset.mapId;
-  const mapConfigKey = `${lang}:${mapCategory}:${preset.mapTypeId}:${activeMapId}`;
+  const mapConfigKey = `${lang}:${mapCategory}:${preset.mapTypeId}:${activeMapId}:${mapTheme}`;
   const routeColor = mapCategory === "visualization" ? "#475569" : "#2A3EF4";
   const markerLabels = useMemo(() => [t("map.warehouse"), t("map.hub"), t("map.destination")], [t]);
   const hasCumulativePreviewGroup =
@@ -1617,7 +1725,13 @@ export function MapCanvas({
 
     setStatus("loading");
     loadGoogleMaps(lang)
-      .then((googleMaps) => {
+      .then(async (googleMaps) => {
+        if (cancelled || !rootRef.current) {
+          return;
+        }
+
+        const { ColorScheme } = await googleMaps.maps.importLibrary("core");
+
         if (cancelled || !rootRef.current) {
           return;
         }
@@ -1650,6 +1764,7 @@ export function MapCanvas({
           new googleMaps.maps.Map(rootRef.current, {
             center: resolvePreviewCenter(previewDistribution),
             clickableIcons: mapCategory === "entity",
+            colorScheme: mapTheme === "dark" ? ColorScheme.DARK : ColorScheme.LIGHT,
             disableDefaultUI: !controls.showMapUi,
             gestureHandling: compact ? "cooperative" : "greedy",
             mapId: activeMapId,
@@ -1681,6 +1796,7 @@ export function MapCanvas({
     lang,
     mapCategory,
     mapConfigKey,
+    mapTheme,
     preset.mapTypeId,
     previewDistribution,
   ]);
@@ -1743,7 +1859,7 @@ export function MapCanvas({
     const shouldShowRoutePreview =
       !canRenderDynamicRoute &&
       !hidePreviewContent &&
-      previewFeature === "line" &&
+      (previewFeature === "line" || previewFeature === "container") &&
       (hasPreviewRouteGroups || Boolean(previewRouteFamily && previewRoutes?.length));
     const shouldShowLine =
       (!previewFeature || previewFeature === "container") &&
@@ -1942,9 +2058,11 @@ export function MapCanvas({
 
       if (markerGroups.length) {
         const markerItems: PreviewMarkerItem[] =
-          markerGroups.flatMap((group, groupIndex) =>
+          markerGroups.flatMap((group) =>
             group.family === "cumulative" && group.distribution === "chinaCluster"
-              ? resolveCumulativePreviewItems(renderPreviewZoom ?? controls.zoom, group.markers)
+              ? markerGroups.length === 1
+                ? resolveHierarchicalCumulativePreviewItems(renderPreviewZoom ?? controls.zoom, group.markers)
+                : resolveCombinedCumulativePreviewItems(renderPreviewZoom ?? controls.zoom, group.markers)
               : group.markers.map((marker, index) => {
                   const groupDistribution = group.distribution ?? previewDistribution;
                   const previewPositions = resolvePreviewPositions(groupDistribution);
@@ -1952,7 +2070,13 @@ export function MapCanvas({
                   return {
                     family: group.family,
                     marker,
-                    position: offsetGroupedPreviewPosition(basePosition, groupIndex, markerGroups.length, groupDistribution),
+                    position: offsetGroupedPreviewPosition(
+                      basePosition,
+                      group.family,
+                      index,
+                      markerGroups.length,
+                      groupDistribution,
+                    ),
                   };
                 }),
           );
@@ -1969,7 +2093,7 @@ export function MapCanvas({
             });
             if (family === "cumulative" && marker.count) {
               markerElement.addEventListener("click", () => {
-                map.setZoom(Math.min((map.getZoom() ?? renderPreviewZoom ?? controls.zoom) + 1, 8));
+                map.setZoom(Math.min((map.getZoom() ?? renderPreviewZoom ?? controls.zoom) + 1, 16));
               });
             }
 
@@ -2082,7 +2206,10 @@ export function MapCanvas({
     const resolveFeatureRegionId = (feature: GoogleDataFeature) => String(feature.getProperty("mapLabId") ?? "");
     const styleForFeature = (feature: GoogleDataFeature) => {
       const regionId = resolveFeatureRegionId(feature);
-      if (regionId && (regionId === selectedRegionId || regionId === hoveredRegionId)) {
+      if (
+        regionId &&
+        (previewRegionState === "selected" || regionId === selectedRegionId || regionId === hoveredRegionId)
+      ) {
         return regionDataStyles.selected;
       }
       return regionDataStyles.default;
@@ -2143,6 +2270,10 @@ export function MapCanvas({
         }
 
         refreshStyles();
+        if (previewRegionState === "selected" && regions[0]) {
+          selectedRegionId = regions[0].id;
+          void renderLabel(selectedRegionId);
+        }
 
         regionListenersRef.current = [
           dataLayer.addListener("mouseover", (event) => {
@@ -2195,7 +2326,7 @@ export function MapCanvas({
       cancelled = true;
       clearRegionLayer();
     };
-  }, [hidePreviewContent, previewFeature, previewRegionIds, status]);
+  }, [hidePreviewContent, previewFeature, previewRegionIds, previewRegionState, status]);
 
   /**
    * 地图浏览模式里的“输入起点/中途点/终点生成路线”。
