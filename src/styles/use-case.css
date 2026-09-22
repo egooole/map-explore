@@ -273,13 +273,21 @@
 
 .UseCaseRouteRows {
   display: grid;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   width: 100%;
 }
 
 .UseCaseRouteRow {
-  align-items: stretch;
   background: #ffffff;
   border-top: 0.0694cqw solid rgba(0, 0, 0, 0.1);
+  min-width: 0;
+}
+
+.UseCaseRouteRow__summary {
+  align-items: stretch;
   display: grid;
   grid-template-columns: 1.9444cqw 8.6111cqw 1fr;
   min-height: 8.0556cqw;
@@ -292,16 +300,36 @@
 
 .UseCaseRouteRow__expand {
   align-items: flex-start;
+  align-self: flex-start;
+  background: transparent;
+  border: 0;
+  border-radius: 2px;
   color: rgba(0, 0, 0, 0.55);
   display: flex;
+  height: 2.7778cqw;
   justify-content: center;
+  margin: 0;
   padding-top: 0.9028cqw;
+  width: 1.9444cqw;
 }
 
 .UseCaseRouteRow__expand svg {
   height: 1.1111cqw;
-  transform: rotate(90deg);
+  transition: transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
   width: 1.1111cqw;
+}
+
+.UseCaseRouteRow__expand:hover {
+  color: rgba(0, 0, 0, 0.92);
+}
+
+.UseCaseRouteRow__expand:focus-visible {
+  outline: 0.1389cqw solid #2a3ef4;
+  outline-offset: -0.1389cqw;
+}
+
+.UseCaseRouteRow.is-expanded .UseCaseRouteRow__expand svg {
+  transform: rotate(90deg);
 }
 
 .UseCaseRouteRow__actions {
@@ -330,7 +358,7 @@
   width: 1.0417cqw;
 }
 
-.UseCaseRouteRow button {
+.UseCaseRouteRow__actions button {
   border: 0;
   border-radius: 4px;
   cursor: pointer;
@@ -395,6 +423,71 @@
 .UseCaseRouteRow__overview .is-alert,
 .UseCaseRouteRow__overview .is-alert svg {
   color: #ff3b4f;
+}
+
+.UseCaseRouteRow__details {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.UseCaseRouteRow.is-expanded .UseCaseRouteRow__details {
+  grid-template-rows: 1fr;
+}
+
+.UseCaseRouteRow__detailsClip {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.UseCaseRouteStopTableWrap {
+  border-top: 0.0694cqw solid rgba(0, 0, 0, 0.1);
+  overflow-x: auto;
+  padding: 0.5556cqw 0.8333cqw 0.8333cqw 1.9444cqw;
+}
+
+.UseCaseRouteStopTable {
+  border-collapse: collapse;
+  color: rgba(0, 0, 0, 0.92);
+  font-size: 0.6944cqw;
+  line-height: 1.1111cqw;
+  table-layout: fixed;
+  width: 100%;
+}
+
+.UseCaseRouteStopTable__number {
+  width: 6%;
+}
+
+.UseCaseRouteStopTable__address {
+  width: 24%;
+}
+
+.UseCaseRouteStopTable th,
+.UseCaseRouteStopTable td {
+  border-bottom: 0.0694cqw solid rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  padding: 0.3472cqw 0.4167cqw;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.UseCaseRouteStopTable th {
+  background: rgba(0, 0, 0, 0.03);
+  color: rgba(0, 0, 0, 0.55);
+  font-weight: var(--font-weight-medium);
+}
+
+.UseCaseRouteStopTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .UseCaseRouteRow__details,
+  .UseCaseRouteRow__expand svg {
+    transition: none;
+  }
 }
 
 .UseCaseInfoPanel header span {

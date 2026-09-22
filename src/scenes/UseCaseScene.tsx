@@ -1,11 +1,12 @@
 import { useMemo, useState, type CSSProperties } from "react";
 import { useTranslation } from "react-i18next";
+import { ExpandableRouteRow, type RouteSummary } from "../components/ExpandableRouteRow";
 import { WorkbenchPageHeader } from "../components/WorkbenchPageHeader";
-import { Box, ChevronRight, Clock3, Info, MapPin, Package, Pencil, Truck, UserRound, Warehouse } from "lucide-react";
 import gtsTmsProduct from "../assets/use-case/gts-tms.svg";
 import routePlanningProduct from "../assets/use-case/page.svg";
 import { MapCanvas } from "../components/MapCanvas";
 import { createDefaultControls } from "../components/ParamPanel";
+import { mockRouteStopsByRouteId } from "../mocks/mockRouteStops";
 import { useWorkbenchStore } from "../store/workbenchStore";
 import type { RoutePreviewFamily } from "../types";
 
@@ -27,20 +28,6 @@ interface UseCaseConfig {
   routeFamily?: RoutePreviewFamily;
   summaryKey: string;
   titleKey: string;
-}
-
-interface RoutePlanningCard {
-  distance: string;
-  driver: string;
-  duration: string;
-  id: string;
-  packages: string;
-  pickupPoints: string;
-  routeNo: string;
-  status?: "alert";
-  vehicle: string;
-  volume: string;
-  weight: string;
 }
 
 const defaultProductMapFrame: UseCaseMapFrame = {
@@ -93,7 +80,7 @@ const useCaseConfigs: UseCaseConfig[] = [
   },
 ];
 
-const routePlanningCards: RoutePlanningCard[] = [
+const routePlanningCards: RouteSummary[] = [
   {
     distance: "12 mi",
     driver: "Rendy Zikri",
@@ -101,7 +88,7 @@ const routePlanningCards: RoutePlanningCard[] = [
     id: "route-hongqiao-lingang",
     packages: "105 packages",
     pickupPoints: "6 pickup points",
-    routeNo: "41649",
+    routeNo: "Hongqiao Route",
     vehicle: "Blind van",
     volume: "100 cbm",
     weight: "20 kg",
@@ -113,7 +100,7 @@ const routePlanningCards: RoutePlanningCard[] = [
     id: "route-putuo-waigaoqiao",
     packages: "105 packages",
     pickupPoints: "6 pickup points",
-    routeNo: "41648",
+    routeNo: "Pudong Route",
     status: "alert",
     vehicle: "Blind van",
     volume: "100 cbm",
@@ -126,7 +113,7 @@ const routePlanningCards: RoutePlanningCard[] = [
     id: "route-songjiang-xinjiangwan",
     packages: "105 packages",
     pickupPoints: "6 pickup points",
-    routeNo: "41648",
+    routeNo: "Lingang Route",
     status: "alert",
     vehicle: "Blind van",
     volume: "100 cbm",
@@ -198,61 +185,7 @@ export function UseCaseScene() {
                 </div>
                 <div className="UseCaseRouteRows">
                   {routePlanningCards.map((route) => (
-                    <article className="UseCaseRouteRow" key={route.id}>
-                      <div className="UseCaseRouteRow__expand" aria-hidden="true">
-                        <ChevronRight size={16} strokeWidth={1.75} />
-                      </div>
-                      <div className="UseCaseRouteRow__actions">
-                        <strong>
-                          <span />
-                          {route.routeNo}
-                        </strong>
-                        <button className="UseCaseRouteRow__dispatch" type="button">
-                          Dispatch route
-                        </button>
-                        <button className="UseCaseRouteRow__only" type="button">
-                          View it only
-                        </button>
-                      </div>
-                      <div className="UseCaseRouteRow__overview">
-                        <p>
-                          <Clock3 size={14} />
-                          <span>Est.Duration:</span>
-                          <em>{route.duration}</em>
-                        </p>
-                        <p>
-                          <MapPin size={14} />
-                          <span>Est.Distance:</span>
-                          <em>{route.distance}</em>
-                        </p>
-                        <p>
-                          <Warehouse size={14} />
-                          <span>{route.pickupPoints}</span>
-                        </p>
-                        <p>
-                          <Package size={14} />
-                          <span>{route.packages}</span>
-                        </p>
-                        <p>
-                          <Box size={14} />
-                          <span>{route.volume}</span>
-                        </p>
-                        <p>
-                          <Box size={14} />
-                          <span>{route.weight}</span>
-                        </p>
-                        <p>
-                          <Truck size={14} />
-                          <span>{route.vehicle}</span>
-                          <Info size={13} />
-                        </p>
-                        <p className={route.status === "alert" ? "is-alert" : undefined}>
-                          <UserRound size={14} />
-                          <span>{route.driver}</span>
-                          <Pencil size={13} />
-                        </p>
-                      </div>
-                    </article>
+                    <ExpandableRouteRow key={route.id} route={route} stops={mockRouteStopsByRouteId[route.id] ?? []} />
                   ))}
                 </div>
               </div>
