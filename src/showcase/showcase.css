@@ -1,0 +1,27 @@
+html,
+body,
+#root {
+  height: auto;
+  min-height: 100%;
+}
+
+html {
+  background: #000;
+  scroll-behavior: smooth;
+}
+
+body {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.ShowcaseStage {
+  min-height: 100dvh;
+  width: 100%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}

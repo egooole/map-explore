@@ -291,9 +291,9 @@ export function ComponentCard({ spec, categoryId, mapCategory, lang, mapTheme }:
   const previewControls = useMemo<MapControlsState>(
     () => {
       const routeNodes: MapControlsState["routeNodes"] = [
-        { id: "start", value: "Placeholder start" },
-        { id: "middle", value: "Placeholder middle" },
-        { id: "end", value: "Placeholder end" },
+        { id: "start", value: "Shanghai Hongqiao Airport" },
+        { id: "middle", value: "Jing'an Temple, Shanghai" },
+        { id: "end", value: "Lujiazui, Shanghai" },
       ];
       return {
         activeRouteId: "route-1",

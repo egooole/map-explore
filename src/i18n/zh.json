@@ -154,28 +154,36 @@
         "index": "CASE 01",
         "title": "物流运营监控",
         "problem": "全球网络中同时存在大量设施、运输任务与异常状态，运营人员难以快速定位风险。",
-        "components": "Location · Progress Route · Multiple Areas",
+        "components": "Custom Location",
         "outcome": "在一张地图中掌握网络健康度、任务进度和区域风险。"
       },
       "dispatch": {
         "index": "CASE 02",
         "title": "配送调度",
         "problem": "需要在运力、时效与服务范围限制下，快速比较路线并分配司机。",
-        "components": "Informated Location · Directional Route · Area Selection",
-        "outcome": "形成可比较、可选择、可执行的调度工作流。"
+        "components": "Route with Informated Location",
+        "outcome": "形成可比较、可选择、可执行的调度工作流。",
+        "routeListAria": "选择配送路线",
+        "routeListTitle": "配送路线",
+        "status": { "notStarted": "未开始", "inProgress": "进行中", "completed": "已完成" },
+        "routes": {
+          "1": { "name": "路线 A" },
+          "2": { "name": "路线 B" },
+          "3": { "name": "路线 C" }
+        }
       },
       "tracking": {
         "index": "CASE 03",
         "title": "包裹追踪",
         "problem": "包裹在多节点流转中，用户需要理解当前位置、已完成路径和预计送达。",
-        "components": "Custom Location · Progress Route · Region Label",
+        "components": "Route with Progress",
         "outcome": "把复杂履约链路转化为连续、可信的追踪体验。"
       },
       "network": {
         "index": "CASE 04",
         "title": "物流网络规划",
         "problem": "仓网规划需要同时判断节点位置、覆盖关系与跨区域运输连接。",
-        "components": "Cumulative Location · Normal Route · Multiple Areas",
+        "components": "Multiple Areas · Area Selection · Region Label",
         "outcome": "支持设施选址、覆盖评估与网络结构方案比较。"
       }
     },
@@ -189,12 +197,12 @@
         "cta": "进入组件手册"
       },
       "engineer": {
-        "role": "ENGINEER",
-        "title": "把地图能力接入产品",
-        "item1": "环境配置",
-        "item2": "组件 API",
-        "item3": "接入示例与开发文档",
-        "cta": "查看使用指南"
+        "role": "RD & VIBE CODER",
+        "title": "接入产品，或用 Skill 快速构建",
+        "item1": "开发接入与环境配置",
+        "item2": "Map Skill 安装与使用",
+        "item3": "组件 API、示例与开发文档",
+        "cta": "查看开发与 Skill 指南"
       }
     }
   },

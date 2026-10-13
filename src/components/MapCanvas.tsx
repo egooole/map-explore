@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import routeLocationPin from "../assets/route/location-pin.svg";
+import routeLocationPinDisabled from "../assets/informated-location/disable.svg";
 import routeProgressLocationPin from "../assets/route/progress-location.svg";
 import { cloudMapIds, mapKey, mapLabCloudMapIdSource, mapPresets } from "../config/mapPresets";
 import { createPointMarkerElement } from "../map-components/point";
@@ -186,12 +187,25 @@ export interface PreviewMarkerGroup {
   distribution?: MapCanvasProps["previewDistribution"];
   family: MarkerPreviewFamily;
   markers: MarkerPreviewState[];
+  positions?: GoogleLatLngLiteral[];
+}
+
+export interface PreviewRegionShape {
+  color: string;
+  id: string;
+  name: string;
+  path: GoogleLatLngLiteral[];
 }
 
 export interface PreviewRouteGroup {
+  colorId?: ManagedRoute["colorId"];
   family: RoutePreviewFamily;
+  id?: string;
+  path?: GoogleLatLngLiteral[];
+  progressPointIndex?: number;
   routes: RoutePreviewState[];
   state?: RoutePreviewVariant;
+  stopPositions?: GoogleLatLngLiteral[];
 }
 
 interface DynamicRouteLayer {
@@ -222,7 +236,9 @@ export interface MapCanvasProps {
   mapTheme?: MapTheme;
   previewDistribution?: "local" | "china" | "chinaCluster";
   previewFeature?: "point" | "line" | "area" | "container";
+  previewRegionColors?: Record<string, string>;
   previewRegionIds?: string[];
+  previewRegionShapes?: PreviewRegionShape[];
   previewRegionState?: "default" | "selected";
   hidePreviewContent?: boolean;
   previewMarkerFamily?: MarkerPreviewFamily;
@@ -230,6 +246,11 @@ export interface MapCanvasProps {
   previewMarkers?: MarkerPreviewState[];
   previewRouteFamily?: RoutePreviewFamily;
   previewRouteGroups?: PreviewRouteGroup[];
+  previewSelectedRouteId?: string;
+  onPreviewRouteClearSelection?: () => void;
+  onPreviewRouteHover?: (routeId: string | null) => void;
+  onPreviewRouteSelect?: (routeId: string) => void;
+  previewHoveredRouteId?: string;
   previewRouteState?: RoutePreviewVariant;
   previewRoutes?: RoutePreviewState[];
 }
@@ -327,7 +348,15 @@ interface DynamicRouteStyle {
 
 interface RouteProgressOverlayConfig {
   completedColor: string;
+  pathIndex?: number;
   ratio: number;
+}
+
+interface RouteOverlayInteractionConfig {
+  hovered?: boolean;
+  onHoverChange?: (hovered: boolean) => void;
+  onSelect?: () => void;
+  selected?: boolean;
 }
 
 const dynamicRouteStyles: Record<DynamicRouteColorId, DynamicRouteStyle> = {
@@ -338,16 +367,37 @@ const dynamicRouteStyles: Record<DynamicRouteColorId, DynamicRouteStyle> = {
     focusedColor: "#2232C3",
   },
   route2: {
-    arrowColor: "#009995",
-    arrowFocusedColor: "#017B77",
+    arrowColor: "#9EE1DD",
+    arrowFocusedColor: "#9EE1DD",
     color: "#009995",
     focusedColor: "#017B77",
   },
   route3: {
-    arrowColor: "#9583FF",
-    arrowFocusedColor: "#8575FF",
+    arrowColor: "#D9D0F7",
+    arrowFocusedColor: "#D9D0F7",
     color: "#9583FF",
     focusedColor: "#8575FF",
+  },
+};
+
+const disabledDynamicRouteStyles: Record<DynamicRouteColorId, DynamicRouteStyle> = {
+  route1: {
+    arrowColor: "#99A6FA",
+    arrowFocusedColor: "#99A6FA",
+    color: "#C9D2FC",
+    focusedColor: "#C9D2FC",
+  },
+  route2: {
+    arrowColor: "#6FCBC7",
+    arrowFocusedColor: "#6FCBC7",
+    color: "#9EE1DD",
+    focusedColor: "#9EE1DD",
+  },
+  route3: {
+    arrowColor: "#C5B9F9",
+    arrowFocusedColor: "#C5B9F9",
+    color: "#D9D0F7",
+    focusedColor: "#D9D0F7",
   },
 };
 
@@ -865,7 +915,7 @@ function loadGoogleMaps(lang: WorkbenchLanguage) {
   return window.__mapLabGoogleMapsPromise;
 }
 
-function createRouteLocationPinElement(label: string) {
+function createRouteLocationPinElement(label: string, disabled = false) {
   const marker = document.createElement("div");
   marker.className = "MapMarker MapMarker--advanced MapMarker--route-location-pin";
   marker.setAttribute("aria-label", label);
@@ -873,7 +923,7 @@ function createRouteLocationPinElement(label: string) {
 
   const asset = document.createElement("img");
   asset.alt = "";
-  asset.src = routeLocationPin;
+  asset.src = disabled ? routeLocationPinDisabled : routeLocationPin;
   marker.appendChild(asset);
 
   return marker;
@@ -1301,6 +1351,18 @@ function splitPathAtRatio(points: Array<{ x: number; y: number }>, ratio: number
   };
 }
 
+function splitPathAtPointIndex(points: Array<{ x: number; y: number }>, pointIndex: number) {
+  if (!points.length) {
+    return { completed: [], remaining: [] };
+  }
+
+  const safeIndex = Math.min(points.length - 1, Math.max(0, Math.round(pointIndex)));
+  return {
+    completed: points.slice(0, safeIndex + 1),
+    remaining: points.slice(safeIndex),
+  };
+}
+
 function createPathD(points: Array<{ x: number; y: number }>) {
   return points.map((point, index) => `${index === 0 ? "M" : "L"}${point.x} ${point.y}`).join(" ");
 }
@@ -1316,6 +1378,7 @@ function createRouteWithNormalLocationOverlay(
   dynamicStyle?: DynamicRouteStyle,
   routeOffsetPx = 0,
   progressConfig?: RouteProgressOverlayConfig,
+  interactionConfig?: RouteOverlayInteractionConfig,
 ): MapMarkerHandle {
   /**
    * 这里不用 Google Polyline 的 icons，而是自定义 OverlayView 画 SVG。
@@ -1326,8 +1389,9 @@ function createRouteWithNormalLocationOverlay(
     private container = document.createElement("div");
     private progressPin = document.createElement("span");
     private svgLayer = document.createElement("div");
-    private focused = false;
-    private selected = false;
+    private focused = Boolean(interactionConfig?.selected || interactionConfig?.hovered);
+    private hovered = Boolean(interactionConfig?.hovered);
+    private selected = Boolean(interactionConfig?.selected);
 
     constructor() {
       super();
@@ -1352,19 +1416,32 @@ function createRouteWithNormalLocationOverlay(
 
     private handlePointerMove = (event: PointerEvent) => {
       if (this.isRouteHit(event)) {
+        if (!this.hovered) {
+          this.hovered = true;
+          interactionConfig?.onHoverChange?.(true);
+        }
         if (!this.focused) {
           this.setFocused(true);
         }
         return;
       }
 
-      if (this.focused && !this.selected) {
-        this.setFocused(false);
+      if (this.hovered) {
+        this.hovered = false;
+        interactionConfig?.onHoverChange?.(false);
+        if (!this.selected) {
+          this.setFocused(false);
+        }
       }
     };
 
     private handleClick = (event: MouseEvent) => {
       if (!this.isRouteHit(event)) {
+        return;
+      }
+
+      if (interactionConfig?.onSelect) {
+        interactionConfig.onSelect();
         return;
       }
 
@@ -1395,7 +1472,11 @@ function createRouteWithNormalLocationOverlay(
         routeOffsetPx,
       );
       const routeD = createPathD(localPath);
-      const progressPaths = progressConfig ? splitPathAtRatio(localPath, progressConfig.ratio) : null;
+      const progressPaths = progressConfig
+        ? progressConfig.pathIndex === undefined
+          ? splitPathAtRatio(localPath, progressConfig.ratio)
+          : splitPathAtPointIndex(localPath, progressConfig.pathIndex)
+        : null;
       const completedRouteD = progressPaths ? createPathD(progressPaths.completed) : "";
       const remainingRouteD = progressPaths ? createPathD(progressPaths.remaining) : routeD;
       const progressPoint = progressPaths?.completed.at(-1);
@@ -1423,6 +1504,7 @@ function createRouteWithNormalLocationOverlay(
       this.container.style.top = `${minY}px`;
       this.container.style.width = `${width}px`;
       this.container.style.height = `${height}px`;
+      this.container.style.zIndex = this.focused || this.selected ? "12" : "10";
       this.container.classList.toggle("is-focused", this.focused);
       this.progressPin.style.display = progressConfig && progressPoint ? "grid" : "none";
       if (progressPoint) {
@@ -1634,8 +1716,15 @@ export function MapCanvas({
   previewMarkerFamily = "normal",
   previewMarkerGroups,
   previewMarkers,
+  previewRegionColors,
+  previewRegionShapes,
+  previewHoveredRouteId,
   previewRouteFamily,
   previewRouteGroups,
+  previewSelectedRouteId,
+  onPreviewRouteClearSelection,
+  onPreviewRouteHover,
+  onPreviewRouteSelect,
   previewRouteState = "default",
   previewRoutes,
 }: MapCanvasProps) {
@@ -1650,6 +1739,7 @@ export function MapCanvas({
   const regionLabelRef = useRef<MapMarkerHandle | null>(null);
   const dynamicRouteRef = useRef<DynamicRouteLayer>(createEmptyDynamicRouteLayer());
   const manualRoutePreviewRef = useRef<DynamicRouteLayer>(createEmptyDynamicRouteLayer());
+  const suppressNextPreviewMapClickRef = useRef(false);
   const markersRef = useRef<MapMarkerHandle[]>([]);
   const routePreviewsRef = useRef<MapMarkerHandle[]>([]);
   const [status, setStatus] = useState<"idle" | "loading" | "ready" | "missing-key" | "error">("idle");
@@ -1663,7 +1753,7 @@ export function MapCanvas({
   const markerLabels = useMemo(() => [t("map.warehouse"), t("map.hub"), t("map.destination")], [t]);
   const hasCumulativePreviewGroup =
     previewMarkerGroups?.some((group) => group.family === "cumulative" && group.distribution === "chinaCluster") ?? false;
-  const hasRegionPreview = Boolean(previewRegionIds?.length);
+  const hasRegionPreview = Boolean(previewRegionIds?.length || previewRegionShapes?.length);
   const isCumulativePreview =
     (previewMarkerFamily === "cumulative" && previewDistribution === "chinaCluster") || hasCumulativePreviewGroup;
   const renderPreviewZoom = isCumulativePreview ? previewZoom : undefined;
@@ -1948,23 +2038,51 @@ export function MapCanvas({
           group.family === "routeWithInformatedLocation" ||
           group.family === "routeWithProgress"
         ) {
-          const path = routeWithNormalLocationPreviewPath;
-          const routeMarkerElements =
+          const path = group.path ?? routeWithNormalLocationPreviewPath;
+          const isSelectedPreviewRoute = Boolean(group.id && group.id === previewSelectedRouteId);
+          const isHoveredPreviewRoute = Boolean(group.id && group.id === previewHoveredRouteId);
+          const isDimmedPreviewRoute = Boolean(
+            group.id && previewSelectedRouteId && group.id !== previewSelectedRouteId && !isHoveredPreviewRoute,
+          );
+          const endpointVariant: MarkerPreviewVariant = isDimmedPreviewRoute ? "muted" : "default";
+          const endpointMarkerElements =
             group.family === "routeWithNormalLocation"
               ? [
-                  createPointMarkerElement({ family: "normal", label: markerLabels[0], style: "dot", variant: "default" }),
-                  createPointMarkerElement({ family: "normal", label: markerLabels[2], style: "dot", variant: "default" }),
+                  createPointMarkerElement({ family: "normal", label: markerLabels[0], style: "dot", variant: endpointVariant }),
+                  createPointMarkerElement({ family: "normal", label: markerLabels[2], style: "dot", variant: endpointVariant }),
                 ]
               : group.family === "routeWithInformatedLocation"
-                ? [createRouteLocationPinElement(markerLabels[0]), createRouteLocationPinElement(markerLabels[2])]
+                ? [
+                    createRouteLocationPinElement(markerLabels[0], isDimmedPreviewRoute),
+                    createRouteLocationPinElement(markerLabels[2], isDimmedPreviewRoute),
+                  ]
               : group.family === "routeWithProgress"
                 ? [
                     createPointMarkerElement({ family: "normal", label: markerLabels[0], style: "dot", variant: "default" }),
                     createPointMarkerElement({ family: "normal", label: markerLabels[2], style: "dot", variant: "default" }),
                   ]
               : [];
+          const stopMarkerPositions = isSelectedPreviewRoute
+            ? (group.stopPositions ?? [])
+                .map((position, index) => ({ index, position }))
+                .slice(1, -1)
+                .filter(({ index }) => group.family !== "routeWithProgress" || index !== group.progressPointIndex)
+                .map(({ position }) => position)
+            : [];
+          const stopMarkerElements = stopMarkerPositions.map((_, index) =>
+            createPointMarkerElement({
+              family: "normal",
+              label: `Stop ${index + 1}`,
+              style: "dot",
+              variant: "default",
+            }),
+          );
           const setMarkerVariant = (focused: boolean) => {
-            routeMarkerElements.forEach((markerElement) => {
+            if (isDimmedPreviewRoute) {
+              return;
+            }
+
+            endpointMarkerElements.forEach((markerElement) => {
               if (markerElement.classList.contains("MapMarker--route-location-pin")) {
                 markerElement.classList.toggle("is-selected", focused);
               } else {
@@ -1973,6 +2091,7 @@ export function MapCanvas({
               }
             });
           };
+          setMarkerVariant(isSelectedPreviewRoute || isHoveredPreviewRoute);
           const routeOverlay = createRouteWithNormalLocationOverlay(
             googleMaps,
             map,
@@ -1981,19 +2100,42 @@ export function MapCanvas({
             routeWithNormalLocationArrowScale,
             group.family !== "normalNoArrow",
             group.family === "routeWithProgress" ? "default" : group.state ?? previewRouteState,
-            undefined,
+            group.colorId
+              ? isDimmedPreviewRoute
+                ? disabledDynamicRouteStyles[group.colorId]
+                : dynamicRouteStyles[group.colorId]
+              : undefined,
             0,
             group.family === "routeWithProgress"
               ? {
                   completedColor: resolveRouteStateColor("completed"),
+                  pathIndex: group.progressPointIndex,
                   ratio: routeWithProgressRatio,
+                }
+              : undefined,
+            group.id
+              ? {
+                  hovered: isHoveredPreviewRoute,
+                  onHoverChange: onPreviewRouteHover
+                    ? (hovered) => onPreviewRouteHover(hovered ? (group.id as string) : null)
+                    : undefined,
+                  onSelect: onPreviewRouteSelect
+                    ? () => {
+                        suppressNextPreviewMapClickRef.current = true;
+                        window.setTimeout(() => {
+                          suppressNextPreviewMapClickRef.current = false;
+                        }, 50);
+                        onPreviewRouteSelect(group.id as string);
+                      }
+                    : undefined,
+                  selected: isSelectedPreviewRoute,
                 }
               : undefined,
           );
           layer.overlays.push(routeOverlay);
 
-          const routeMarkerPositions =
-            [path[0], path[path.length - 1]];
+          const routeMarkerPositions = [path[0], path[path.length - 1], ...stopMarkerPositions];
+          const routeMarkerElements = [...endpointMarkerElements, ...stopMarkerElements];
           const markerHandles = await Promise.all(
             (group.family === "routeWithNormalLocation" ||
             group.family === "routeWithInformatedLocation" ||
@@ -2001,7 +2143,7 @@ export function MapCanvas({
               ? routeMarkerPositions
               : []
             ).map((position, index) => {
-              const anchor = group.family === "routeWithInformatedLocation" ? "pin-tip" : "center";
+              const anchor = group.family === "routeWithInformatedLocation" && index < 2 ? "pin-tip" : "center";
               const zIndex = group.family === "routeWithProgress" && index === 1 ? 130 : 100;
               return activeMapId
                 ? createAdvancedMarker(googleMaps, map, position, routeMarkerElements[index], anchor, zIndex)
@@ -2029,7 +2171,10 @@ export function MapCanvas({
 
       layer.markers = overlayMarkerHandles;
       routePreviewsRef.current = routeHandles;
-      if (
+      const configuredPaths = routeGroups.flatMap((group) => group.path ?? []);
+      if (configuredPaths.length > 1) {
+        map.fitBounds(getPathBounds(configuredPaths), 56);
+      } else if (
         !previewRouteGroups?.length &&
         routeGroups.some(
           (group) =>
@@ -2066,7 +2211,7 @@ export function MapCanvas({
               : group.markers.map((marker, index) => {
                   const groupDistribution = group.distribution ?? previewDistribution;
                   const previewPositions = resolvePreviewPositions(groupDistribution);
-                  const basePosition = previewPositions[index % previewPositions.length];
+                  const basePosition = group.positions?.[index % group.positions.length] ?? previewPositions[index % previewPositions.length];
                   return {
                     family: group.family,
                     marker,
@@ -2160,14 +2305,33 @@ export function MapCanvas({
     previewMarkerFamily,
     previewMarkerGroups,
     previewMarkers,
+    previewHoveredRouteId,
     previewRouteFamily,
     previewRouteGroups,
+    previewSelectedRouteId,
+    onPreviewRouteHover,
+    onPreviewRouteSelect,
     previewRouteState,
     previewRoutes,
     renderPreviewZoom,
     routeColor,
     status,
   ]);
+
+  useEffect(() => {
+    if (!mapRef.current || status !== "ready" || !onPreviewRouteClearSelection) {
+      return;
+    }
+
+    const listener = mapRef.current.addListener("click", () => {
+      if (suppressNextPreviewMapClickRef.current) {
+        return;
+      }
+      onPreviewRouteClearSelection();
+    });
+
+    return () => listener.remove();
+  }, [onPreviewRouteClearSelection, status]);
 
   useEffect(() => {
     if (!window.google?.maps || !mapRef.current || status !== "ready") {
@@ -2198,21 +2362,35 @@ export function MapCanvas({
       }
     };
 
-    if (!previewRegionIds?.length || hidePreviewContent || (previewFeature !== "area" && previewFeature !== "container")) {
+    if (
+      (!previewRegionIds?.length && !previewRegionShapes?.length) ||
+      hidePreviewContent ||
+      (previewFeature !== "area" && previewFeature !== "container")
+    ) {
       clearRegionLayer();
       return;
     }
 
     const resolveFeatureRegionId = (feature: GoogleDataFeature) => String(feature.getProperty("mapLabId") ?? "");
+    const inlineRegionColors = new Map(previewRegionShapes?.map((region) => [region.id, region.color]) ?? []);
     const styleForFeature = (feature: GoogleDataFeature) => {
       const regionId = resolveFeatureRegionId(feature);
+      const regionColor = previewRegionColors?.[regionId] ?? inlineRegionColors.get(regionId);
+      const applyRegionColor = (style: typeof regionDataStyles.default) =>
+        regionColor
+          ? {
+              ...style,
+              fillColor: regionColor,
+              strokeColor: regionColor,
+            }
+          : style;
       if (
         regionId &&
         (previewRegionState === "selected" || regionId === selectedRegionId || regionId === hoveredRegionId)
       ) {
-        return regionDataStyles.selected;
+        return applyRegionColor(regionDataStyles.selected);
       }
-      return regionDataStyles.default;
+      return applyRegionColor(regionDataStyles.default);
     };
     const refreshStyles = () => {
       regionDataRef.current?.setStyle(styleForFeature);
@@ -2251,18 +2429,63 @@ export function MapCanvas({
     const dataLayer = new googleMaps.maps.Data({ map });
     regionDataRef.current = dataLayer;
 
-    loadRegionManifest()
+    const inlineRegions: RegionManifestEntry[] = (previewRegionShapes ?? []).map((region) => {
+      const latitudes = region.path.map((point) => point.lat);
+      const longitudes = region.path.map((point) => point.lng);
+      const bbox = {
+        east: Math.max(...longitudes),
+        north: Math.max(...latitudes),
+        south: Math.min(...latitudes),
+        west: Math.min(...longitudes),
+      };
+      return {
+        bbox,
+        center: {
+          lat: (bbox.north + bbox.south) / 2,
+          lng: (bbox.east + bbox.west) / 2,
+        },
+        countryCode: "CN",
+        filePath: "",
+        id: region.id,
+        level: "operational-area",
+        nameEn: region.name,
+        nameZh: region.name,
+        source: "Map Lab demo data",
+      };
+    });
+    const regionSource = inlineRegions.length
+      ? Promise.resolve({ generatedAt: "", regions: inlineRegions } satisfies RegionManifest)
+      : loadRegionManifest();
+
+    regionSource
       .then(async (manifest) => {
         if (cancelled) {
           return;
         }
 
-        const regionIds = new Set(previewRegionIds);
+        const regionIds = new Set(previewRegionIds ?? inlineRegions.map((region) => region.id));
         const regions = manifest.regions.filter((region) => regionIds.has(region.id));
         regionById = new Map(regions.map((region) => [region.id, region]));
 
         for (const region of regions) {
-          const geoJson = await loadRegionGeoJson(region);
+          const inlineShape = previewRegionShapes?.find((shape) => shape.id === region.id);
+          const geoJson = inlineShape
+            ? {
+                type: "FeatureCollection" as const,
+                features: [
+                  {
+                    type: "Feature",
+                    properties: { mapLabId: region.id },
+                    geometry: {
+                      type: "Polygon",
+                      coordinates: [
+                        [...inlineShape.path, inlineShape.path[0]].map((point) => [point.lng, point.lat]),
+                      ],
+                    },
+                  },
+                ],
+              }
+            : await loadRegionGeoJson(region);
           if (cancelled) {
             return;
           }
@@ -2326,7 +2549,15 @@ export function MapCanvas({
       cancelled = true;
       clearRegionLayer();
     };
-  }, [hidePreviewContent, previewFeature, previewRegionIds, previewRegionState, status]);
+  }, [
+    hidePreviewContent,
+    previewFeature,
+    previewRegionColors,
+    previewRegionIds,
+    previewRegionShapes,
+    previewRegionState,
+    status,
+  ]);
 
   /**
    * 地图浏览模式里的“输入起点/中途点/终点生成路线”。

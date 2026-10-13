@@ -29,12 +29,26 @@ import type {
 } from "../types";
 
 type SpatialCategory = "location" | "route" | "area";
-type PreviewState = "default" | "hover" | "selected";
 type CaseId = "operations" | "dispatch" | "tracking" | "network";
 
 interface ComponentOption {
   id: string;
   category: SpatialCategory;
+}
+
+interface HomeSceneProps {
+  standalone?: boolean;
+}
+
+interface DispatchRoute {
+  colorId: NonNullable<PreviewRouteGroup["colorId"]>;
+  duration: string;
+  id: string;
+  path: NonNullable<PreviewRouteGroup["path"]>;
+  status: "completed" | "inProgress" | "notStarted";
+  stopPositions: NonNullable<PreviewRouteGroup["stopPositions"]>;
+  stopsCompleted: number;
+  stopsTotal: number;
 }
 
 const componentOptions: ComponentOption[] = [
@@ -52,8 +66,140 @@ const componentOptions: ComponentOption[] = [
 ];
 
 const categoryIds: SpatialCategory[] = ["location", "route", "area"];
-const previewStates: PreviewState[] = ["default", "hover", "selected"];
 const caseIds: CaseId[] = ["operations", "dispatch", "tracking", "network"];
+const designerComponentLibraryUrl =
+  "https://www.figma.com/design/GVhj9D0029ntbz47c0o4TY/%F0%9F%8E%AD-Logisitics-UI-Model-Room?node-id=2196-33757&t=kAfC0aYjY475MbsJ-1";
+
+const dispatchRoutes: DispatchRoute[] = [
+  {
+    colorId: "route1",
+    duration: "18 min",
+    id: "dispatch-route-1",
+    path: [
+      { lat: 31.188, lng: 121.337 },
+      { lat: 31.199, lng: 121.372 },
+      { lat: 31.214, lng: 121.411 },
+      { lat: 31.228, lng: 121.449 },
+      { lat: 31.249, lng: 121.477 },
+      { lat: 31.283, lng: 121.499 },
+      { lat: 31.318, lng: 121.513 },
+    ],
+    status: "notStarted",
+    stopPositions: [
+      { lat: 31.188, lng: 121.337 },
+      { lat: 31.199, lng: 121.372 },
+      { lat: 31.214, lng: 121.411 },
+      { lat: 31.249, lng: 121.477 },
+      { lat: 31.283, lng: 121.499 },
+      { lat: 31.318, lng: 121.513 },
+    ],
+    stopsCompleted: 0,
+    stopsTotal: 6,
+  },
+  {
+    colorId: "route2",
+    duration: "26 min",
+    id: "dispatch-route-2",
+    path: [
+      { lat: 31.326, lng: 121.384 },
+      { lat: 31.304, lng: 121.407 },
+      { lat: 31.278, lng: 121.439 },
+      { lat: 31.251, lng: 121.468 },
+      { lat: 31.226, lng: 121.501 },
+      { lat: 31.207, lng: 121.544 },
+      { lat: 31.19, lng: 121.58 },
+    ],
+    status: "inProgress",
+    stopPositions: [
+      { lat: 31.326, lng: 121.384 },
+      { lat: 31.304, lng: 121.407 },
+      { lat: 31.278, lng: 121.439 },
+      { lat: 31.251, lng: 121.468 },
+      { lat: 31.226, lng: 121.501 },
+      { lat: 31.207, lng: 121.544 },
+      { lat: 31.198, lng: 121.562 },
+      { lat: 31.19, lng: 121.58 },
+    ],
+    stopsCompleted: 3,
+    stopsTotal: 8,
+  },
+  {
+    colorId: "route3",
+    duration: "32 min",
+    id: "dispatch-route-3",
+    path: [
+      { lat: 31.162, lng: 121.43 },
+      { lat: 31.181, lng: 121.449 },
+      { lat: 31.207, lng: 121.467 },
+      { lat: 31.237, lng: 121.484 },
+      { lat: 31.269, lng: 121.458 },
+      { lat: 31.299, lng: 121.438 },
+      { lat: 31.337, lng: 121.451 },
+    ],
+    status: "completed",
+    stopPositions: [
+      { lat: 31.162, lng: 121.43 },
+      { lat: 31.207, lng: 121.467 },
+      { lat: 31.269, lng: 121.458 },
+      { lat: 31.337, lng: 121.451 },
+    ],
+    stopsCompleted: 4,
+    stopsTotal: 4,
+  },
+];
+
+const dispatchRouteGroups: PreviewRouteGroup[] = dispatchRoutes.map((route) => ({
+  colorId: route.colorId,
+  family: route.status === "inProgress" ? "routeWithProgress" : "routeWithInformatedLocation",
+  id: route.id,
+  path: route.path,
+  progressPointIndex: route.status === "inProgress" ? route.stopsCompleted - 1 : undefined,
+  routes: [{ id: "default", label: route.id }],
+  state: "default",
+  stopPositions: route.stopPositions,
+}));
+
+const networkRegionShapes: NonNullable<MapCanvasProps["previewRegionShapes"]> = [
+  {
+    color: "#2A3EF4",
+    id: "network-west",
+    name: "West service area",
+    path: [
+      { lat: 31.31, lng: 121.28 },
+      { lat: 31.36, lng: 121.34 },
+      { lat: 31.33, lng: 121.41 },
+      { lat: 31.27, lng: 121.43 },
+      { lat: 31.23, lng: 121.36 },
+      { lat: 31.26, lng: 121.29 },
+    ],
+  },
+  {
+    color: "#009995",
+    id: "network-central",
+    name: "Central service area",
+    path: [
+      { lat: 31.28, lng: 121.44 },
+      { lat: 31.32, lng: 121.5 },
+      { lat: 31.28, lng: 121.57 },
+      { lat: 31.21, lng: 121.56 },
+      { lat: 31.18, lng: 121.49 },
+      { lat: 31.22, lng: 121.43 },
+    ],
+  },
+  {
+    color: "#9583FF",
+    id: "network-east",
+    name: "East service area",
+    path: [
+      { lat: 31.25, lng: 121.59 },
+      { lat: 31.3, lng: 121.66 },
+      { lat: 31.26, lng: 121.73 },
+      { lat: 31.18, lng: 121.72 },
+      { lat: 31.14, lng: 121.64 },
+      { lat: 31.19, lng: 121.58 },
+    ],
+  },
+];
 
 const createHomeControls = (zoom: number): MapControlsState => ({
   activeRouteId: "home-route",
@@ -69,22 +215,18 @@ const createHomeControls = (zoom: number): MapControlsState => ({
 });
 
 const homeComponentControls = createHomeControls(12);
+const homeCumulativeControls = createHomeControls(4);
 const homeCaseControls = createHomeControls(11);
 
 const routePreview = (family: RoutePreviewFamily, state: RoutePreviewVariant = "default"): PreviewRouteGroup[] => [
   { family, routes: [{ id: state, label: state }], state },
 ];
 
-const markerVariantForState = (state: PreviewState): MarkerPreviewVariant =>
-  state === "hover" ? "emphasized" : state === "selected" ? "selected" : "default";
-
-const routeVariantForState = (state: PreviewState): RoutePreviewVariant =>
-  state === "default" ? "default" : "selected";
-
 const markerGroup = (
   family: MarkerPreviewFamily,
   variants: MarkerPreviewVariant[],
   customContents?: CustomMarkerContent[],
+  positions?: PreviewMarkerGroup["positions"],
 ): PreviewMarkerGroup => ({
   family,
   markers: variants.map((id, index) => ({
@@ -93,6 +235,7 @@ const markerGroup = (
     id,
     label: `${family} ${index + 1}`,
   })),
+  positions,
 });
 
 function HomeGoogleMap(props: MapCanvasProps) {
@@ -139,16 +282,14 @@ function ComponentMapVisual({
   componentId,
   lang,
   mapTheme,
-  state,
 }: {
   category: SpatialCategory;
   componentId: string;
   lang: MapCanvasProps["lang"];
   mapTheme: MapCanvasProps["mapTheme"];
-  state: PreviewState;
 }) {
-  const markerVariant = markerVariantForState(state);
-  const routeVariant = routeVariantForState(state);
+  const markerVariant: MarkerPreviewVariant = "default";
+  const routeVariant: RoutePreviewVariant = "default";
   const markerFamilyById: Partial<Record<string, MarkerPreviewFamily>> = {
     cumulativeLocation: "cumulative",
     customLocation: "custom",
@@ -164,6 +305,7 @@ function ComponentMapVisual({
   const markerFamily = markerFamilyById[componentId];
   const routeFamily = routeFamilyById[componentId];
   const customContents: CustomMarkerContent[] = ["warehouse", "shop", "user", "letter", "number"];
+  const componentControls = markerFamily === "cumulative" ? homeCumulativeControls : homeComponentControls;
   const markers: MarkerPreviewState[] | undefined = markerFamily
     ? Array.from({ length: markerFamily === "cumulative" ? 4 : 8 }, (_, index) => ({
         count: markerFamily === "cumulative" ? [28, 12, 42, 18][index % 4] : undefined,
@@ -175,9 +317,9 @@ function ComponentMapVisual({
   const regionIds = componentId === "multipleAreas" ? ["shanghai", "beijing"] : ["huangpu"];
 
   return (
-    <div className={`HomeMap HomeMap--component is-${category} is-${state}`} aria-label="组件状态预览">
+    <div className={`HomeMap HomeMap--component is-${category}`} aria-label="组件交互预览">
       <HomeGoogleMap
-        controls={homeComponentControls}
+        controls={componentControls}
         lang={lang}
         mapCategory="entity"
         mapTheme={mapTheme}
@@ -186,7 +328,7 @@ function ComponentMapVisual({
         previewMarkerFamily={markerFamily}
         previewMarkers={markers}
         previewRegionIds={category === "area" ? regionIds : undefined}
-        previewRegionState={state === "default" ? "default" : "selected"}
+        previewRegionState="default"
         previewRouteFamily={routeFamily}
         previewRouteState={routeVariant}
         previewRoutes={routeFamily ? [{ id: routeVariant, label: routeVariant }] : undefined}
@@ -204,48 +346,106 @@ function CaseStage({
   lang: MapCanvasProps["lang"];
   mapTheme: MapCanvasProps["mapTheme"];
 }) {
-  const configurations: Record<CaseId, Pick<MapCanvasProps, "previewFeature" | "previewMarkerGroups" | "previewRegionIds" | "previewRouteGroups">> = {
+  const { t } = useTranslation();
+  const [selectedDispatchRouteId, setSelectedDispatchRouteId] = useState<string | null>(null);
+  const [hoveredDispatchRouteId, setHoveredDispatchRouteId] = useState<string | null>(null);
+  const selectedDispatchRoute = dispatchRoutes.find((route) => route.id === selectedDispatchRouteId) ?? dispatchRoutes[0];
+  const selectDispatchRoute = (routeId: string) => {
+    setSelectedDispatchRouteId((currentRouteId) => currentRouteId === routeId ? null : routeId);
+    setHoveredDispatchRouteId(null);
+  };
+  const configurations: Record<CaseId, Pick<MapCanvasProps, "previewFeature" | "previewMarkerGroups" | "previewRegionColors" | "previewRegionIds" | "previewRegionShapes" | "previewRouteGroups">> = {
     operations: {
-      previewFeature: "container",
-      previewMarkerGroups: [markerGroup("informated", ["default", "completed"]), markerGroup("normal", ["default", "emphasized"])],
-      previewRouteGroups: routePreview("routeWithProgress"),
+      previewFeature: "point",
+      previewMarkerGroups: [
+        markerGroup(
+          "custom",
+          ["default", "default", "default", "default", "default", "default", "default", "default"],
+          ["warehouse", "shop", "user", "letter", "number"],
+        ),
+      ],
     },
     dispatch: {
-      previewFeature: "container",
-      previewMarkerGroups: [markerGroup("normal", ["default", "default"]), markerGroup("custom", ["default"], ["warehouse"])],
-      previewRouteGroups: routePreview("routeWithInformatedLocation"),
+      previewFeature: "line",
+      previewRouteGroups: dispatchRouteGroups,
     },
     tracking: {
       previewFeature: "line",
       previewRouteGroups: routePreview("routeWithProgress"),
     },
     network: {
-      previewFeature: "container",
-      previewMarkerGroups: [markerGroup("cumulative", ["default", "default", "default"])],
-      previewRegionIds: ["shanghai", "huangpu"],
-      previewRouteGroups: routePreview("normalHasArrow"),
+      previewFeature: "area",
+      previewRegionShapes: networkRegionShapes,
     },
   };
   const configuration = configurations[activeCase];
 
   return (
-    <div className={`HomeCaseMap is-${activeCase}`} aria-hidden="true">
-      <HomeGoogleMap controls={homeCaseControls} lang={lang} mapCategory="entity" mapTheme={mapTheme} {...configuration} />
+    <div className={`HomeCaseMap is-${activeCase}`}>
+      {activeCase === "dispatch" ? (
+        <div className="HomeDispatchRoutes" role="listbox" aria-label={t("home.cases.dispatch.routeListAria")}>
+          <header className="HomeDispatchRoutes__header">
+            <span>{t("home.cases.dispatch.routeListTitle")}</span>
+            <strong>{dispatchRoutes.length}</strong>
+          </header>
+          {dispatchRoutes.map((route, index) => {
+            const selected = route.id === selectedDispatchRouteId;
+            const hovered = route.id === hoveredDispatchRouteId;
+            const dimmed = Boolean(selectedDispatchRouteId && !selected && !hovered);
+            return (
+              <button
+                aria-selected={selected}
+                className={[selected ? "is-selected" : "", hovered ? "is-hovered" : "", dimmed ? "is-dimmed" : ""]
+                  .filter(Boolean)
+                  .join(" ")}
+                key={route.id}
+                onBlur={() => setHoveredDispatchRouteId((currentRouteId) => currentRouteId === route.id ? null : currentRouteId)}
+                onClick={() => selectDispatchRoute(route.id)}
+                onFocus={() => setHoveredDispatchRouteId(route.id)}
+                onMouseEnter={() => setHoveredDispatchRouteId(route.id)}
+                onMouseLeave={() => setHoveredDispatchRouteId((currentRouteId) => currentRouteId === route.id ? null : currentRouteId)}
+                role="option"
+                type="button"
+              >
+                <span className={`HomeDispatchRoutes__swatch is-${route.colorId}`} aria-hidden="true" />
+                <span className="HomeDispatchRoutes__content">
+                  <strong>{t(`home.cases.dispatch.routes.${index + 1}.name`)}</strong>
+                  <span>{route.stopsCompleted > 0 ? `${route.stopsCompleted}/` : ""}{route.stopsTotal} stops</span>
+                  <small className={`is-${route.status}`}>{t(`home.cases.dispatch.status.${route.status}`)}</small>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+      <div className="HomeCaseMap__canvas" aria-hidden="true">
+        <HomeGoogleMap
+          controls={homeCaseControls}
+          lang={lang}
+          mapCategory="entity"
+          mapTheme={mapTheme}
+          onPreviewRouteClearSelection={activeCase === "dispatch" ? () => setSelectedDispatchRouteId(null) : undefined}
+          onPreviewRouteHover={activeCase === "dispatch" ? setHoveredDispatchRouteId : undefined}
+          onPreviewRouteSelect={activeCase === "dispatch" ? selectDispatchRoute : undefined}
+          previewHoveredRouteId={activeCase === "dispatch" ? hoveredDispatchRouteId ?? undefined : undefined}
+          previewSelectedRouteId={activeCase === "dispatch" ? selectedDispatchRouteId ?? undefined : undefined}
+          {...configuration}
+        />
+      </div>
       <div className="HomeCaseMap__metric">
         <span>ON-TIME RATE</span>
-        <strong>{activeCase === "tracking" ? "94.8%" : activeCase === "dispatch" ? "18 min" : "97.2%"}</strong>
+        <strong>{activeCase === "tracking" ? "94.8%" : activeCase === "dispatch" ? selectedDispatchRoute.duration : "97.2%"}</strong>
       </div>
     </div>
   );
 }
 
-export function HomeScene() {
+export function HomeScene({ standalone = false }: HomeSceneProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { lang, mapTheme } = useWorkbenchStore();
   const [activeCategory, setActiveCategory] = useState<SpatialCategory>("location");
   const [activeComponentId, setActiveComponentId] = useState("normalLocation");
-  const [activeState, setActiveState] = useState<PreviewState>("default");
   const [activeCase, setActiveCase] = useState<CaseId>("operations");
   const visibleComponents = useMemo(
     () => componentOptions.filter((component) => component.category === activeCategory),
@@ -255,21 +455,36 @@ export function HomeScene() {
   const selectCategory = (category: SpatialCategory) => {
     setActiveCategory(category);
     setActiveComponentId(componentOptions.find((component) => component.category === category)?.id ?? "normalLocation");
-    setActiveState("default");
   };
 
+  const scrollToSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    section?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "start" });
+  };
+
+  const openWorkbenchRoute = (route: string, sectionId: string) => {
+    if (standalone) {
+      scrollToSection(sectionId);
+      return;
+    }
+    navigate(route);
+  };
+
+  const guideHref = `${import.meta.env.BASE_URL}#/guide`;
+
   return (
-    <div className="HomeScene">
-      <section className="HomeHero">
+    <div className={`HomeScene${standalone ? " HomeScene--standalone" : ""}`}>
+      <section className="HomeHero" id="home">
         <div className="HomeHero__content">
           <span className="HomeEyebrow">MAP LAB · LOGISTICS SPATIAL SYSTEM</span>
           <h1>{t("home.hero.title")}</h1>
           <p>{t("home.hero.description")}</p>
           <div className="HomeHero__actions">
-            <button className="HomeButton HomeButton--primary" onClick={() => navigate("/browse")} type="button">
+            <button className="HomeButton HomeButton--primary" onClick={() => openWorkbenchRoute("/browse", "capabilities")} type="button">
               {t("home.hero.explore")}<ArrowRight size={16} />
             </button>
-            <button className="HomeButton HomeButton--secondary" onClick={() => navigate("/manual")} type="button">
+            <button className="HomeButton HomeButton--secondary" onClick={() => openWorkbenchRoute("/manual", "components")} type="button">
               {t("home.hero.components")}
             </button>
           </div>
@@ -301,7 +516,7 @@ export function HomeScene() {
           </div>
         </section>
 
-        <section className="HomeSection HomeCapabilities">
+        <section className="HomeSection HomeCapabilities" id="capabilities">
           <header className="HomeSectionHeader HomeSectionHeader--center">
             <span>{t("home.sections.capabilities.eyebrow")}</span>
             <h2>{t("home.sections.capabilities.title")}</h2>
@@ -326,7 +541,7 @@ export function HomeScene() {
           </div>
         </section>
 
-        <section className="HomeSection HomeComponents">
+        <section className="HomeSection HomeComponents" id="components">
           <header className="HomeSectionHeader">
             <span>{t("home.sections.components.eyebrow")}</span>
             <h2>{t("home.sections.components.title")}</h2>
@@ -346,19 +561,11 @@ export function HomeScene() {
                 componentId={activeComponentId}
                 lang={lang}
                 mapTheme={mapTheme}
-                state={activeState}
               />
               <aside className="HomeComponentPanel">
                 <span className="HomeComponentPanel__category">{t(`home.capabilities.${activeCategory}.title`)}</span>
                 <h3>{t(`home.components.items.${activeComponentId}.title`)}</h3>
                 <p>{t(`home.components.items.${activeComponentId}.description`)}</p>
-                <div className="HomeComponentState" role="group" aria-label={t("home.components.stateAria")}>
-                  {previewStates.map((state) => (
-                    <button aria-pressed={activeState === state} className={activeState === state ? "is-active" : ""} key={state} onClick={() => setActiveState(state)} type="button">
-                      {t(`home.components.states.${state}`)}
-                    </button>
-                  ))}
-                </div>
                 <div className="HomeComponentList" role="listbox" aria-label={t("home.components.listAria")}>
                   {visibleComponents.map((component) => (
                     <button aria-selected={activeComponentId === component.id} className={activeComponentId === component.id ? "is-active" : ""} key={component.id} onClick={() => setActiveComponentId(component.id)} role="option" type="button">
@@ -366,16 +573,22 @@ export function HomeScene() {
                     </button>
                   ))}
                 </div>
-                <button className="HomeTextLink" onClick={() => navigate("/manual")} type="button">
-                  {t("home.components.openManual")}<ArrowRight size={15} />
-                </button>
+                {standalone ? (
+                  <a className="HomeTextLink" href={designerComponentLibraryUrl} rel="noopener noreferrer" target="_blank">
+                    {t("home.components.openManual")}<ArrowRight size={15} />
+                  </a>
+                ) : (
+                  <button className="HomeTextLink" onClick={() => navigate("/manual")} type="button">
+                    {t("home.components.openManual")}<ArrowRight size={15} />
+                  </button>
+                )}
               </aside>
             </div>
           </div>
         </section>
       </main>
 
-      <section className="HomeCases">
+      <section className="HomeCases" id="use-cases">
         <div className="HomeCases__inner">
           <header className="HomeSectionHeader">
             <span>{t("home.sections.cases.eyebrow")}</span>
@@ -397,15 +610,17 @@ export function HomeScene() {
               {(["problem", "components", "outcome"] as const).map((field) => (
                 <div key={field}><small>{t(`home.cases.labels.${field}`)}</small><p>{t(`home.cases.${activeCase}.${field}`)}</p></div>
               ))}
-              <button className="HomeTextLink" onClick={() => navigate("/use-case")} type="button">
-                {t("home.cases.open")}<ArrowRight size={15} />
-              </button>
+              {!standalone ? (
+                <button className="HomeTextLink" onClick={() => navigate("/use-case")} type="button">
+                  {t("home.cases.open")}<ArrowRight size={15} />
+                </button>
+              ) : null}
             </aside>
           </div>
         </div>
       </section>
 
-      <section className="HomeSection HomeStart">
+      <section className="HomeSection HomeStart" id="get-started">
         <header className="HomeSectionHeader HomeSectionHeader--center">
           <span>{t("home.sections.start.eyebrow")}</span>
           <h2>{t("home.sections.start.title")}</h2>
@@ -423,9 +638,24 @@ export function HomeScene() {
                   <li key={item}><Check size={14} />{t(`home.start.${role}.${item}`)}</li>
                 ))}
               </ul>
-              <button className="HomeButton HomeButton--secondary" onClick={() => navigate(role === "designer" ? "/manual" : "/guide")} type="button">
-                {t(`home.start.${role}.cta`)}<ArrowRight size={15} />
-              </button>
+              {role === "designer" ? (
+                <a
+                  className="HomeButton HomeButton--secondary"
+                  href={designerComponentLibraryUrl}
+                  rel="noopener noreferrer"
+                  target="_blank"
+                >
+                  {t(`home.start.${role}.cta`)}<ArrowRight size={15} />
+                </a>
+              ) : standalone ? (
+                <a className="HomeButton HomeButton--secondary" href={guideHref}>
+                  {t(`home.start.${role}.cta`)}<ArrowRight size={15} />
+                </a>
+              ) : (
+                <button className="HomeButton HomeButton--secondary" onClick={() => navigate("/guide")} type="button">
+                  {t(`home.start.${role}.cta`)}<ArrowRight size={15} />
+                </button>
+              )}
             </article>
           ))}
         </div>

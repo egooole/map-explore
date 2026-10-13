@@ -10,6 +10,17 @@
   overflow: hidden;
 }
 
+.HomeScene--standalone {
+  margin: 0;
+}
+
+.HomeScene--standalone #capabilities,
+.HomeScene--standalone #components,
+.HomeScene--standalone #use-cases,
+.HomeScene--standalone #get-started {
+  scroll-margin-top: 24px;
+}
+
 .HomeHero,
 .HomeContent,
 .HomeCases__inner,
@@ -83,6 +94,7 @@
   justify-content: center;
   min-height: 42px;
   padding: 10px 16px;
+  text-decoration: none;
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
 }
 
@@ -387,14 +399,12 @@
 .HomeComponentPanel { display: flex; flex-direction: column; padding: 26px; }
 .HomeComponentPanel h3 { font-size: 24px; margin: 12px 0 8px; }
 .HomeComponentPanel > p { color: var(--color-muted); font-size: 13px; line-height: 1.6; margin: 0; min-height: 64px; }
-.HomeComponentState { background: var(--color-surface-muted); display: grid; gap: 4px; grid-template-columns: repeat(3, 1fr); margin-top: 22px; padding: 4px; }
-.HomeComponentState button { background: transparent; border: 0; color: var(--color-muted); font-size: 11px; min-height: 32px; padding: 6px; }
-.HomeComponentState button.is-active { background: var(--home-accent-soft); color: var(--home-accent); }
 .HomeComponentList { display: grid; gap: 2px; margin-top: 20px; }
 .HomeComponentList button { align-items: center; background: transparent; border: 0; color: var(--color-muted); display: flex; font-size: 12px; justify-content: space-between; min-height: 38px; padding: 8px 10px; text-align: left; }
 .HomeComponentList button:hover { background: var(--color-surface-muted); color: var(--color-text); }
 .HomeComponentList button.is-active { background: var(--home-accent-soft); color: var(--home-accent); }
 .HomeTextLink { align-self: flex-start; background: transparent; border: 0; color: var(--home-accent); font-size: 12px; gap: 6px; margin-top: auto; padding: 12px 0 0; }
+.HomeTextLink { text-decoration: none; }
 
 .HomeMap__normalPin,
 .HomeMap__cluster,
@@ -459,6 +469,73 @@
 .HomeCaseTabs button:hover { color: var(--color-text); }
 .HomeCaseTabs button.is-active { background: var(--home-accent-soft); color: var(--home-accent); }
 .HomeCaseMap { border: 0; border-right: 1px solid var(--color-border); min-width: 0; }
+.HomeCaseMap__canvas { inset: 0; position: absolute; }
+.HomeCaseMap.is-dispatch .HomeCaseMap__canvas { left: 184px; }
+.HomeDispatchRoutes {
+  background: #07090a;
+  border-right: 1px solid var(--color-border);
+  bottom: 0;
+  display: grid;
+  grid-template-rows: 52px repeat(3, 1fr);
+  left: 0;
+  position: absolute;
+  top: 0;
+  width: 184px;
+  z-index: 8;
+}
+.HomeDispatchRoutes__header {
+  align-items: center;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-muted);
+  display: flex;
+  font-size: 10px;
+  justify-content: space-between;
+  letter-spacing: 0.06em;
+  padding: 0 16px;
+  text-transform: uppercase;
+}
+.HomeDispatchRoutes__header strong { color: var(--color-text); font-size: 11px; }
+.HomeDispatchRoutes button {
+  align-items: flex-start;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--color-border);
+  color: var(--color-muted);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 10px minmax(0, 1fr);
+  padding: 16px;
+  text-align: left;
+  transition: background 160ms ease, color 160ms ease;
+}
+.HomeDispatchRoutes button:last-child { border-bottom: 0; }
+.HomeDispatchRoutes button:hover { background: var(--color-surface-muted); color: var(--color-text); }
+.HomeDispatchRoutes button.is-hovered { background: var(--color-surface-muted); color: var(--color-text); }
+.HomeDispatchRoutes button.is-selected { background: var(--home-accent-soft); color: var(--color-text); }
+.HomeDispatchRoutes button.is-dimmed .HomeDispatchRoutes__content strong,
+.HomeDispatchRoutes button.is-dimmed .HomeDispatchRoutes__content span,
+.HomeDispatchRoutes button.is-dimmed .HomeDispatchRoutes__content small { color: var(--color-tertiary); }
+.HomeDispatchRoutes__swatch {
+  border-radius: 50%;
+  height: 8px;
+  margin-top: 4px;
+  transition: opacity 160ms ease, transform 160ms ease;
+  width: 8px;
+}
+.HomeDispatchRoutes button.is-hovered .HomeDispatchRoutes__swatch,
+.HomeDispatchRoutes button.is-selected .HomeDispatchRoutes__swatch { transform: scale(1.5); }
+.HomeDispatchRoutes__swatch.is-route1 { background: #2a3ef4; }
+.HomeDispatchRoutes__swatch.is-route2 { background: #009995; }
+.HomeDispatchRoutes__swatch.is-route3 { background: #9583ff; }
+.HomeDispatchRoutes button.is-dimmed .HomeDispatchRoutes__swatch.is-route1 { background: #c9d2fc; }
+.HomeDispatchRoutes button.is-dimmed .HomeDispatchRoutes__swatch.is-route2 { background: #9ee1dd; }
+.HomeDispatchRoutes button.is-dimmed .HomeDispatchRoutes__swatch.is-route3 { background: #d9d0f7; }
+.HomeDispatchRoutes__content { display: grid; gap: 6px; min-width: 0; transition: opacity 160ms ease; }
+.HomeDispatchRoutes__content strong { color: inherit; font-size: 13px; line-height: 1.2; }
+.HomeDispatchRoutes__content > span { color: var(--color-muted); font-size: 11px; }
+.HomeDispatchRoutes__content small { color: var(--color-tertiary); font-size: 10px; }
+.HomeDispatchRoutes__content small.is-inProgress { color: var(--home-accent); }
+.HomeDispatchRoutes__content small.is-completed { color: var(--home-green); }
 .HomeCaseMap__zone { height: 40%; width: 43%; z-index: 2; }
 .HomeCaseMap__zone--a { left: 10%; top: 12%; }
 .HomeCaseMap__zone--b { bottom: 9%; right: 7%; }
@@ -488,14 +565,19 @@
 .HomeStartGrid li svg { color: var(--home-accent); }
 .HomeStartGrid .HomeButton { align-self: flex-start; margin-top: auto; }
 
+@media (max-width: 1320px) {
+  .HomeCaseStage { grid-template-columns: 150px minmax(0, 1fr); }
+  .HomeCaseTabs,
+  .HomeCaseMap { min-height: 500px; }
+  .HomeCaseDetail { border-top: 1px solid var(--color-border); grid-column: 1 / -1; grid-row: 2; }
+}
+
 @media (max-width: 1080px) {
   .HomeHero { gap: 40px; grid-template-columns: 1fr; padding-top: 56px; }
   .HomeHero__content { max-width: 720px; padding-bottom: 0; }
   .HomeMap--hero { width: 100%; }
   .HomeHeroSummary { margin-top: 48px; }
   .HomeComponentExplorer__body { grid-template-columns: minmax(0, 1fr) 300px; }
-  .HomeCaseStage { grid-template-columns: 150px minmax(0, 1fr); }
-  .HomeCaseDetail { border-top: 1px solid var(--color-border); grid-column: 1 / -1; }
 }
 
 @media (max-width: 760px) {
@@ -522,10 +604,22 @@
   .HomeMap--component { border-bottom: 1px solid var(--color-border); border-right: 0; min-height: 390px; }
   .HomeComponentPanel { min-height: 390px; }
   .HomeCaseStage { grid-template-columns: 1fr; }
-  .HomeCaseTabs { border-bottom: 1px solid var(--color-border); border-right: 0; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, auto); }
+  .HomeCaseTabs { border-bottom: 1px solid var(--color-border); border-right: 0; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, auto); min-height: 0; }
   .HomeCaseTabs button { min-height: 58px; }
   .HomeCaseMap { border-bottom: 1px solid var(--color-border); border-right: 0; min-height: 400px; }
-  .HomeCaseDetail { grid-column: auto; }
+  .HomeCaseMap.is-dispatch { min-height: 620px; }
+  .HomeCaseMap.is-dispatch .HomeCaseMap__canvas { left: 0; top: 220px; }
+  .HomeDispatchRoutes {
+    border-bottom: 1px solid var(--color-border);
+    border-right: 0;
+    bottom: auto;
+    grid-template-rows: 40px repeat(3, 60px);
+    height: 220px;
+    width: 100%;
+  }
+  .HomeDispatchRoutes button { align-items: center; padding: 10px 14px; }
+  .HomeDispatchRoutes__content { gap: 3px; }
+  .HomeCaseDetail { grid-column: auto; grid-row: auto; }
 }
 
 @media (max-width: 480px) {
@@ -544,6 +638,7 @@
   .HomeButton,
   .HomeComponentTabs button,
   .HomeComponentList button,
-  .HomeCaseTabs button { transition: none; }
+  .HomeCaseTabs button,
+  .HomeDispatchRoutes button { transition: none; }
   .HomeButton:hover { transform: none; }
 }

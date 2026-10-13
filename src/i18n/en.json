@@ -112,14 +112,28 @@
       "aria": "Choose a logistics product case",
       "open": "View all business cases",
       "labels": { "problem": "Business problem", "components": "Map Lab components", "outcome": "Product capability" },
-      "operations": { "index": "CASE 01", "title": "Logistics operations monitoring", "problem": "Large networks contain many facilities, transport tasks, and exceptions, making operational risks hard to locate quickly.", "components": "Location · Progress Route · Multiple Areas", "outcome": "Monitor network health, task progress, and regional risk in one map." },
-      "dispatch": { "index": "CASE 02", "title": "Delivery dispatch", "problem": "Teams must compare routes and assign drivers under capacity, time, and service-area constraints.", "components": "Informated Location · Directional Route · Area Selection", "outcome": "Create a dispatch workflow that is comparable, selectable, and executable." },
-      "tracking": { "index": "CASE 03", "title": "Parcel tracking", "problem": "Across many handoffs, users need to understand current position, completed movement, and expected delivery.", "components": "Custom Location · Progress Route · Region Label", "outcome": "Turn a complex fulfillment chain into a continuous, trustworthy tracking experience." },
-      "network": { "index": "CASE 04", "title": "Logistics network planning", "problem": "Network planning must evaluate facility locations, coverage relationships, and cross-region transport links together.", "components": "Cumulative Location · Normal Route · Multiple Areas", "outcome": "Support site selection, coverage evaluation, and network scenario comparison." }
+      "operations": { "index": "CASE 01", "title": "Logistics operations monitoring", "problem": "Large networks contain many facilities, transport tasks, and exceptions, making operational risks hard to locate quickly.", "components": "Custom Location", "outcome": "Monitor network health, task progress, and regional risk in one map." },
+      "dispatch": {
+        "index": "CASE 02",
+        "title": "Delivery dispatch",
+        "problem": "Teams must compare routes and assign drivers under capacity, time, and service-area constraints.",
+        "components": "Route with Informated Location",
+        "outcome": "Create a dispatch workflow that is comparable, selectable, and executable.",
+        "routeListAria": "Choose a delivery route",
+        "routeListTitle": "Delivery routes",
+        "status": { "notStarted": "Not started", "inProgress": "In progress", "completed": "Completed" },
+        "routes": {
+          "1": { "name": "Route A" },
+          "2": { "name": "Route B" },
+          "3": { "name": "Route C" }
+        }
+      },
+      "tracking": { "index": "CASE 03", "title": "Parcel tracking", "problem": "Across many handoffs, users need to understand current position, completed movement, and expected delivery.", "components": "Route with Progress", "outcome": "Turn a complex fulfillment chain into a continuous, trustworthy tracking experience." },
+      "network": { "index": "CASE 04", "title": "Logistics network planning", "problem": "Network planning must evaluate facility locations, coverage relationships, and cross-region transport links together.", "components": "Multiple Areas · Area Selection · Region Label", "outcome": "Support site selection, coverage evaluation, and network scenario comparison." }
     },
     "start": {
       "designer": { "role": "DESIGNER", "title": "Design from a unified experience", "item1": "Map experience standards", "item2": "Figma component library", "item3": "Logistics business templates", "cta": "Open component manual" },
-      "engineer": { "role": "ENGINEER", "title": "Integrate map capabilities into products", "item1": "Environment configuration", "item2": "Component APIs", "item3": "Integration examples and developer docs", "cta": "Open usage guide" }
+      "engineer": { "role": "RD & VIBE CODER", "title": "Integrate into products or build quickly with Map Skill", "item1": "Development setup and integration", "item2": "Map Skill installation and usage", "item3": "Component APIs, examples, and developer docs", "cta": "Open development and Skill guide" }
     }
   },
   "params": {
