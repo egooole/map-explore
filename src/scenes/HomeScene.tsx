@@ -7,10 +7,13 @@ import {
   MapPinned,
   Route,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import heroBasemap from "../assets/hero-basemap.jpg";
 import homeHeroPlaceholder from "../assets/home-hero-placeholder.png";
+import informatedLocationPin from "../assets/route/location-pin.svg";
+import progressLocationPin from "../assets/route/progress-location.svg";
 import {
   MapCanvas,
   type MapCanvasProps,
@@ -37,6 +40,7 @@ interface ComponentOption {
 }
 
 interface HomeSceneProps {
+  heroVisualVariant?: "mapLab" | "reference";
   standalone?: boolean;
 }
 
@@ -69,6 +73,11 @@ const categoryIds: SpatialCategory[] = ["location", "route", "area"];
 const caseIds: CaseId[] = ["operations", "dispatch", "tracking", "network"];
 const designerComponentLibraryUrl =
   "https://www.figma.com/design/GVhj9D0029ntbz47c0o4TY/%F0%9F%8E%AD-Logisitics-UI-Model-Room?node-id=2196-33757&t=kAfC0aYjY475MbsJ-1";
+
+const heroRoutePath =
+  "M157 236 L180 245 L240 287 C260 296 280 300 300 300 L375 310 C400 318 418 334 435 348 L480 374 L570 428 C590 437 605 430 615 421 C625 405 632 395 650 394 L705 398 L730 402 C760 410 785 428 810 430 C830 428 850 402 868 381";
+const heroAreaPoints = "790,262 912,226 976,287 988,440 912,528 745,456 728,402 746,330";
+const heroWarehousePoints = "12,212 98,124 206,198 130,290";
 
 const dispatchRoutes: DispatchRoute[] = [
   {
@@ -269,7 +278,55 @@ function HomeGoogleMap(props: MapCanvasProps) {
   return <div className="HomeGoogleMap" ref={hostRef}>{shouldMount ? <MapCanvas {...props} compact /> : null}</div>;
 }
 
-function HeroMapVisual() {
+function HeroMapVisual({
+  standalone = false,
+}: {
+  standalone?: boolean;
+}) {
+  const instanceId = useId().replace(/:/g, "");
+
+  if (standalone) {
+    const glowId = `hero-glow-${instanceId}`;
+    const routeId = `hero-route-${instanceId}`;
+
+    return (
+      <div className="HeroBleedMap" aria-hidden="true">
+        <img className="HeroBleedMap__image" src={heroBasemap} alt="" />
+        <svg className="HeroBleedMap__overlay" viewBox="0 0 1000 849">
+          <defs>
+            <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur stdDeviation="5" />
+            </filter>
+          </defs>
+
+          <polygon className="HeroBleedMap__areaFill" points={heroAreaPoints} />
+          <polygon className="HeroBleedMap__areaStroke" points={heroAreaPoints} />
+          <polygon className="HeroBleedMap__warehouseFill" points={heroWarehousePoints} />
+          <polygon className="HeroBleedMap__warehouseStroke" points={heroWarehousePoints} />
+
+          <path className="HeroBleedMap__routeGlow" d={heroRoutePath} filter={`url(#${glowId})`} />
+          <path className="HeroBleedMap__routeOutline" d={heroRoutePath} />
+          <path className="HeroBleedMap__route" d={heroRoutePath} id={routeId} />
+          <path className="HeroBleedMap__routeFlow" d={heroRoutePath} />
+
+          {["0s", "-1.4s", "-2.8s", "-4.2s", "-5.6s"].map((begin) => (
+            <g className="HeroBleedMap__routeArrow" key={begin}>
+              <path d="M-7 -4 L0 0 L-7 4" />
+              <animateMotion begin={begin} dur="7s" repeatCount="indefinite" rotate="auto">
+                <mpath href={`#${routeId}`} />
+              </animateMotion>
+            </g>
+          ))}
+
+          <image className="HeroBleedMap__pin" href={informatedLocationPin} height="63" width="60" x="127" y="173" />
+          <image className="HeroBleedMap__pin" href={informatedLocationPin} height="63" width="60" x="838" y="318" />
+          <circle className="HeroBleedMap__progressPulse" cx="615" cy="421" r="18" />
+          <image className="HeroBleedMap__progressPin" href={progressLocationPin} height="40" width="40" x="595" y="401" />
+        </svg>
+      </div>
+    );
+  }
+
   return (
     <div className="HomeMap HomeMap--hero" aria-label="物流地图主视觉">
       <img className="HomeMap__placeholder" src={homeHeroPlaceholder} alt="物流地图组件组合占位视觉" />
@@ -472,33 +529,42 @@ export function HomeScene({ standalone = false }: HomeSceneProps) {
     navigate(route);
   };
 
+  const heroSection = (
+    <section className="HomeHero" id="home">
+      <div className="HomeHero__content">
+        <span className="HomeEyebrow">MAP LAB · LOGISTICS SPATIAL SYSTEM</span>
+        <h1>{t("home.hero.title")}</h1>
+        <p>{t("home.hero.description")}</p>
+        <div className="HomeHero__actions">
+          <button className="HomeButton HomeButton--primary" onClick={() => openWorkbenchRoute("/browse", "capabilities")} type="button">
+            {t("home.hero.explore")}<ArrowRight size={16} />
+          </button>
+          <button className="HomeButton HomeButton--secondary" onClick={() => openWorkbenchRoute("/manual", "components")} type="button">
+            {t("home.hero.components")}
+          </button>
+        </div>
+      </div>
+      {!standalone ? <HeroMapVisual /> : null}
+      <div className="HomeHeroSummary">
+        {(["endToEnd", "model", "global"] as const).map((item, index) => (
+          <article key={item}>
+            <span>0{index + 1}</span>
+            <div><strong>{t(`home.summary.${item}.title`)}</strong><small>{t(`home.summary.${item}.description`)}</small></div>
+          </article>
+        ))}
+      </div>
+    </section>
+  );
 
   return (
     <div className={`HomeScene${standalone ? " HomeScene--standalone" : ""}`}>
-      <section className="HomeHero" id="home">
-        <div className="HomeHero__content">
-          <span className="HomeEyebrow">MAP LAB · LOGISTICS SPATIAL SYSTEM</span>
-          <h1>{t("home.hero.title")}</h1>
-          <p>{t("home.hero.description")}</p>
-          <div className="HomeHero__actions">
-            <button className="HomeButton HomeButton--primary" onClick={() => openWorkbenchRoute("/browse", "capabilities")} type="button">
-              {t("home.hero.explore")}<ArrowRight size={16} />
-            </button>
-            <button className="HomeButton HomeButton--secondary" onClick={() => openWorkbenchRoute("/manual", "components")} type="button">
-              {t("home.hero.components")}
-            </button>
-          </div>
+      {standalone ? (
+        <div className="HomeHeroStage">
+          <HeroMapVisual standalone />
+          <div className="HomeHeroStage__scrim" aria-hidden="true" />
+          {heroSection}
         </div>
-        <HeroMapVisual />
-        <div className="HomeHeroSummary">
-          {(["endToEnd", "model", "global"] as const).map((item, index) => (
-            <article key={item}>
-              <span>0{index + 1}</span>
-              <div><strong>{t(`home.summary.${item}.title`)}</strong><small>{t(`home.summary.${item}.description`)}</small></div>
-            </article>
-          ))}
-        </div>
-      </section>
+      ) : heroSection}
 
       <main className="HomeContent">
         <section className="HomeSection HomeContext">

@@ -4,6 +4,7 @@ import { BrowserRouter } from "react-router-dom";
 import "../i18n";
 import "../styles/tokens.css";
 import "../styles/global.css";
+import "../styles/hero-bleed.css";
 import "./showcase.css";
 import { ShowcaseApp } from "./ShowcaseApp";
 

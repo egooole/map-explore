@@ -426,7 +426,7 @@ function createEmptyDynamicRouteLayer(): DynamicRouteLayer {
  * 所以每次切换组件、重新搜索路线或页面卸载时，都要手动 remove / setMap(null)。
  */
 function clearDynamicRouteLayer(layer: DynamicRouteLayer) {
-  layer.listeners.forEach((listener) => listener.remove());
+  layer.listeners.forEach((listener) => listener?.remove?.());
   layer.listeners = [];
   layer.markers.forEach((marker) => marker.remove());
   layer.markers = [];
@@ -1830,11 +1830,11 @@ export function MapCanvas({
           polylineRef.current?.setMap(null);
           polygonRef.current?.setMap(null);
           regionDataRef.current?.setMap(null);
-          regionListenersRef.current.forEach((listener) => listener.remove());
+          regionListenersRef.current.forEach((listener) => listener?.remove?.());
           regionLabelRef.current?.remove();
           dynamicRouteRef.current.outline?.setMap(null);
           dynamicRouteRef.current.route?.setMap(null);
-          dynamicRouteRef.current.listeners.forEach((listener) => listener.remove());
+          dynamicRouteRef.current.listeners.forEach((listener) => listener?.remove?.());
           markersRef.current.forEach((marker) => marker.remove());
           routePreviewsRef.current.forEach((route) => route.remove());
           polylineRef.current = null;
@@ -1902,7 +1902,7 @@ export function MapCanvas({
       setPreviewZoom(mapRef.current?.getZoom() ?? controls.zoom);
     });
 
-    return () => listener.remove();
+    return () => listener?.remove?.();
   }, [controls.zoom, status]);
 
   // 当预览类型或 zoom 改变时，把地图中心和缩放恢复到当前组件需要的位置。
@@ -2330,7 +2330,7 @@ export function MapCanvas({
       onPreviewRouteClearSelection();
     });
 
-    return () => listener.remove();
+    return () => listener?.remove?.();
   }, [onPreviewRouteClearSelection, status]);
 
   useEffect(() => {
@@ -2347,7 +2347,7 @@ export function MapCanvas({
     let regionById = new Map<string, RegionManifestEntry>();
 
     const clearRegionLayer = () => {
-      regionListenersRef.current.forEach((listener) => listener.remove());
+      regionListenersRef.current.forEach((listener) => listener?.remove?.());
       regionListenersRef.current = [];
       regionLabelRef.current?.remove();
       regionLabelRef.current = null;
@@ -2808,7 +2808,7 @@ export function MapCanvas({
       polylineRef.current?.setMap(null);
       polygonRef.current?.setMap(null);
       regionDataRef.current?.setMap(null);
-      regionListenersRef.current.forEach((listener) => listener.remove());
+      regionListenersRef.current.forEach((listener) => listener?.remove?.());
       regionLabelRef.current?.remove();
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
