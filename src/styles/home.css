@@ -564,6 +564,44 @@
 .HomeStartGrid li { align-items: center; color: var(--color-muted); display: flex; font-size: 13px; gap: 9px; }
 .HomeStartGrid li svg { color: var(--home-accent); }
 .HomeStartGrid .HomeButton { align-self: flex-start; margin-top: auto; }
+.HomeStartGrid .HomeButton.is-expanded svg { transform: rotate(90deg); }
+
+.HomeStartGuide {
+  border-top: 1px solid var(--color-border);
+  display: grid;
+  gap: 30px;
+  grid-column: 1 / -1;
+  padding: 32px;
+}
+
+.HomeStartGuide > header {
+  display: grid;
+  gap: 8px;
+  max-width: 680px;
+}
+
+.HomeStartGuide > header > span,
+.HomeStartGuide__paths article > span {
+  color: var(--home-accent);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.HomeStartGuide h3,
+.HomeStartGuide h4,
+.HomeStartGuide p {
+  margin: 0;
+}
+
+.HomeStartGuide h3 { font-size: 24px; }
+.HomeStartGuide > header p { color: var(--color-muted); font-size: 13px; line-height: 1.65; }
+.HomeStartGuide__paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.HomeStartGuide__paths article { display: flex; flex-direction: column; min-height: 260px; padding: 26px 30px 0 0; }
+.HomeStartGuide__paths article + article { border-left: 1px solid var(--color-border); padding-left: 30px; }
+.HomeStartGuide__paths h4 { font-size: 19px; margin-top: 8px; }
+.HomeStartGuide__paths ol { color: var(--color-muted); display: grid; font-size: 13px; gap: 10px; line-height: 1.6; margin: 24px 0 28px; padding-left: 20px; }
 
 @media (max-width: 1320px) {
   .HomeCaseStage { grid-template-columns: 150px minmax(0, 1fr); }
@@ -591,11 +629,13 @@
   .HomeHeroSummary,
   .HomeContextGrid,
   .HomeCapabilityGrid,
-  .HomeStartGrid { grid-template-columns: 1fr; }
+  .HomeStartGrid,
+  .HomeStartGuide__paths { grid-template-columns: 1fr; }
   .HomeHeroSummary article + article,
   .HomeContextGrid article + article,
   .HomeCapabilityGrid article + article,
   .HomeStartGrid article + article { border-left: 0; border-top: 1px solid var(--color-border); }
+  .HomeStartGuide__paths article + article { border-left: 0; border-top: 1px solid var(--color-border); padding-left: 0; }
   .HomeContextGrid article + article { padding-left: 0; }
   .HomeCapabilityGrid article { min-height: 350px; }
   .HomeSection,

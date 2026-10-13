@@ -447,6 +447,7 @@ export function HomeScene({ standalone = false }: HomeSceneProps) {
   const [activeCategory, setActiveCategory] = useState<SpatialCategory>("location");
   const [activeComponentId, setActiveComponentId] = useState("normalLocation");
   const [activeCase, setActiveCase] = useState<CaseId>("operations");
+  const [showStartGuide, setShowStartGuide] = useState(false);
   const visibleComponents = useMemo(
     () => componentOptions.filter((component) => component.category === activeCategory),
     [activeCategory],
@@ -471,7 +472,6 @@ export function HomeScene({ standalone = false }: HomeSceneProps) {
     navigate(route);
   };
 
-  const guideHref = `${import.meta.env.BASE_URL}#/guide`;
 
   return (
     <div className={`HomeScene${standalone ? " HomeScene--standalone" : ""}`}>
@@ -648,9 +648,15 @@ export function HomeScene({ standalone = false }: HomeSceneProps) {
                   {t(`home.start.${role}.cta`)}<ArrowRight size={15} />
                 </a>
               ) : standalone ? (
-                <a className="HomeButton HomeButton--secondary" href={guideHref}>
+                <button
+                  aria-controls="showcase-start-guide"
+                  aria-expanded={showStartGuide}
+                  className={`HomeButton HomeButton--secondary${showStartGuide ? " is-expanded" : ""}`}
+                  onClick={() => setShowStartGuide((current) => !current)}
+                  type="button"
+                >
                   {t(`home.start.${role}.cta`)}<ArrowRight size={15} />
-                </a>
+                </button>
               ) : (
                 <button className="HomeButton HomeButton--secondary" onClick={() => navigate("/guide")} type="button">
                   {t(`home.start.${role}.cta`)}<ArrowRight size={15} />
@@ -658,6 +664,35 @@ export function HomeScene({ standalone = false }: HomeSceneProps) {
               )}
             </article>
           ))}
+          {standalone && showStartGuide ? (
+            <section className="HomeStartGuide" id="showcase-start-guide">
+              <header>
+                <span>{t("home.start.guide.eyebrow")}</span>
+                <h3>{t("home.start.guide.title")}</h3>
+                <p>{t("home.start.guide.description")}</p>
+              </header>
+              <div className="HomeStartGuide__paths">
+                <article>
+                  <span>{t("home.start.guide.rd.role")}</span>
+                  <h4>{t("home.start.guide.rd.title")}</h4>
+                  <ol>
+                    {(["item1", "item2", "item3"] as const).map((item) => (
+                      <li key={item}>{t(`home.start.guide.rd.${item}`)}</li>
+                    ))}
+                  </ol>
+                </article>
+                <article>
+                  <span>{t("home.start.guide.vibe.role")}</span>
+                  <h4>{t("home.start.guide.vibe.title")}</h4>
+                  <ol>
+                    {(["item1", "item2", "item3"] as const).map((item) => (
+                      <li key={item}>{t(`home.start.guide.vibe.${item}`)}</li>
+                    ))}
+                  </ol>
+                </article>
+              </div>
+            </section>
+          ) : null}
         </div>
       </section>
     </div>

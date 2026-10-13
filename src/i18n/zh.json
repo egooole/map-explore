@@ -203,6 +203,26 @@
         "item2": "Map Skill 安装与使用",
         "item3": "组件 API、示例与开发文档",
         "cta": "查看开发与 Skill 指南"
+      },
+      "guide": {
+        "eyebrow": "QUICK GUIDE",
+        "title": "在你的项目中开始使用 Map Lab",
+        "description": "根据你的工作方式选择接入路径。两种方式都复用同一套组件规范、视觉资产与地图实现约束。",
+        "rd": {
+          "role": "FOR RD",
+          "title": "接入现有前端产品",
+          "item1": "配置 Google Maps API Key 与 Map ID。",
+          "item2": "按业务需要引入 Location、Route 或 Area 组件。",
+          "item3": "接入真实数据，并验证状态、交互与清理逻辑。"
+        },
+        "vibe": {
+          "role": "FOR VIBE CODING",
+          "title": "让 AI 按 Map Lab 规范构建",
+          "item1": "下载并解压 Map Lab 通用 Skill 包。",
+          "item2": "将 map-lab-components 文件夹放入项目。",
+          "item3": "让 AI 先读取 SKILL.md，再描述你的地图需求。",
+          "download": "下载通用 Map Skill"
+        }
       }
     }
   },

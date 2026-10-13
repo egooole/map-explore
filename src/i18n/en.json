@@ -133,7 +133,14 @@
     },
     "start": {
       "designer": { "role": "DESIGNER", "title": "Design from a unified experience", "item1": "Map experience standards", "item2": "Figma component library", "item3": "Logistics business templates", "cta": "Open component manual" },
-      "engineer": { "role": "RD & VIBE CODER", "title": "Integrate into products or build quickly with Map Skill", "item1": "Development setup and integration", "item2": "Map Skill installation and usage", "item3": "Component APIs, examples, and developer docs", "cta": "Open development and Skill guide" }
+      "engineer": { "role": "RD & VIBE CODER", "title": "Integrate into products or build quickly with Map Skill", "item1": "Development setup and integration", "item2": "Map Skill installation and usage", "item3": "Component APIs, examples, and developer docs", "cta": "Open development and Skill guide" },
+      "guide": {
+        "eyebrow": "QUICK GUIDE",
+        "title": "Start using Map Lab in your project",
+        "description": "Choose the path that matches how you work. Both reuse the same component rules, visual assets, and map implementation constraints.",
+        "rd": { "role": "FOR RD", "title": "Integrate into an existing frontend", "item1": "Configure the Google Maps API Key and Map ID.", "item2": "Add the Location, Route, or Area components your workflow needs.", "item3": "Connect real data and verify states, interactions, and cleanup." },
+        "vibe": { "role": "FOR VIBE CODING", "title": "Let AI build with Map Lab rules", "item1": "Download and unzip the universal Map Lab Skill package.", "item2": "Place the map-lab-components folder in your project.", "item3": "Ask AI to read SKILL.md before describing your map task.", "download": "Download universal Map Skill" }
+      }
     }
   },
   "params": {
