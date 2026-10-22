@@ -34,23 +34,25 @@
   object-fit: cover;
   -webkit-mask-composite: source-in;
   -webkit-mask-image:
-    radial-gradient(ellipse closest-side at 56% 48%, #000 50%, transparent 100%),
-    linear-gradient(115deg, transparent 10%, #000 38%);
+    radial-gradient(ellipse closest-side at 52% 48%, #000 66%, transparent 100%),
+    linear-gradient(115deg, transparent 0%, #000 20%);
   mask-composite: intersect;
   mask-image:
-    radial-gradient(ellipse closest-side at 56% 48%, #000 50%, transparent 100%),
-    linear-gradient(115deg, transparent 10%, #000 38%);
+    radial-gradient(ellipse closest-side at 52% 48%, #000 66%, transparent 100%),
+    linear-gradient(115deg, transparent 0%, #000 20%);
+  z-index: 0;
 }
 
 .HomeScene--standalone .HeroBleedMap__overlay {
   overflow: visible;
+  z-index: 1;
 }
 
 .HomeScene--standalone .HomeHeroStage__scrim {
   background: radial-gradient(
-    ellipse 42% 60% at 22% 50%,
-    rgba(0, 0, 0, 0.85) 0%,
-    rgba(0, 0, 0, 0.5) 55%,
+    ellipse 34% 52% at 20% 50%,
+    rgba(0, 0, 0, 0.75) 0%,
+    rgba(0, 0, 0, 0.35) 60%,
     rgba(0, 0, 0, 0) 100%
   );
   inset: 0;
@@ -116,101 +118,137 @@
   line-height: 1.5;
 }
 
-.HomeScene--standalone .HeroBleedMap__areaFill {
-  animation: heroAreaBreathe 4s ease-in-out infinite;
-  fill: #3fd0e8;
-  fill-opacity: 0.1;
-}
-
+.HomeScene--standalone .HeroBleedMap__areaUnderlay,
 .HomeScene--standalone .HeroBleedMap__areaStroke {
-  animation: heroBoundaryMarch 2.4s linear infinite;
   fill: none;
   stroke-linejoin: round;
 }
 
+.HomeScene--standalone .HeroBleedMap__areaUnderlay {
+  stroke: #768bff;
+  stroke-opacity: 0.35;
+  stroke-width: 4;
+}
+
+.HomeScene--standalone .HeroBleedMap__areaFill {
+  animation: heroAreaBreathe 4s ease-in-out infinite;
+  fill: #2a3ef4;
+  fill-opacity: 0.1;
+}
+
 .HomeScene--standalone .HeroBleedMap__areaStroke {
-  stroke: #9ceffb;
-  stroke-dasharray: 20 8;
+  stroke: #2a3ef4;
   stroke-width: 2;
 }
 
 .HomeScene--standalone .HeroBleedMap__route,
-.HomeScene--standalone .HeroBleedMap__routeFlow,
-.HomeScene--standalone .HeroBleedMap__routeGlow {
+.HomeScene--standalone .HeroBleedMap__routeOutline {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.HomeScene--standalone .HeroBleedMap__routeGlow {
-  stroke: #5a6bff;
-  stroke-opacity: 0.45;
-  stroke-width: 10;
+.HomeScene--standalone .HeroBleedMap__routeOutline {
+  stroke: #fff;
+  stroke-width: 14;
 }
 
 .HomeScene--standalone .HeroBleedMap__route {
-  stroke: #7c89ff;
-  stroke-width: 3.5;
+  stroke: #2a3ef4;
+  stroke-width: 10;
 }
 
-.HomeScene--standalone .HeroBleedMap__routeFlow {
-  animation: heroRouteFlow 3.6s linear infinite;
-  stroke: #e6e9ff;
-  stroke-dasharray: 36 1144;
-  stroke-width: 3;
-}
-
-.HomeScene--standalone .HeroBleedMap__routeMoverGlow {
-  fill: #5a6bff;
-  opacity: 0.42;
-}
-
-.HomeScene--standalone .HeroBleedMap__routeMoverCore {
-  fill: #f2f4ff;
-}
-
-.HomeScene--standalone .HeroBleedMap__location {
-  overflow: visible;
-}
-
-.HomeScene--standalone .HeroBleedMap__location--start { color: #5ee6c8; }
-.HomeScene--standalone .HeroBleedMap__location--mid { color: #8fa0ff; }
-.HomeScene--standalone .HeroBleedMap__location--end { color: #7cf29a; }
-
-.HomeScene--standalone .HeroBleedMap__locationPoint {
-  fill: currentColor;
-  stroke: #05070a;
-  stroke-width: 3;
-}
-
-.HomeScene--standalone .HeroBleedMap__locationPulse {
-  animation: heroLocationPulse 2.4s ease-out infinite;
+.HomeScene--standalone .HeroBleedMap__routeArrow {
   fill: none;
-  stroke: currentColor;
+  stroke: #768bff;
+  stroke-linecap: round;
+  stroke-linejoin: round;
   stroke-width: 2;
-  transform-box: fill-box;
+}
+
+.HomeScene--standalone .HeroBleedMap__vehicleLayer,
+.HomeScene--standalone .HeroBleedMap__markerLayer {
+  height: 100%;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  position: absolute;
+  width: 100%;
+}
+
+.HomeScene--standalone .HeroBleedMap__vehicleLayer {
+  z-index: 2;
+}
+
+.HomeScene--standalone .HeroBleedMap__markerLayer {
+  z-index: 3;
+}
+
+.HomeScene--standalone .HeroBleedMap__vehicle {
+  height: 32px;
+  left: 50%;
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 32px;
+}
+
+.HomeScene--standalone .HeroBleedMap__marker {
+  height: 0;
+  position: absolute;
+  width: 0;
+}
+
+.HomeScene--standalone .HeroBleedMap__marker > img,
+.HomeScene--standalone .HeroBleedMap__normalPoint {
+  display: block;
+  left: 0;
+  position: absolute;
+  top: 0;
+}
+
+.HomeScene--standalone .HeroBleedMap__marker--warehouse > img,
+.HomeScene--standalone .HeroBleedMap__marker--informated > img {
+  height: 46px;
+  transform: translate(-50%, -81%);
+  width: 44px;
+}
+
+.HomeScene--standalone .HeroBleedMap__normalPoint {
+  background: #2a3ef4;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  box-shadow: 0 4px 11px rgba(15, 23, 42, 0.18), 0 1px 2px rgba(15, 23, 42, 0.16);
+  box-sizing: border-box;
+  height: 24px;
+  transform: translate(-50%, -50%);
+  width: 24px;
+}
+
+.HomeScene--standalone .HeroBleedMap__markerPulse {
+  animation: heroMarkerPulse 2.4s ease-out infinite;
+  border: 2px solid #2a3ef4;
+  border-radius: 50%;
+  box-sizing: border-box;
+  height: 24px;
+  left: 0;
+  position: absolute;
+  top: 0;
   transform-origin: center;
+  width: 24px;
 }
 
-.HomeScene--standalone .HeroBleedMap__location--mid .HeroBleedMap__locationPulse { animation-delay: 0.8s; }
-.HomeScene--standalone .HeroBleedMap__location--end .HeroBleedMap__locationPulse { animation-delay: 1.6s; }
-
-@keyframes heroRouteFlow {
-  to { stroke-dashoffset: -1180; }
-}
-
-@keyframes heroBoundaryMarch {
-  to { stroke-dashoffset: -56; }
-}
+.HomeScene--standalone .HeroBleedMap__marker--normal .HeroBleedMap__markerPulse { animation-delay: 0.8s; }
+.HomeScene--standalone .HeroBleedMap__marker--informated .HeroBleedMap__markerPulse { animation-delay: 1.6s; }
 
 @keyframes heroAreaBreathe {
   0%, 100% { fill-opacity: 0.1; }
-  50% { fill-opacity: 0.24; }
+  50% { fill-opacity: 0.18; }
 }
 
-@keyframes heroLocationPulse {
-  0% { opacity: 0.46; transform: scale(0.8); }
-  100% { opacity: 0; transform: scale(3); }
+@keyframes heroMarkerPulse {
+  0% { opacity: 0.35; transform: translate(-50%, -50%) scale(1); }
+  100% { opacity: 0; transform: translate(-50%, -50%) scale(2.6); }
 }
 
 @media (max-width: 1200px) {
@@ -287,9 +325,7 @@
     animation: none !important;
   }
 
-  .HomeScene--standalone .HeroBleedMap__locationPulse,
-  .HomeScene--standalone .HeroBleedMap__routeFlow,
-  .HomeScene--standalone .HeroBleedMap__routeMover {
+  .HomeScene--standalone .HeroBleedMap__markerPulse {
     display: none;
   }
 }

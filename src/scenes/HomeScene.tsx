@@ -12,6 +12,9 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import heroBasemap from "../assets/hero-basemap.jpg";
 import homeHeroPlaceholder from "../assets/home-hero-placeholder.png";
+import warehouseLocationAsset from "../assets/custom-location/warehouse.svg";
+import informatedLocationAsset from "../assets/informated-location/default.svg";
+import progressLocationAsset from "../assets/route/progress-location.svg";
 import {
   MapCanvas,
   type MapCanvasProps,
@@ -242,6 +245,92 @@ function HeroMapVisual({
   variant?: NonNullable<HomeSceneProps["heroVisualVariant"]>;
 }) {
   const instanceId = useId().replace(/:/g, "");
+  const heroRouteRef = useRef<SVGPathElement | null>(null);
+  const heroArrowRefs = useRef<Array<SVGPathElement | null>>([]);
+  const heroVehicleRef = useRef<HTMLImageElement | null>(null);
+  const [heroArrowCount, setHeroArrowCount] = useState(0);
+
+  useEffect(() => {
+    if (!standalone || variant !== "mapLab") {
+      return;
+    }
+
+    const path = heroRouteRef.current;
+    if (!path) {
+      return;
+    }
+
+    setHeroArrowCount(Math.max(1, Math.floor(path.getTotalLength() / 40)));
+  }, [standalone, variant]);
+
+  useEffect(() => {
+    if (!standalone || variant !== "mapLab" || heroArrowCount === 0) {
+      return;
+    }
+
+    const path = heroRouteRef.current;
+    const vehicle = heroVehicleRef.current;
+    if (!path || !vehicle) {
+      return;
+    }
+
+    const pathLength = path.getTotalLength();
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+    let animationFrame = 0;
+    let arrowOffset = 0;
+    let startTime: number | null = null;
+
+    const updatePositions = (vehicleProgress: number) => {
+      heroArrowRefs.current.forEach((arrow, index) => {
+        if (!arrow) {
+          return;
+        }
+
+        const distance = (20 + index * 40 + arrowOffset) % pathLength;
+        const point = path.getPointAtLength(distance);
+        const before = path.getPointAtLength(Math.max(0, distance - 0.75));
+        const after = path.getPointAtLength(Math.min(pathLength, distance + 0.75));
+        const angle = Math.atan2(after.y - before.y, after.x - before.x) * (180 / Math.PI);
+        arrow.setAttribute("transform", `translate(${point.x} ${point.y}) rotate(${angle})`);
+      });
+
+      const vehiclePoint = path.getPointAtLength(pathLength * vehicleProgress);
+      vehicle.style.left = `${(vehiclePoint.x / 1000) * 100}%`;
+      vehicle.style.top = `${(vehiclePoint.y / 849) * 100}%`;
+    };
+
+    const animate = (time: number) => {
+      if (startTime === null) {
+        startTime = time;
+      }
+
+      arrowOffset = (arrowOffset + 0.6) % 40;
+      const vehicleProgress = ((time - startTime) % 8000) / 8000;
+      updatePositions(vehicleProgress);
+      animationFrame = window.requestAnimationFrame(animate);
+    };
+
+    const syncMotionPreference = () => {
+      window.cancelAnimationFrame(animationFrame);
+      startTime = null;
+      arrowOffset = 0;
+
+      if (reducedMotion.matches) {
+        updatePositions(0.5);
+        return;
+      }
+
+      animationFrame = window.requestAnimationFrame(animate);
+    };
+
+    syncMotionPreference();
+    reducedMotion.addEventListener("change", syncMotionPreference);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      reducedMotion.removeEventListener("change", syncMotionPreference);
+    };
+  }, [heroArrowCount, standalone, variant]);
 
   if (standalone) {
     const glowId = `hero-glow-${instanceId}`;
@@ -297,40 +386,58 @@ function HeroMapVisual({
       <div className="HeroBleedMap" aria-hidden="true">
         <img className="HeroBleedMap__image" src={heroBasemap} alt="" />
         <svg className="HeroBleedMap__overlay" viewBox="0 0 1000 849">
-          <defs>
-            <filter id={glowId} x="-30%" y="-30%" width="160%" height="160%">
-              <feGaussianBlur stdDeviation="5" />
-            </filter>
-          </defs>
-
+          <polygon className="HeroBleedMap__areaUnderlay" points={heroAreaPoints} />
           <polygon className="HeroBleedMap__areaFill" points={heroAreaPoints} />
           <polygon className="HeroBleedMap__areaStroke" points={heroAreaPoints} />
 
-          <path className="HeroBleedMap__routeGlow" d={heroRoutePath} filter={`url(#${glowId})`} />
-          <path className="HeroBleedMap__route" d={heroRoutePath} id={routeId} />
-          <path className="HeroBleedMap__routeFlow" d={heroRoutePath} />
-
-          <g className="HeroBleedMap__routeMover">
-            <circle className="HeroBleedMap__routeMoverGlow" r="9" />
-            <circle className="HeroBleedMap__routeMoverCore" r="4" />
-            <animateMotion dur="7s" repeatCount="indefinite" calcMode="linear">
-              <mpath href={`#${routeId}`} />
-            </animateMotion>
-          </g>
-
-          <g className="HeroBleedMap__location HeroBleedMap__location--start">
-            <circle className="HeroBleedMap__locationPulse" cx="157" cy="236" r="10" />
-            <circle className="HeroBleedMap__locationPoint" cx="157" cy="236" r="10" />
-          </g>
-          <g className="HeroBleedMap__location HeroBleedMap__location--mid">
-            <circle className="HeroBleedMap__locationPulse" cx="615" cy="421" r="11" />
-            <circle className="HeroBleedMap__locationPoint" cx="615" cy="421" r="11" />
-          </g>
-          <g className="HeroBleedMap__location HeroBleedMap__location--end">
-            <circle className="HeroBleedMap__locationPulse" cx="868" cy="381" r="10" />
-            <circle className="HeroBleedMap__locationPoint" cx="868" cy="381" r="10" />
+          <path className="HeroBleedMap__routeOutline" d={heroRoutePath} />
+          <path ref={heroRouteRef} className="HeroBleedMap__route" d={heroRoutePath} />
+          <g className="HeroBleedMap__routeArrows">
+            {Array.from({ length: heroArrowCount }, (_, index) => (
+              <path
+                key={index}
+                ref={(node) => {
+                  heroArrowRefs.current[index] = node;
+                }}
+                className="HeroBleedMap__routeArrow"
+                d="M -3 -5 L 3 0 L -3 5"
+              />
+            ))}
           </g>
         </svg>
+
+        <div className="HeroBleedMap__vehicleLayer">
+          <img
+            ref={heroVehicleRef}
+            className="HeroBleedMap__vehicle"
+            src={progressLocationAsset}
+            alt=""
+          />
+        </div>
+
+        <div className="HeroBleedMap__markerLayer">
+          <span
+            className="HeroBleedMap__marker HeroBleedMap__marker--warehouse"
+            style={{ left: "15.7%", top: `${(236 / 849) * 100}%` }}
+          >
+            <span className="HeroBleedMap__markerPulse" />
+            <img src={warehouseLocationAsset} alt="" />
+          </span>
+          <span
+            className="HeroBleedMap__marker HeroBleedMap__marker--normal"
+            style={{ left: "61.5%", top: `${(421 / 849) * 100}%` }}
+          >
+            <span className="HeroBleedMap__markerPulse" />
+            <span className="HeroBleedMap__normalPoint" />
+          </span>
+          <span
+            className="HeroBleedMap__marker HeroBleedMap__marker--informated"
+            style={{ left: "86.8%", top: `${(381 / 849) * 100}%` }}
+          >
+            <span className="HeroBleedMap__markerPulse" />
+            <img src={informatedLocationAsset} alt="" />
+          </span>
+        </div>
       </div>
     );
   }
