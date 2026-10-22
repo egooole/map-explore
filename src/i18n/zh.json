@@ -72,7 +72,7 @@
     "sections": {
       "context": {
         "eyebrow": "WHY MAP LAB",
-        "title": "复杂的物流业务，需要统一的空间表达",
+        "title": "复杂的物流业务，\n需要统一的空间表达",
         "description": "全球化、多场景与高信息密度让相似的地图能力被反复建设。Map Lab 用同一种空间语言保持体验一致。"
       },
       "capabilities": {
@@ -151,7 +151,7 @@
       "open": "查看完整业务案例",
       "labels": { "problem": "业务问题", "components": "接入组件", "outcome": "产品能力" },
       "operations": {
-        "index": "CASE 01",
+        "index": "CASE 04",
         "title": "物流运营监控",
         "problem": "全球网络中同时存在大量设施、运输任务与异常状态，运营人员难以快速定位风险。",
         "components": "Custom Location",
@@ -174,13 +174,13 @@
       },
       "tracking": {
         "index": "CASE 03",
-        "title": "包裹追踪",
+        "title": "司机位置追踪",
         "problem": "包裹在多节点流转中，用户需要理解当前位置、已完成路径和预计送达。",
         "components": "Route with Progress",
         "outcome": "把复杂履约链路转化为连续、可信的追踪体验。"
       },
       "network": {
-        "index": "CASE 04",
+        "index": "CASE 01",
         "title": "物流网络规划",
         "problem": "仓网规划需要同时判断节点位置、覆盖关系与跨区域运输连接。",
         "components": "Multiple Areas · Area Selection · Region Label",

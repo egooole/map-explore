@@ -1269,6 +1269,7 @@
 .MapRegionLabel {
   background: rgba(255, 255, 255, 0.95);
   border-radius: 4px;
+  box-sizing: border-box;
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
   color: #171718;
   display: flex;
@@ -1277,7 +1278,20 @@
   max-width: 416px;
   padding: 8px 12px;
   pointer-events: none;
+  position: relative;
   white-space: nowrap;
+  width: 200px;
+}
+
+.MapRegionLabel::after {
+  background: rgba(255, 255, 255, 0.95);
+  bottom: -4px;
+  content: "";
+  height: 8px;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%) rotate(45deg);
+  width: 8px;
 }
 
 .MapRegionLabel strong {
@@ -1292,6 +1306,7 @@
   align-items: center;
   display: flex;
   gap: 4px;
+  justify-content: space-between;
   line-height: 18px;
 }
 
@@ -1306,8 +1321,12 @@
 
 .MapRegionLabel em {
   color: #6c6d6f;
+  flex: 0 0 54px;
 }
 
 .MapRegionLabel b {
   color: #171718;
+  flex: 1;
+  font-weight: var(--font-weight-medium);
+  text-align: right;
 }

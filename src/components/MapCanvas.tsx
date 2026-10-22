@@ -237,9 +237,12 @@ export interface MapCanvasProps {
   previewDistribution?: "local" | "china" | "chinaCluster";
   previewFeature?: "point" | "line" | "area" | "container";
   previewRegionColors?: Record<string, string>;
+  previewRegionInteraction?: "single" | "multi";
   previewRegionIds?: string[];
+  previewRegionMetrics?: Record<string, Array<{ label: string; value: string }>>;
   previewRegionShapes?: PreviewRegionShape[];
   previewRegionState?: "default" | "selected";
+  previewRegionStyles?: Record<string, { fillColor: string; strokeColor: string }>;
   hidePreviewContent?: boolean;
   previewMarkerFamily?: MarkerPreviewFamily;
   previewMarkerGroups?: PreviewMarkerGroup[];
@@ -788,6 +791,19 @@ const regionDataStyles = {
   },
 };
 
+const multiRegionDataStyles = {
+  default: {
+    fillOpacity: 0.08,
+    strokeOpacity: 1,
+    strokeWeight: 2,
+  },
+  pressed: {
+    fillOpacity: 0.1,
+    strokeOpacity: 0.2,
+    strokeWeight: 2,
+  },
+};
+
 function loadRegionManifest() {
   if (!regionManifestPromise) {
     regionManifestPromise = fetch(regionManifestUrl).then((response) => {
@@ -830,13 +846,27 @@ function loadRegionGeoJson(region: RegionManifestEntry) {
   return regionGeoJsonCache.get(region.id)!;
 }
 
-function createRegionLabelElement(region: RegionManifestEntry) {
+function createRegionLabelElement(
+  region: RegionManifestEntry,
+  metrics: Array<{ label: string; value: string }> = [{ label: "Selected", value: "--" }],
+) {
   const label = document.createElement("div");
   label.className = "MapRegionLabel";
-  label.innerHTML = `
-    <strong>${region.nameZh || region.nameEn}</strong>
-    <span><em>Selected</em><b>--</b></span>
-  `;
+
+  const title = document.createElement("strong");
+  title.textContent = region.nameZh || region.nameEn;
+  label.append(title);
+
+  metrics.forEach((metric) => {
+    const row = document.createElement("span");
+    const name = document.createElement("em");
+    const value = document.createElement("b");
+    name.textContent = metric.label;
+    value.textContent = metric.value;
+    row.append(name, value);
+    label.append(row);
+  });
+
   return label;
 }
 
@@ -1711,13 +1741,16 @@ export function MapCanvas({
   hidePreviewContent = false,
   previewDistribution = "local",
   previewFeature,
+  previewRegionInteraction = "single",
   previewRegionIds,
+  previewRegionMetrics,
   previewRegionState = "default",
   previewMarkerFamily = "normal",
   previewMarkerGroups,
   previewMarkers,
   previewRegionColors,
   previewRegionShapes,
+  previewRegionStyles,
   previewHoveredRouteId,
   previewRouteFamily,
   previewRouteGroups,
@@ -2040,9 +2073,12 @@ export function MapCanvas({
         ) {
           const path = group.path ?? routeWithNormalLocationPreviewPath;
           const isSelectedPreviewRoute = Boolean(group.id && group.id === previewSelectedRouteId);
-          const isHoveredPreviewRoute = Boolean(group.id && group.id === previewHoveredRouteId);
+          const canHoverPreviewRoute = !previewSelectedRouteId || isSelectedPreviewRoute;
+          const isHoveredPreviewRoute = Boolean(
+            canHoverPreviewRoute && group.id && group.id === previewHoveredRouteId,
+          );
           const isDimmedPreviewRoute = Boolean(
-            group.id && previewSelectedRouteId && group.id !== previewSelectedRouteId && !isHoveredPreviewRoute,
+            group.id && previewSelectedRouteId && group.id !== previewSelectedRouteId,
           );
           const endpointVariant: MarkerPreviewVariant = isDimmedPreviewRoute ? "muted" : "default";
           const endpointMarkerElements =
@@ -2116,7 +2152,7 @@ export function MapCanvas({
             group.id
               ? {
                   hovered: isHoveredPreviewRoute,
-                  onHoverChange: onPreviewRouteHover
+                  onHoverChange: onPreviewRouteHover && canHoverPreviewRoute
                     ? (hovered) => onPreviewRouteHover(hovered ? (group.id as string) : null)
                     : undefined,
                   onSelect: onPreviewRouteSelect
@@ -2343,6 +2379,7 @@ export function MapCanvas({
     let cancelled = false;
     let hoveredRegionId: string | null = null;
     let selectedRegionId: string | null = null;
+    let labelRegionId: string | null = null;
     let suppressNextMapClick = false;
     let regionById = new Map<string, RegionManifestEntry>();
 
@@ -2376,18 +2413,33 @@ export function MapCanvas({
     const styleForFeature = (feature: GoogleDataFeature) => {
       const regionId = resolveFeatureRegionId(feature);
       const regionColor = previewRegionColors?.[regionId] ?? inlineRegionColors.get(regionId);
-      const applyRegionColor = (style: typeof regionDataStyles.default) =>
-        regionColor
+      const regionStyle = previewRegionStyles?.[regionId];
+      const applyRegionColor = (style: {
+        fillColor?: string;
+        fillOpacity: number;
+        strokeColor?: string;
+        strokeOpacity?: number;
+        strokeWeight: number;
+      }) =>
+        regionStyle
+          ? {
+              ...style,
+              fillColor: regionStyle.fillColor,
+              strokeColor: regionStyle.strokeColor,
+            }
+          : regionColor
           ? {
               ...style,
               fillColor: regionColor,
               strokeColor: regionColor,
             }
           : style;
-      if (
-        regionId &&
-        (previewRegionState === "selected" || regionId === selectedRegionId || regionId === hoveredRegionId)
-      ) {
+      const activeRegionId = selectedRegionId ?? hoveredRegionId;
+      if (previewRegionInteraction === "multi") {
+        const isPressed = Boolean(activeRegionId && regionId !== activeRegionId);
+        return applyRegionColor(isPressed ? multiRegionDataStyles.pressed : multiRegionDataStyles.default);
+      }
+      if (regionId && (previewRegionState === "selected" || regionId === activeRegionId)) {
         return applyRegionColor(regionDataStyles.selected);
       }
       return applyRegionColor(regionDataStyles.default);
@@ -2396,6 +2448,7 @@ export function MapCanvas({
       regionDataRef.current?.setStyle(styleForFeature);
     };
     const removeLabel = () => {
+      labelRegionId = null;
       regionLabelRef.current?.remove();
       regionLabelRef.current = null;
     };
@@ -2405,14 +2458,16 @@ export function MapCanvas({
         return;
       }
 
+      labelRegionId = regionId;
+
       const region = regionById.get(regionId);
       if (!region) {
         return;
       }
 
-      const labelElement = createRegionLabelElement(region);
+      const labelElement = createRegionLabelElement(region, previewRegionMetrics?.[regionId]);
       const labelMarker = await createAdvancedMarker(googleMaps, map, region.center, labelElement, "center", 120);
-      if (cancelled || selectedRegionId !== regionId) {
+      if (cancelled || labelRegionId !== regionId) {
         labelMarker.remove();
         return;
       }
@@ -2553,9 +2608,12 @@ export function MapCanvas({
     hidePreviewContent,
     previewFeature,
     previewRegionColors,
+    previewRegionInteraction,
     previewRegionIds,
+    previewRegionMetrics,
     previewRegionShapes,
     previewRegionState,
+    previewRegionStyles,
     status,
   ]);
 

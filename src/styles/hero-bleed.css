@@ -1,4 +1,5 @@
 .HomeScene.HomeScene--standalone {
+  background: #05070a;
   margin: 0;
 }
 
@@ -13,18 +14,11 @@
   aspect-ratio: 1000 / 849;
   pointer-events: none;
   position: absolute;
-  right: -40px;
-  top: -40px;
-  width: min(82vw, 1180px);
-  z-index: -2;
-  -webkit-mask-composite: source-in;
-  -webkit-mask-image:
-    linear-gradient(to right, transparent 0%, #000 24%),
-    linear-gradient(to bottom, transparent 0%, #000 10%, #000 70%, transparent 96%);
-  mask-composite: intersect;
-  mask-image:
-    linear-gradient(to right, transparent 0%, #000 24%),
-    linear-gradient(to bottom, transparent 0%, #000 10%, #000 70%, transparent 96%);
+  right: max(0px, calc((100vw - 1200px) / 2 - 60px));
+  top: 50%;
+  transform: translateY(-56%);
+  width: min(62vw, 860px);
+  z-index: 0;
 }
 
 .HomeScene--standalone .HeroBleedMap__image,
@@ -38,6 +32,14 @@
 
 .HomeScene--standalone .HeroBleedMap__image {
   object-fit: cover;
+  -webkit-mask-composite: source-in;
+  -webkit-mask-image:
+    radial-gradient(ellipse closest-side at 56% 48%, #000 50%, transparent 100%),
+    linear-gradient(115deg, transparent 10%, #000 38%);
+  mask-composite: intersect;
+  mask-image:
+    radial-gradient(ellipse closest-side at 56% 48%, #000 50%, transparent 100%),
+    linear-gradient(115deg, transparent 10%, #000 38%);
 }
 
 .HomeScene--standalone .HeroBleedMap__overlay {
@@ -46,35 +48,40 @@
 
 .HomeScene--standalone .HomeHeroStage__scrim {
   background: radial-gradient(
-    ellipse 52% 66% at 12% 74%,
-    rgba(5, 7, 10, 0.98) 0%,
-    rgba(5, 7, 10, 0.82) 48%,
-    rgba(5, 7, 10, 0) 100%
+    ellipse 42% 60% at 22% 50%,
+    rgba(0, 0, 0, 0.85) 0%,
+    rgba(0, 0, 0, 0.5) 55%,
+    rgba(0, 0, 0, 0) 100%
   );
   inset: 0;
   pointer-events: none;
   position: absolute;
-  z-index: -1;
+  z-index: 1;
 }
 
 .HomeScene--standalone .HomeHeroStage .HomeHero {
-  align-content: end;
-  grid-template-columns: minmax(0, 600px);
-  min-height: min(900px, 100dvh);
-  padding: 72px 0 36px;
+  align-content: stretch;
+  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 560px);
+  min-height: min(720px, calc(100dvh - 64px));
+  padding: 64px 0 32px;
   position: relative;
+  z-index: 2;
 }
 
 .HomeScene--standalone .HomeHeroStage .HomeHero__content {
-  align-self: end;
-  padding-bottom: 64px;
+  align-self: center;
+  max-width: 560px;
+  padding-bottom: 0;
+  position: relative;
+  z-index: 3;
 }
 
 .HomeScene--standalone .HomeHeroStage .HomeHero h1 {
   font-size: clamp(42px, 4.4vw, 60px);
   font-weight: 900;
   line-height: 1.14;
-  max-width: 640px;
+  max-width: 560px;
   text-wrap: balance;
 }
 
@@ -84,96 +91,109 @@
 }
 
 .HomeScene--standalone .HomeHeroStage .HomeHeroSummary {
+  background: #05070a;
   border-top-color: rgba(255, 255, 255, 0.1);
   grid-column: 1 / -1;
+  margin-top: 0;
+  min-height: 0;
+  position: relative;
   width: min(1200px, calc(100vw - 64px));
+  z-index: 3;
+}
+
+.HomeScene--standalone .HomeHeroStage .HomeHeroSummary article {
+  min-height: 0;
+  padding: 20px 24px;
+}
+
+.HomeScene--standalone .HomeHeroStage .HomeHeroSummary strong {
+  font-size: 16px;
+  line-height: 1.35;
+}
+
+.HomeScene--standalone .HomeHeroStage .HomeHeroSummary small {
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .HomeScene--standalone .HeroBleedMap__areaFill {
   animation: heroAreaBreathe 4s ease-in-out infinite;
-  fill: #2a3ef4;
-  fill-opacity: 0.16;
+  fill: #3fd0e8;
+  fill-opacity: 0.1;
 }
 
-.HomeScene--standalone .HeroBleedMap__areaStroke,
-.HomeScene--standalone .HeroBleedMap__warehouseStroke {
+.HomeScene--standalone .HeroBleedMap__areaStroke {
   animation: heroBoundaryMarch 2.4s linear infinite;
   fill: none;
   stroke-linejoin: round;
 }
 
 .HomeScene--standalone .HeroBleedMap__areaStroke {
-  stroke: #7c8aff;
-  stroke-dasharray: 18 10;
-  stroke-width: 2.5;
-}
-
-.HomeScene--standalone .HeroBleedMap__warehouseFill {
-  fill: #35e6d1;
-  fill-opacity: 0.08;
-  stroke: #35e6d1;
-  stroke-opacity: 0.48;
+  stroke: #9ceffb;
+  stroke-dasharray: 20 8;
   stroke-width: 2;
-}
-
-.HomeScene--standalone .HeroBleedMap__warehouseStroke {
-  stroke: #99f7ec;
-  stroke-dasharray: 14 14;
-  stroke-width: 1.8;
 }
 
 .HomeScene--standalone .HeroBleedMap__route,
 .HomeScene--standalone .HeroBleedMap__routeFlow,
-.HomeScene--standalone .HeroBleedMap__routeGlow,
-.HomeScene--standalone .HeroBleedMap__routeOutline {
+.HomeScene--standalone .HeroBleedMap__routeGlow {
   fill: none;
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
 .HomeScene--standalone .HeroBleedMap__routeGlow {
-  stroke: #6272ff;
-  stroke-opacity: 0.56;
-  stroke-width: 18;
-}
-
-.HomeScene--standalone .HeroBleedMap__routeOutline {
-  stroke: rgba(255, 255, 255, 0.88);
-  stroke-width: 12;
+  stroke: #5a6bff;
+  stroke-opacity: 0.45;
+  stroke-width: 10;
 }
 
 .HomeScene--standalone .HeroBleedMap__route {
-  stroke: #2a3ef4;
-  stroke-width: 8;
+  stroke: #7c89ff;
+  stroke-width: 3.5;
 }
 
 .HomeScene--standalone .HeroBleedMap__routeFlow {
   animation: heroRouteFlow 3.6s linear infinite;
-  stroke: rgba(232, 235, 255, 0.9);
-  stroke-dasharray: 32 1148;
-  stroke-width: 2.5;
+  stroke: #e6e9ff;
+  stroke-dasharray: 36 1144;
+  stroke-width: 3;
 }
 
-.HomeScene--standalone .HeroBleedMap__routeArrow {
-  fill: none;
-  stroke: #fff;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 2.4;
+.HomeScene--standalone .HeroBleedMap__routeMoverGlow {
+  fill: #5a6bff;
+  opacity: 0.42;
 }
 
-.HomeScene--standalone .HeroBleedMap__pin,
-.HomeScene--standalone .HeroBleedMap__progressPin {
+.HomeScene--standalone .HeroBleedMap__routeMoverCore {
+  fill: #f2f4ff;
+}
+
+.HomeScene--standalone .HeroBleedMap__location {
   overflow: visible;
 }
 
-.HomeScene--standalone .HeroBleedMap__progressPulse {
-  animation: heroProgressPulse 1.8s ease-out infinite;
-  fill: #2a3ef4;
-  fill-opacity: 0.24;
+.HomeScene--standalone .HeroBleedMap__location--start { color: #5ee6c8; }
+.HomeScene--standalone .HeroBleedMap__location--mid { color: #8fa0ff; }
+.HomeScene--standalone .HeroBleedMap__location--end { color: #7cf29a; }
+
+.HomeScene--standalone .HeroBleedMap__locationPoint {
+  fill: currentColor;
+  stroke: #05070a;
+  stroke-width: 3;
+}
+
+.HomeScene--standalone .HeroBleedMap__locationPulse {
+  animation: heroLocationPulse 2.4s ease-out infinite;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
   transform-box: fill-box;
   transform-origin: center;
 }
+
+.HomeScene--standalone .HeroBleedMap__location--mid .HeroBleedMap__locationPulse { animation-delay: 0.8s; }
+.HomeScene--standalone .HeroBleedMap__location--end .HeroBleedMap__locationPulse { animation-delay: 1.6s; }
 
 @keyframes heroRouteFlow {
   to { stroke-dashoffset: -1180; }
@@ -185,38 +205,47 @@
 
 @keyframes heroAreaBreathe {
   0%, 100% { fill-opacity: 0.1; }
-  50% { fill-opacity: 0.28; }
+  50% { fill-opacity: 0.24; }
 }
 
-@keyframes heroProgressPulse {
-  0% { opacity: 0.3; transform: scale(0.7); }
-  100% { opacity: 0; transform: scale(2.7); }
+@keyframes heroLocationPulse {
+  0% { opacity: 0.46; transform: scale(0.8); }
+  100% { opacity: 0; transform: scale(3); }
 }
 
-@media (max-width: 1080px) {
+@media (max-width: 1200px) {
   .HomeScene--standalone .HeroBleedMap {
-    opacity: 0.78;
-    right: -12vw;
-    width: 110vw;
+    right: -10vw;
+    width: 90vw;
+  }
+
+  .HomeScene--standalone .HeroBleedMap__image {
+    opacity: 0.55;
   }
 
   .HomeScene--standalone .HomeHeroStage .HomeHero {
     grid-template-columns: 1fr;
-    min-height: 760px;
   }
 }
 
-@media (max-width: 760px) {
+@media (max-width: 800px) {
   .HomeScene--standalone .HeroBleedMap {
-    margin-bottom: -28vw;
-    margin-left: -20vw;
-    opacity: 1;
+    aspect-ratio: 16 / 9;
+    left: auto;
+    margin-bottom: -24px;
     position: relative;
-    right: auto;
+    right: 0;
     top: 0;
-    width: 140vw;
-    -webkit-mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
-    mask-image: linear-gradient(to bottom, #000 55%, transparent 100%);
+    transform: none;
+    width: 100%;
+  }
+
+  .HomeScene--standalone .HeroBleedMap__image {
+    opacity: 0.82;
+    -webkit-mask-composite: source-over;
+    -webkit-mask-image: linear-gradient(to bottom, #000 0%, #000 62%, transparent 100%);
+    mask-composite: add;
+    mask-image: linear-gradient(to bottom, #000 0%, #000 62%, transparent 100%);
   }
 
   .HomeScene--standalone .HomeHeroStage__scrim {
@@ -224,17 +253,33 @@
   }
 
   .HomeScene--standalone .HomeHeroStage .HomeHero {
+    grid-template-rows: auto auto;
     min-height: 0;
-    padding-top: 0;
+    padding: 24px 0 0;
   }
 
   .HomeScene--standalone .HomeHeroStage .HomeHero__content {
-    padding-bottom: 32px;
+    align-self: start;
+    padding-bottom: 28px;
   }
 
   .HomeScene--standalone .HomeHeroStage .HomeHeroSummary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     width: 100%;
   }
+
+  .HomeScene--standalone .HomeHeroStage .HomeHeroSummary article {
+    min-height: 0;
+    padding: 12px 8px;
+  }
+
+  .HomeScene--standalone .HomeHeroStage .HomeHeroSummary article + article {
+    border-left: 1px solid var(--color-border);
+    border-top: 0;
+  }
+
+  .HomeScene--standalone .HomeHeroStage .HomeHeroSummary strong { font-size: 12px; }
+  .HomeScene--standalone .HomeHeroStage .HomeHeroSummary small { font-size: 11px; line-height: 1.35; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -242,9 +287,9 @@
     animation: none !important;
   }
 
-  .HomeScene--standalone .HeroBleedMap__progressPulse,
-  .HomeScene--standalone .HeroBleedMap__routeArrow,
-  .HomeScene--standalone .HeroBleedMap__routeFlow {
+  .HomeScene--standalone .HeroBleedMap__locationPulse,
+  .HomeScene--standalone .HeroBleedMap__routeFlow,
+  .HomeScene--standalone .HeroBleedMap__routeMover {
     display: none;
   }
 }

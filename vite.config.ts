@@ -9,6 +9,7 @@ export default defineConfig(({ command }) => ({
       input: {
         main: resolve(__dirname, "index.html"),
         showcase: resolve(__dirname, "showcase/index.html"),
+        showcaseExample: resolve(__dirname, "showcase-example/index.html"),
       },
     },
   },

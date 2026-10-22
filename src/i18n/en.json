@@ -112,7 +112,7 @@
       "aria": "Choose a logistics product case",
       "open": "View all business cases",
       "labels": { "problem": "Business problem", "components": "Map Lab components", "outcome": "Product capability" },
-      "operations": { "index": "CASE 01", "title": "Logistics operations monitoring", "problem": "Large networks contain many facilities, transport tasks, and exceptions, making operational risks hard to locate quickly.", "components": "Custom Location", "outcome": "Monitor network health, task progress, and regional risk in one map." },
+      "operations": { "index": "CASE 04", "title": "Logistics operations monitoring", "problem": "Large networks contain many facilities, transport tasks, and exceptions, making operational risks hard to locate quickly.", "components": "Custom Location", "outcome": "Monitor network health, task progress, and regional risk in one map." },
       "dispatch": {
         "index": "CASE 02",
         "title": "Delivery dispatch",
@@ -128,8 +128,8 @@
           "3": { "name": "Route C" }
         }
       },
-      "tracking": { "index": "CASE 03", "title": "Parcel tracking", "problem": "Across many handoffs, users need to understand current position, completed movement, and expected delivery.", "components": "Route with Progress", "outcome": "Turn a complex fulfillment chain into a continuous, trustworthy tracking experience." },
-      "network": { "index": "CASE 04", "title": "Logistics network planning", "problem": "Network planning must evaluate facility locations, coverage relationships, and cross-region transport links together.", "components": "Multiple Areas · Area Selection · Region Label", "outcome": "Support site selection, coverage evaluation, and network scenario comparison." }
+      "tracking": { "index": "CASE 03", "title": "Driver location tracking", "problem": "Across many handoffs, users need to understand current position, completed movement, and expected delivery.", "components": "Route with Progress", "outcome": "Turn a complex fulfillment chain into a continuous, trustworthy tracking experience." },
+      "network": { "index": "CASE 01", "title": "Logistics network planning", "problem": "Network planning must evaluate facility locations, coverage relationships, and cross-region transport links together.", "components": "Multiple Areas · Area Selection · Region Label", "outcome": "Support site selection, coverage evaluation, and network scenario comparison." }
     },
     "start": {
       "designer": { "role": "DESIGNER", "title": "Design from a unified experience", "item1": "Map experience standards", "item2": "Figma component library", "item3": "Logistics business templates", "cta": "Open component manual" },

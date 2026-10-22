@@ -12,8 +12,6 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import heroBasemap from "../assets/hero-basemap.jpg";
 import homeHeroPlaceholder from "../assets/home-hero-placeholder.png";
-import informatedLocationPin from "../assets/route/location-pin.svg";
-import progressLocationPin from "../assets/route/progress-location.svg";
 import {
   MapCanvas,
   type MapCanvasProps,
@@ -70,7 +68,7 @@ const componentOptions: ComponentOption[] = [
 ];
 
 const categoryIds: SpatialCategory[] = ["location", "route", "area"];
-const caseIds: CaseId[] = ["operations", "dispatch", "tracking", "network"];
+const caseIds: CaseId[] = ["network", "dispatch", "tracking", "operations"];
 const designerComponentLibraryUrl =
   "https://www.figma.com/design/GVhj9D0029ntbz47c0o4TY/%F0%9F%8E%AD-Logisitics-UI-Model-Room?node-id=2196-33757&t=kAfC0aYjY475MbsJ-1";
 
@@ -168,48 +166,6 @@ const dispatchRouteGroups: PreviewRouteGroup[] = dispatchRoutes.map((route) => (
   stopPositions: route.stopPositions,
 }));
 
-const networkRegionShapes: NonNullable<MapCanvasProps["previewRegionShapes"]> = [
-  {
-    color: "#2A3EF4",
-    id: "network-west",
-    name: "West service area",
-    path: [
-      { lat: 31.31, lng: 121.28 },
-      { lat: 31.36, lng: 121.34 },
-      { lat: 31.33, lng: 121.41 },
-      { lat: 31.27, lng: 121.43 },
-      { lat: 31.23, lng: 121.36 },
-      { lat: 31.26, lng: 121.29 },
-    ],
-  },
-  {
-    color: "#009995",
-    id: "network-central",
-    name: "Central service area",
-    path: [
-      { lat: 31.28, lng: 121.44 },
-      { lat: 31.32, lng: 121.5 },
-      { lat: 31.28, lng: 121.57 },
-      { lat: 31.21, lng: 121.56 },
-      { lat: 31.18, lng: 121.49 },
-      { lat: 31.22, lng: 121.43 },
-    ],
-  },
-  {
-    color: "#9583FF",
-    id: "network-east",
-    name: "East service area",
-    path: [
-      { lat: 31.25, lng: 121.59 },
-      { lat: 31.3, lng: 121.66 },
-      { lat: 31.26, lng: 121.73 },
-      { lat: 31.18, lng: 121.72 },
-      { lat: 31.14, lng: 121.64 },
-      { lat: 31.19, lng: 121.58 },
-    ],
-  },
-];
-
 const createHomeControls = (zoom: number): MapControlsState => ({
   activeRouteId: "home-route",
   markerStyle: "dot",
@@ -280,14 +236,62 @@ function HomeGoogleMap(props: MapCanvasProps) {
 
 function HeroMapVisual({
   standalone = false,
+  variant = "mapLab",
 }: {
   standalone?: boolean;
+  variant?: NonNullable<HomeSceneProps["heroVisualVariant"]>;
 }) {
   const instanceId = useId().replace(/:/g, "");
 
   if (standalone) {
     const glowId = `hero-glow-${instanceId}`;
     const routeId = `hero-route-${instanceId}`;
+
+    if (variant === "reference") {
+      return (
+        <div className="HeroBleedMap" aria-hidden="true">
+          <img className="HeroBleedMap__image" src={heroBasemap} alt="" />
+          <svg className="HeroBleedMap__overlay" viewBox="0 0 1000 849" preserveAspectRatio="none">
+            <defs>
+              <filter id={glowId} x="-20%" y="-20%" width="140%" height="140%">
+                <feGaussianBlur stdDeviation="4" />
+              </filter>
+            </defs>
+
+            <polygon className="HeroAnim-breathe" points={heroAreaPoints} fill="#3FD0E8" fillOpacity={0.16} />
+            <polygon points={heroAreaPoints} fill="none" stroke="#3FD0E8" strokeOpacity={0.5} strokeWidth={2} strokeLinejoin="round" />
+            <polygon className="HeroAnim-march" points={heroAreaPoints} fill="none" stroke="#9CEFFB" strokeWidth={2} strokeLinejoin="round" strokeDasharray="20 8" />
+
+            <polygon points={heroWarehousePoints} fill="#5EE6C8" fillOpacity={0.08} stroke="#5EE6C8" strokeOpacity={0.45} strokeWidth={2} strokeLinejoin="round" />
+            <polygon className="HeroAnim-march" points={heroWarehousePoints} fill="none" stroke="#B5F7E8" strokeWidth={1.6} strokeDasharray="14 14" />
+
+            <path d={heroRoutePath} fill="none" stroke="#5A6BFF" strokeWidth={10} strokeOpacity={0.45} strokeLinecap="round" strokeLinejoin="round" filter={`url(#${glowId})`} />
+            <path id={routeId} className="HeroAnim-draw" d={heroRoutePath} fill="none" stroke="#7C89FF" strokeWidth={3.5} strokeLinecap="round" strokeLinejoin="round" />
+            <path className="HeroAnim-flow" d={heroRoutePath} fill="none" stroke="#E6E9FF" strokeWidth={3} strokeLinecap="round" strokeDasharray="36 1144" />
+
+            <g className="HeroAnim-vehicle">
+              <circle r={11} fill="#8FA0FF" fillOpacity={0.35} filter={`url(#${glowId})`} />
+              <circle r={5} fill="#F2F4FF" />
+              <animateMotion dur="7s" repeatCount="indefinite" calcMode="linear">
+                <mpath href={`#${routeId}`} />
+              </animateMotion>
+            </g>
+
+            <circle cx={157} cy={236} r={9} fill="#05070A" stroke="#5EE6C8" strokeWidth={3} />
+            <circle cx={157} cy={236} r={3.5} fill="#5EE6C8" />
+            <circle className="HeroAnim-ping" cx={157} cy={236} r={9} fill="none" stroke="#5EE6C8" strokeWidth={2} />
+
+            <circle cx={678} cy={394} r={12} fill="#2A3270" stroke="#8FA0FF" strokeWidth={2.5} />
+            <path d="M678 387 l6 3.5 v7 l-6 3.5 -6 -3.5 v-7z M672 390.5 l6 3.5 6 -3.5 M678 394 v7" fill="none" stroke="#DDE2FF" strokeWidth={1.4} strokeLinejoin="round" />
+            <circle className="HeroAnim-ping" cx={678} cy={394} r={12} fill="none" stroke="#8FA0FF" strokeWidth={2} style={{ animationDelay: "0.8s" }} />
+
+            <circle cx={868} cy={381} r={8} fill="#05070A" stroke="#7CF29A" strokeWidth={3} />
+            <circle cx={868} cy={381} r={3.5} fill="#7CF29A" />
+            <circle className="HeroAnim-ping" cx={868} cy={381} r={8} fill="none" stroke="#7CF29A" strokeWidth={2} style={{ animationDelay: "1.6s" }} />
+          </svg>
+        </div>
+      );
+    }
 
     return (
       <div className="HeroBleedMap" aria-hidden="true">
@@ -301,27 +305,31 @@ function HeroMapVisual({
 
           <polygon className="HeroBleedMap__areaFill" points={heroAreaPoints} />
           <polygon className="HeroBleedMap__areaStroke" points={heroAreaPoints} />
-          <polygon className="HeroBleedMap__warehouseFill" points={heroWarehousePoints} />
-          <polygon className="HeroBleedMap__warehouseStroke" points={heroWarehousePoints} />
 
           <path className="HeroBleedMap__routeGlow" d={heroRoutePath} filter={`url(#${glowId})`} />
-          <path className="HeroBleedMap__routeOutline" d={heroRoutePath} />
           <path className="HeroBleedMap__route" d={heroRoutePath} id={routeId} />
           <path className="HeroBleedMap__routeFlow" d={heroRoutePath} />
 
-          {["0s", "-1.4s", "-2.8s", "-4.2s", "-5.6s"].map((begin) => (
-            <g className="HeroBleedMap__routeArrow" key={begin}>
-              <path d="M-7 -4 L0 0 L-7 4" />
-              <animateMotion begin={begin} dur="7s" repeatCount="indefinite" rotate="auto">
-                <mpath href={`#${routeId}`} />
-              </animateMotion>
-            </g>
-          ))}
+          <g className="HeroBleedMap__routeMover">
+            <circle className="HeroBleedMap__routeMoverGlow" r="9" />
+            <circle className="HeroBleedMap__routeMoverCore" r="4" />
+            <animateMotion dur="7s" repeatCount="indefinite" calcMode="linear">
+              <mpath href={`#${routeId}`} />
+            </animateMotion>
+          </g>
 
-          <image className="HeroBleedMap__pin" href={informatedLocationPin} height="63" width="60" x="127" y="173" />
-          <image className="HeroBleedMap__pin" href={informatedLocationPin} height="63" width="60" x="838" y="318" />
-          <circle className="HeroBleedMap__progressPulse" cx="615" cy="421" r="18" />
-          <image className="HeroBleedMap__progressPin" href={progressLocationPin} height="40" width="40" x="595" y="401" />
+          <g className="HeroBleedMap__location HeroBleedMap__location--start">
+            <circle className="HeroBleedMap__locationPulse" cx="157" cy="236" r="10" />
+            <circle className="HeroBleedMap__locationPoint" cx="157" cy="236" r="10" />
+          </g>
+          <g className="HeroBleedMap__location HeroBleedMap__location--mid">
+            <circle className="HeroBleedMap__locationPulse" cx="615" cy="421" r="11" />
+            <circle className="HeroBleedMap__locationPoint" cx="615" cy="421" r="11" />
+          </g>
+          <g className="HeroBleedMap__location HeroBleedMap__location--end">
+            <circle className="HeroBleedMap__locationPulse" cx="868" cy="381" r="10" />
+            <circle className="HeroBleedMap__locationPoint" cx="868" cy="381" r="10" />
+          </g>
         </svg>
       </div>
     );
@@ -411,7 +419,7 @@ function CaseStage({
     setSelectedDispatchRouteId((currentRouteId) => currentRouteId === routeId ? null : routeId);
     setHoveredDispatchRouteId(null);
   };
-  const configurations: Record<CaseId, Pick<MapCanvasProps, "previewFeature" | "previewMarkerGroups" | "previewRegionColors" | "previewRegionIds" | "previewRegionShapes" | "previewRouteGroups">> = {
+  const configurations: Record<CaseId, Pick<MapCanvasProps, "previewFeature" | "previewMarkerGroups" | "previewRegionColors" | "previewRegionInteraction" | "previewRegionIds" | "previewRegionMetrics" | "previewRegionShapes" | "previewRegionStyles" | "previewRouteGroups">> = {
     operations: {
       previewFeature: "point",
       previewMarkerGroups: [
@@ -432,7 +440,33 @@ function CaseStage({
     },
     network: {
       previewFeature: "area",
-      previewRegionShapes: networkRegionShapes,
+      previewRegionInteraction: "multi",
+      previewRegionIds: ["yangpu", "xuhui", "baoshan"],
+      previewRegionMetrics: {
+        baoshan: [
+          { label: "Coverage", value: "76%" },
+          { label: "ADO", value: "8,360" },
+          { label: "Density", value: "118" },
+          { label: "Facility", value: "5" },
+        ],
+        xuhui: [
+          { label: "Coverage", value: "88%" },
+          { label: "ADO", value: "10,920" },
+          { label: "Density", value: "172" },
+          { label: "Facility", value: "7" },
+        ],
+        yangpu: [
+          { label: "Coverage", value: "92%" },
+          { label: "ADO", value: "12,480" },
+          { label: "Density", value: "186" },
+          { label: "Facility", value: "8" },
+        ],
+      },
+      previewRegionStyles: {
+        baoshan: { fillColor: "#9583FF", strokeColor: "#8575FF" },
+        xuhui: { fillColor: "#02A5A0", strokeColor: "#02A5A0" },
+        yangpu: { fillColor: "#1966FF", strokeColor: "#2A3EF4" },
+      },
     },
   };
   const configuration = configurations[activeCase];
@@ -447,8 +481,9 @@ function CaseStage({
           </header>
           {dispatchRoutes.map((route, index) => {
             const selected = route.id === selectedDispatchRouteId;
-            const hovered = route.id === hoveredDispatchRouteId;
-            const dimmed = Boolean(selectedDispatchRouteId && !selected && !hovered);
+            const canHover = !selectedDispatchRouteId || selected;
+            const hovered = canHover && route.id === hoveredDispatchRouteId;
+            const dimmed = Boolean(selectedDispatchRouteId && !selected);
             return (
               <button
                 aria-selected={selected}
@@ -458,8 +493,12 @@ function CaseStage({
                 key={route.id}
                 onBlur={() => setHoveredDispatchRouteId((currentRouteId) => currentRouteId === route.id ? null : currentRouteId)}
                 onClick={() => selectDispatchRoute(route.id)}
-                onFocus={() => setHoveredDispatchRouteId(route.id)}
-                onMouseEnter={() => setHoveredDispatchRouteId(route.id)}
+                onFocus={() => {
+                  if (canHover) setHoveredDispatchRouteId(route.id);
+                }}
+                onMouseEnter={() => {
+                  if (canHover) setHoveredDispatchRouteId(route.id);
+                }}
                 onMouseLeave={() => setHoveredDispatchRouteId((currentRouteId) => currentRouteId === route.id ? null : currentRouteId)}
                 role="option"
                 type="button"
@@ -497,13 +536,13 @@ function CaseStage({
   );
 }
 
-export function HomeScene({ standalone = false }: HomeSceneProps) {
+export function HomeScene({ heroVisualVariant = "mapLab", standalone = false }: HomeSceneProps) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const { lang, mapTheme } = useWorkbenchStore();
   const [activeCategory, setActiveCategory] = useState<SpatialCategory>("location");
   const [activeComponentId, setActiveComponentId] = useState("normalLocation");
-  const [activeCase, setActiveCase] = useState<CaseId>("operations");
+  const [activeCase, setActiveCase] = useState<CaseId>("network");
   const [showStartGuide, setShowStartGuide] = useState(false);
   const visibleComponents = useMemo(
     () => componentOptions.filter((component) => component.category === activeCategory),
@@ -546,10 +585,10 @@ export function HomeScene({ standalone = false }: HomeSceneProps) {
       </div>
       {!standalone ? <HeroMapVisual /> : null}
       <div className="HomeHeroSummary">
-        {(["endToEnd", "model", "global"] as const).map((item, index) => (
+        {(["endToEnd", "model", "global"] as const).map((item) => (
           <article key={item}>
-            <span>0{index + 1}</span>
-            <div><strong>{t(`home.summary.${item}.title`)}</strong><small>{t(`home.summary.${item}.description`)}</small></div>
+            <strong>{t(`home.summary.${item}.title`)}</strong>
+            <small>{t(`home.summary.${item}.description`)}</small>
           </article>
         ))}
       </div>
@@ -560,7 +599,7 @@ export function HomeScene({ standalone = false }: HomeSceneProps) {
     <div className={`HomeScene${standalone ? " HomeScene--standalone" : ""}`}>
       {standalone ? (
         <div className="HomeHeroStage">
-          <HeroMapVisual standalone />
+          <HeroMapVisual standalone variant={heroVisualVariant} />
           <div className="HomeHeroStage__scrim" aria-hidden="true" />
           {heroSection}
         </div>

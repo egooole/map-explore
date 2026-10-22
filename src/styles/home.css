@@ -87,7 +87,7 @@
 
 .HomeButton {
   border: 1px solid transparent;
-  border-radius: var(--radius-sm);
+  border-radius: 0;
   font-size: 14px;
   font-weight: var(--font-weight-medium);
   gap: 8px;
@@ -96,6 +96,14 @@
   padding: 10px 16px;
   text-decoration: none;
   transition: background 160ms ease, border-color 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.HomeComponentTabs button,
+.HomeComponentList button,
+.HomeTextLink,
+.HomeCaseTabs button,
+.HomeDispatchRoutes button {
+  border-radius: 0;
 }
 
 .HomeButton--primary {
@@ -329,20 +337,19 @@
   display: grid;
   grid-column: 1 / -1;
   grid-template-columns: repeat(3, 1fr);
+  min-height: 180px;
 }
 
 .HomeHeroSummary article {
+  align-content: center;
   display: grid;
-  gap: 12px;
-  grid-template-columns: auto 1fr;
-  padding: 22px 24px;
+  gap: 4px;
+  padding: 48px;
 }
 
 .HomeHeroSummary article + article { border-left: 1px solid var(--color-border); }
-.HomeHeroSummary article > span { color: var(--home-accent); font-size: 11px; padding-top: 2px; }
-.HomeHeroSummary article div { display: grid; gap: 4px; }
-.HomeHeroSummary strong { font-size: 13px; font-weight: var(--font-weight-semibold); }
-.HomeHeroSummary small { color: var(--color-muted); font-size: 12px; line-height: 1.5; }
+.HomeHeroSummary strong { font-size: clamp(24px, 2vw, 28px); font-weight: var(--font-weight-bold); line-height: 1.2; }
+.HomeHeroSummary small { color: var(--color-muted); font-size: 16px; font-weight: var(--font-weight-medium); line-height: 24px; }
 
 .HomeContent { display: grid; }
 .HomeSection { padding: 112px 0; }
@@ -351,6 +358,7 @@
 .HomeSectionHeader { display: grid; gap: 12px; max-width: 720px; }
 .HomeSectionHeader--center { margin: 0 auto; text-align: center; }
 .HomeSectionHeader h2 { font-size: clamp(30px, 3vw, 44px); font-weight: var(--font-weight-semibold); line-height: 1.18; margin: 0; }
+.HomeContext .HomeSectionHeader h2 { white-space: pre-line; }
 .HomeSectionHeader p { color: var(--color-muted); font-size: 15px; line-height: 1.7; margin: 0; }
 
 .HomeContextGrid,
@@ -361,10 +369,11 @@
 }
 
 .HomeContextGrid article {
+  border-bottom: 1px solid var(--color-border-strong);
   border-top: 1px solid var(--color-border-strong);
   display: grid;
   gap: 14px;
-  padding: 24px 32px 0 0;
+  padding: 24px 32px 24px 0;
 }
 
 .HomeContextGrid article + article { border-left: 1px solid var(--color-border); padding-left: 32px; }
@@ -389,10 +398,24 @@
 .HomeCapabilityGrid dd { color: var(--color-muted); font-size: 11px; line-height: 1.5; margin: 0; }
 
 .HomeComponentExplorer { border: 1px solid var(--color-border); margin-top: 48px; }
-.HomeComponentTabs { border-bottom: 1px solid var(--color-border); display: flex; gap: 0; padding: 0 18px; }
-.HomeComponentTabs button { background: transparent; border: 0; border-bottom: 2px solid transparent; color: var(--color-muted); font-size: 13px; min-height: 52px; padding: 0 18px; }
-.HomeComponentTabs button:hover { color: var(--color-text); }
-.HomeComponentTabs button.is-active { border-bottom-color: var(--home-accent); color: var(--home-accent); }
+.HomeComponentTabs {
+  border-bottom: 1px solid var(--color-border);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.HomeComponentTabs button {
+  background: #07090a;
+  border: 0;
+  border-right: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 13px;
+  min-height: 58px;
+  padding: 16px 20px;
+  text-align: left;
+}
+.HomeComponentTabs button:last-child { border-right: 0; }
+.HomeComponentTabs button:hover { background: var(--color-surface-muted); color: var(--color-text); }
+.HomeComponentTabs button.is-active { background: var(--home-accent-soft); color: var(--home-accent); }
 .HomeComponentExplorer__body { display: grid; grid-template-columns: minmax(0, 1fr) 330px; min-height: 510px; }
 .HomeMap--component { border: 0; border-right: 1px solid var(--color-border); min-height: 510px; }
 
@@ -470,17 +493,16 @@
 .HomeCaseTabs button.is-active { background: var(--home-accent-soft); color: var(--home-accent); }
 .HomeCaseMap { border: 0; border-right: 1px solid var(--color-border); min-width: 0; }
 .HomeCaseMap__canvas { inset: 0; position: absolute; }
-.HomeCaseMap.is-dispatch .HomeCaseMap__canvas { left: 184px; }
+.HomeCaseMap.is-dispatch .HomeCaseMap__canvas { left: 0; }
 .HomeDispatchRoutes {
   background: #07090a;
-  border-right: 1px solid var(--color-border);
-  bottom: 0;
+  border: 1px solid var(--color-border);
   display: grid;
-  grid-template-rows: 52px repeat(3, 1fr);
-  left: 0;
+  grid-template-rows: 36px repeat(3, 64px);
+  left: 12px;
   position: absolute;
-  top: 0;
-  width: 184px;
+  top: 12px;
+  width: 136px;
   z-index: 8;
 }
 .HomeDispatchRoutes__header {
@@ -491,20 +513,20 @@
   font-size: 10px;
   justify-content: space-between;
   letter-spacing: 0.06em;
-  padding: 0 16px;
+  padding: 0 10px;
   text-transform: uppercase;
 }
 .HomeDispatchRoutes__header strong { color: var(--color-text); font-size: 11px; }
 .HomeDispatchRoutes button {
-  align-items: flex-start;
+  align-items: center;
   background: transparent;
   border: 0;
   border-bottom: 1px solid var(--color-border);
   color: var(--color-muted);
   display: grid;
-  gap: 10px;
-  grid-template-columns: 10px minmax(0, 1fr);
-  padding: 16px;
+  gap: 8px;
+  grid-template-columns: 8px minmax(0, 1fr);
+  padding: 8px 10px;
   text-align: left;
   transition: background 160ms ease, color 160ms ease;
 }
@@ -517,10 +539,9 @@
 .HomeDispatchRoutes button.is-dimmed .HomeDispatchRoutes__content small { color: var(--color-tertiary); }
 .HomeDispatchRoutes__swatch {
   border-radius: 50%;
-  height: 8px;
-  margin-top: 4px;
+  height: 7px;
   transition: opacity 160ms ease, transform 160ms ease;
-  width: 8px;
+  width: 7px;
 }
 .HomeDispatchRoutes button.is-hovered .HomeDispatchRoutes__swatch,
 .HomeDispatchRoutes button.is-selected .HomeDispatchRoutes__swatch { transform: scale(1.5); }
@@ -530,10 +551,10 @@
 .HomeDispatchRoutes button.is-dimmed .HomeDispatchRoutes__swatch.is-route1 { background: #c9d2fc; }
 .HomeDispatchRoutes button.is-dimmed .HomeDispatchRoutes__swatch.is-route2 { background: #9ee1dd; }
 .HomeDispatchRoutes button.is-dimmed .HomeDispatchRoutes__swatch.is-route3 { background: #d9d0f7; }
-.HomeDispatchRoutes__content { display: grid; gap: 6px; min-width: 0; transition: opacity 160ms ease; }
-.HomeDispatchRoutes__content strong { color: inherit; font-size: 13px; line-height: 1.2; }
-.HomeDispatchRoutes__content > span { color: var(--color-muted); font-size: 11px; }
-.HomeDispatchRoutes__content small { color: var(--color-tertiary); font-size: 10px; }
+.HomeDispatchRoutes__content { display: grid; gap: 2px; min-width: 0; transition: opacity 160ms ease; }
+.HomeDispatchRoutes__content strong { color: inherit; font-size: 12px; line-height: 1.2; }
+.HomeDispatchRoutes__content > span { color: var(--color-muted); font-size: 10px; line-height: 1.2; }
+.HomeDispatchRoutes__content small { color: var(--color-tertiary); font-size: 9px; line-height: 1.2; }
 .HomeDispatchRoutes__content small.is-inProgress { color: var(--home-accent); }
 .HomeDispatchRoutes__content small.is-completed { color: var(--home-green); }
 .HomeCaseMap__zone { height: 40%; width: 43%; z-index: 2; }
@@ -636,7 +657,11 @@
   .HomeCapabilityGrid article + article,
   .HomeStartGrid article + article { border-left: 0; border-top: 1px solid var(--color-border); }
   .HomeStartGuide__paths article + article { border-left: 0; border-top: 1px solid var(--color-border); padding-left: 0; }
-  .HomeContextGrid article + article { padding-left: 0; }
+  .HomeContextGrid article + article { border-top: 0; padding-left: 0; }
+  .HomeHeroSummary { min-height: 0; }
+  .HomeHeroSummary article { min-height: 140px; padding: 32px 24px; }
+  .HomeHeroSummary strong { font-size: 24px; }
+  .HomeHeroSummary small { font-size: 14px; line-height: 22px; }
   .HomeCapabilityGrid article { min-height: 350px; }
   .HomeSection,
   .HomeCases__inner { padding: 76px 0; }
@@ -655,6 +680,8 @@
     bottom: auto;
     grid-template-rows: 40px repeat(3, 60px);
     height: 220px;
+    left: 0;
+    top: 0;
     width: 100%;
   }
   .HomeDispatchRoutes button { align-items: center; padding: 10px 14px; }
@@ -668,9 +695,8 @@
   .HomeHero__actions .HomeButton { width: 100%; }
   .HomeMap--hero { min-height: 320px; }
   .HomeMap__legend { display: none; }
-  .HomeHeroSummary article { padding-left: 0; padding-right: 0; }
-  .HomeComponentTabs { overflow-x: auto; padding: 0 8px; }
-  .HomeComponentTabs button { flex: 0 0 auto; }
+  .HomeHeroSummary article { padding-left: 20px; padding-right: 20px; }
+  .HomeComponentTabs button { min-width: 0; padding: 14px 12px; }
   .HomeStartGrid article { padding: 24px; }
 }
 

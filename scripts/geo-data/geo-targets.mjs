@@ -29,6 +29,51 @@ export const boundaryTargets = {
     {
       countryIso2: "CN",
       countryIso3: "CHN",
+      id: "yangpu",
+      level: "district",
+      match: {
+        property: "shapeID",
+        value: "62558664B19255580098954",
+      },
+      names: {
+        en: "Yangpu District",
+        zh: "杨浦区",
+      },
+      sourceId: "geoboundaries-chn-adm3",
+    },
+    {
+      countryIso2: "CN",
+      countryIso3: "CHN",
+      id: "xuhui",
+      level: "district",
+      match: {
+        property: "shapeID",
+        value: "62558664B58068800824486",
+      },
+      names: {
+        en: "Xuhui District",
+        zh: "徐汇区",
+      },
+      sourceId: "geoboundaries-chn-adm3",
+    },
+    {
+      countryIso2: "CN",
+      countryIso3: "CHN",
+      id: "baoshan",
+      level: "district",
+      match: {
+        property: "shapeID",
+        value: "62558664B30058220699094",
+      },
+      names: {
+        en: "Baoshan District",
+        zh: "宝山区",
+      },
+      sourceId: "geoboundaries-chn-adm3",
+    },
+    {
+      countryIso2: "CN",
+      countryIso3: "CHN",
       id: "huangpu",
       level: "district",
       match: {

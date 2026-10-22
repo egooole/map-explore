@@ -1,0 +1,81 @@
+@keyframes heroReferenceDraw {
+  0% { stroke-dashoffset: 1400; }
+  45%, 100% { stroke-dashoffset: 0; }
+}
+
+@keyframes heroReferenceFlow {
+  to { stroke-dashoffset: -1180; }
+}
+
+@keyframes heroReferenceMarch {
+  to { stroke-dashoffset: -56; }
+}
+
+@keyframes heroReferencePing {
+  0% { opacity: 0.95; transform: scale(0.5); }
+  100% { opacity: 0; transform: scale(3.2); }
+}
+
+@keyframes heroReferenceBreathe {
+  0%, 100% { fill-opacity: 0.1; }
+  50% { fill-opacity: 0.26; }
+}
+
+.HomeScene--standalone .HomeHeroStage {
+  contain: paint;
+}
+
+.HomeScene--standalone .HomeHeroStage > .HeroBleedMap {
+  z-index: 0;
+}
+
+.HomeScene--standalone .HomeHeroStage > .HomeHeroStage__scrim {
+  z-index: 1;
+}
+
+.HomeScene--standalone .HomeHeroStage > .HomeHero {
+  z-index: 2;
+}
+
+.HomeScene--standalone .HeroAnim-draw {
+  animation: heroReferenceDraw 6s cubic-bezier(0.6, 0, 0.2, 1) infinite;
+  stroke-dasharray: 1400;
+}
+
+.HomeScene--standalone .HeroAnim-flow {
+  animation: heroReferenceFlow 3.6s linear infinite;
+}
+
+.HomeScene--standalone .HeroAnim-march {
+  animation: heroReferenceMarch 2s linear infinite;
+}
+
+.HomeScene--standalone .HeroAnim-ping {
+  animation: heroReferencePing 2.4s ease-out infinite;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.HomeScene--standalone .HeroAnim-breathe {
+  animation: heroReferenceBreathe 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .HomeScene--standalone .HeroAnim-draw,
+  .HomeScene--standalone .HeroAnim-flow,
+  .HomeScene--standalone .HeroAnim-march,
+  .HomeScene--standalone .HeroAnim-ping,
+  .HomeScene--standalone .HeroAnim-breathe {
+    animation: none;
+  }
+
+  .HomeScene--standalone .HeroAnim-draw {
+    stroke-dasharray: none;
+  }
+
+  .HomeScene--standalone .HeroAnim-flow,
+  .HomeScene--standalone .HeroAnim-ping,
+  .HomeScene--standalone .HeroAnim-vehicle {
+    display: none;
+  }
+}

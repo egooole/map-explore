@@ -1,12 +1,13 @@
 html,
 body,
-#root {
+#root,
+.ShowcaseStage {
+  background: #05070a;
   height: auto;
   min-height: 100%;
 }
 
 html {
-  background: #000;
   scroll-behavior: smooth;
 }
 
