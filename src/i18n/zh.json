@@ -58,6 +58,16 @@
     }
   },
   "home": {
+    "navigation": {
+      "sectionAria": "快速定位页面章节",
+      "languageAria": "选择显示语言",
+      "home": "首页",
+      "context": "业务背景",
+      "capabilities": "基础能力",
+      "components": "地图组件",
+      "cases": "物流案例",
+      "start": "快速开始"
+    },
     "hero": {
       "title": "为全球物流业务构建一致的地图体验",
       "description": "Map Lab 将物流空间对象、交互规范与前端组件统一起来，让仓库定位、司机调度、车辆路线、包裹追踪与网络规划在不同市场中保持一致。",

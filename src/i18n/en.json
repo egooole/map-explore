@@ -58,6 +58,16 @@
     }
   },
   "home": {
+    "navigation": {
+      "sectionAria": "Jump to a page section",
+      "languageAria": "Choose display language",
+      "home": "Home",
+      "context": "Why Map Lab",
+      "capabilities": "Capabilities",
+      "components": "Components",
+      "cases": "Use cases",
+      "start": "Get started"
+    },
     "hero": {
       "title": "Build consistent map experiences for global logistics",
       "description": "Map Lab unifies spatial objects, interaction standards, and frontend components so warehouse location, driver dispatch, vehicle routing, parcel tracking, and network planning stay consistent across markets.",

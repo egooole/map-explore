@@ -21,8 +21,150 @@ body {
   width: 100%;
 }
 
+.ShowcaseLanguage {
+  align-items: center;
+  display: flex;
+  gap: 5px;
+  position: fixed;
+  right: clamp(20px, 2vw, 32px);
+  top: 22px;
+  z-index: 40;
+}
+
+.ShowcaseLanguage button {
+  background: transparent;
+  border: 0;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 12px;
+  font-weight: var(--font-weight-medium);
+  min-height: 32px;
+  min-width: 32px;
+  padding: 0 4px;
+  transition: color 180ms ease;
+}
+
+.ShowcaseLanguage button:hover,
+.ShowcaseLanguage button.is-active {
+  color: var(--home-accent);
+}
+
+.ShowcaseLanguage > span {
+  background: rgba(255, 255, 255, 0.24);
+  height: 12px;
+  width: 1px;
+}
+
+.ShowcaseSectionNav {
+  display: grid;
+  gap: 3px;
+  position: fixed;
+  right: clamp(20px, 2vw, 32px);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 35;
+}
+
+.ShowcaseSectionNav button {
+  align-items: center;
+  background: transparent;
+  border: 0;
+  display: flex;
+  height: 26px;
+  justify-content: flex-end;
+  padding: 0;
+  position: relative;
+  width: 42px;
+}
+
+.ShowcaseSectionNav__line {
+  background: rgba(255, 255, 255, 0.3);
+  display: block;
+  height: 2px;
+  transition: background-color 180ms ease, width 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  width: 17px;
+}
+
+.ShowcaseSectionNav__label {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  line-height: 1;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 50px;
+  text-shadow: 0 1px 8px #000;
+  transform: translateX(5px);
+  transition: opacity 160ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  white-space: nowrap;
+}
+
+.ShowcaseSectionNav button:hover .ShowcaseSectionNav__line,
+.ShowcaseSectionNav button:focus-visible .ShowcaseSectionNav__line {
+  background: rgba(255, 255, 255, 0.72);
+  width: 24px;
+}
+
+.ShowcaseSectionNav button:hover .ShowcaseSectionNav__label,
+.ShowcaseSectionNav button:focus-visible .ShowcaseSectionNav__label {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.ShowcaseSectionNav button.is-active .ShowcaseSectionNav__line {
+  background: var(--home-accent);
+  height: 3px;
+  width: 30px;
+}
+
+@media (max-width: 1080px) {
+  .ShowcaseSectionNav__label {
+    display: none;
+  }
+}
+
+@media (max-width: 760px) {
+  .ShowcaseLanguage {
+    right: 12px;
+    top: 10px;
+  }
+
+  .ShowcaseSectionNav {
+    display: flex;
+    gap: 0;
+    left: 0;
+    right: 0;
+    top: 0;
+    transform: none;
+    width: 100%;
+  }
+
+  .ShowcaseSectionNav button {
+    flex: 1;
+    height: 14px;
+    width: auto;
+  }
+
+  .ShowcaseSectionNav__line,
+  .ShowcaseSectionNav button:hover .ShowcaseSectionNav__line,
+  .ShowcaseSectionNav button:focus-visible .ShowcaseSectionNav__line,
+  .ShowcaseSectionNav button.is-active .ShowcaseSectionNav__line {
+    height: 2px;
+    width: 100%;
+  }
+
+  .ShowcaseSectionNav button:not(.is-active) .ShowcaseSectionNav__line {
+    background: rgba(255, 255, 255, 0.18);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+
+  .ShowcaseLanguage button,
+  .ShowcaseSectionNav__label,
+  .ShowcaseSectionNav__line {
+    transition: none;
   }
 }

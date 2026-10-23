@@ -23,6 +23,7 @@ import {
   type PreviewProgressInfo,
   type PreviewRouteGroup,
 } from "../components/MapCanvas";
+import { ShowcaseNavigation } from "../components/ShowcaseNavigation";
 import { useWorkbenchStore } from "../store/workbenchStore";
 import type {
   CustomMarkerContent,
@@ -742,6 +743,7 @@ export function HomeScene({ heroVisualVariant = "mapLab", standalone = false }: 
 
   return (
     <div className={`HomeScene${standalone ? " HomeScene--standalone" : ""}`}>
+      {standalone ? <ShowcaseNavigation /> : null}
       {standalone ? (
         <div className="HomeHeroStage">
           <HeroMapVisual standalone variant={heroVisualVariant} />
@@ -751,7 +753,7 @@ export function HomeScene({ heroVisualVariant = "mapLab", standalone = false }: 
       ) : heroSection}
 
       <main className="HomeContent">
-        <section className="HomeSection HomeContext">
+        <section className="HomeSection HomeContext" id="context">
           <header className="HomeSectionHeader">
             <span>{t("home.sections.context.eyebrow")}</span>
             <h2>{t("home.sections.context.title")}</h2>
