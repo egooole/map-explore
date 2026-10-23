@@ -4,6 +4,7 @@ import {
   Check,
   Code2,
   Crosshair,
+  Download,
   MapPinned,
   Route,
 } from "lucide-react";
@@ -72,6 +73,14 @@ const componentOptions: ComponentOption[] = [
 
 const categoryIds: SpatialCategory[] = ["location", "route", "area"];
 const caseIds: CaseId[] = ["network", "dispatch", "tracking", "operations"];
+const aiDownloadOptions: ReadonlyArray<{
+  href?: string;
+  id: "agentbody" | "trea" | "zip";
+}> = [
+  { id: "zip" },
+  { id: "agentbody" },
+  { id: "trea" },
+];
 const designerComponentLibraryUrl =
   "https://www.figma.com/design/GVhj9D0029ntbz47c0o4TY/%F0%9F%8E%AD-Logisitics-UI-Model-Room?node-id=2196-33757&t=kAfC0aYjY475MbsJ-1";
 
@@ -526,17 +535,38 @@ function CaseStage({
     setSelectedDispatchRouteId((currentRouteId) => currentRouteId === routeId ? null : routeId);
     setHoveredDispatchRouteId(null);
   };
-  const configurations: Record<CaseId, Pick<MapCanvasProps, "previewFeature" | "previewMarkerGroups" | "previewRegionColors" | "previewRegionInteraction" | "previewRegionIds" | "previewRegionMetrics" | "previewRegionShapes" | "previewRegionStyles" | "previewRouteGroups">> = {
-    operations: {
-      previewFeature: "point",
-      previewMarkerGroups: [
-        markerGroup(
-          "custom",
-          ["default", "default", "default", "default", "default", "default", "default", "default"],
-          ["warehouse", "shop", "user", "letter", "number"],
-        ),
+  const networkAreaConfiguration: Pick<MapCanvasProps, "previewFeature" | "previewMarkerGroups" | "previewRegionColors" | "previewRegionInteraction" | "previewRegionIds" | "previewRegionMetrics" | "previewRegionShapes" | "previewRegionStyles" | "previewRouteGroups"> = {
+    previewFeature: "area",
+    previewRegionInteraction: "multi",
+    previewRegionIds: ["yangpu", "xuhui", "baoshan"],
+    previewRegionMetrics: {
+      baoshan: [
+        { label: "Coverage", value: "76%" },
+        { label: "ADO", value: "8,360" },
+        { label: "Density", value: "118" },
+        { label: "Facility", value: "5" },
+      ],
+      xuhui: [
+        { label: "Coverage", value: "88%" },
+        { label: "ADO", value: "10,920" },
+        { label: "Density", value: "172" },
+        { label: "Facility", value: "7" },
+      ],
+      yangpu: [
+        { label: "Coverage", value: "92%" },
+        { label: "ADO", value: "12,480" },
+        { label: "Density", value: "186" },
+        { label: "Facility", value: "8" },
       ],
     },
+    previewRegionStyles: {
+      baoshan: { fillColor: "#9583FF", strokeColor: "#8575FF" },
+      xuhui: { fillColor: "#02A5A0", strokeColor: "#02A5A0" },
+      yangpu: { fillColor: "#1966FF", strokeColor: "#2A3EF4" },
+    },
+  };
+  const configurations: Record<CaseId, Pick<MapCanvasProps, "previewFeature" | "previewMarkerGroups" | "previewRegionColors" | "previewRegionInteraction" | "previewRegionIds" | "previewRegionMetrics" | "previewRegionShapes" | "previewRegionStyles" | "previewRouteGroups">> = {
+    operations: networkAreaConfiguration,
     dispatch: {
       previewFeature: "line",
       previewRouteGroups: dispatchRouteGroups,
@@ -545,36 +575,7 @@ function CaseStage({
       previewFeature: "line",
       previewRouteGroups: routePreview("routeWithProgress"),
     },
-    network: {
-      previewFeature: "area",
-      previewRegionInteraction: "multi",
-      previewRegionIds: ["yangpu", "xuhui", "baoshan"],
-      previewRegionMetrics: {
-        baoshan: [
-          { label: "Coverage", value: "76%" },
-          { label: "ADO", value: "8,360" },
-          { label: "Density", value: "118" },
-          { label: "Facility", value: "5" },
-        ],
-        xuhui: [
-          { label: "Coverage", value: "88%" },
-          { label: "ADO", value: "10,920" },
-          { label: "Density", value: "172" },
-          { label: "Facility", value: "7" },
-        ],
-        yangpu: [
-          { label: "Coverage", value: "92%" },
-          { label: "ADO", value: "12,480" },
-          { label: "Density", value: "186" },
-          { label: "Facility", value: "8" },
-        ],
-      },
-      previewRegionStyles: {
-        baoshan: { fillColor: "#9583FF", strokeColor: "#8575FF" },
-        xuhui: { fillColor: "#02A5A0", strokeColor: "#02A5A0" },
-        yangpu: { fillColor: "#1966FF", strokeColor: "#2A3EF4" },
-      },
-    },
+    network: networkAreaConfiguration,
   };
   const configuration = configurations[activeCase];
 
@@ -883,25 +884,27 @@ export function HomeScene({ heroVisualVariant = "mapLab", standalone = false }: 
                 <h3>{t("home.start.guide.title")}</h3>
                 <p>{t("home.start.guide.description")}</p>
               </header>
-              <div className="HomeStartGuide__paths">
-                <article>
-                  <span>{t("home.start.guide.rd.role")}</span>
-                  <h4>{t("home.start.guide.rd.title")}</h4>
-                  <ol>
-                    {(["item1", "item2", "item3"] as const).map((item) => (
-                      <li key={item}>{t(`home.start.guide.rd.${item}`)}</li>
-                    ))}
-                  </ol>
-                </article>
-                <article>
-                  <span>{t("home.start.guide.vibe.role")}</span>
-                  <h4>{t("home.start.guide.vibe.title")}</h4>
-                  <ol>
-                    {(["item1", "item2", "item3"] as const).map((item) => (
-                      <li key={item}>{t(`home.start.guide.vibe.${item}`)}</li>
-                    ))}
-                  </ol>
-                </article>
+              <div className="HomeStartGuide__downloads" role="list">
+                {aiDownloadOptions.map((option) => (
+                  <article key={option.id} role="listitem">
+                    <div>
+                      <span>{t(`home.start.guide.downloads.${option.id}.type`)}</span>
+                      <h4>{t(`home.start.guide.downloads.${option.id}.title`)}</h4>
+                      <p>{t(`home.start.guide.downloads.${option.id}.description`)}</p>
+                    </div>
+                    {option.href ? (
+                      <a href={option.href} rel="noopener noreferrer" target="_blank">
+                        <Download aria-hidden="true" size={15} />
+                        {t("home.start.guide.downloads.download")}
+                      </a>
+                    ) : (
+                      <button disabled type="button">
+                        <Download aria-hidden="true" size={15} />
+                        {t("home.start.guide.downloads.pending")}
+                      </button>
+                    )}
+                  </article>
+                ))}
               </div>
             </section>
           ) : null}

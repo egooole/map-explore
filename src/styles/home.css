@@ -602,7 +602,7 @@
 }
 
 .HomeStartGuide > header > span,
-.HomeStartGuide__paths article > span {
+.HomeStartGuide__downloads article span {
   color: var(--home-accent);
   font-size: 11px;
   font-weight: var(--font-weight-semibold);
@@ -618,11 +618,17 @@
 
 .HomeStartGuide h3 { font-size: 24px; }
 .HomeStartGuide > header p { color: var(--color-muted); font-size: 13px; line-height: 1.65; }
-.HomeStartGuide__paths { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
-.HomeStartGuide__paths article { display: flex; flex-direction: column; min-height: 260px; padding: 26px 30px 0 0; }
-.HomeStartGuide__paths article + article { border-left: 1px solid var(--color-border); padding-left: 30px; }
-.HomeStartGuide__paths h4 { font-size: 19px; margin-top: 8px; }
-.HomeStartGuide__paths ol { color: var(--color-muted); display: grid; font-size: 13px; gap: 10px; line-height: 1.6; margin: 24px 0 28px; padding-left: 20px; }
+.HomeStartGuide__downloads { border-top: 1px solid var(--color-border); }
+.HomeStartGuide__downloads article { align-items: center; display: grid; gap: 32px; grid-template-columns: minmax(0, 1fr) auto; min-height: 116px; padding: 22px 0; }
+.HomeStartGuide__downloads article + article { border-top: 1px solid var(--color-border); }
+.HomeStartGuide__downloads article > div { display: grid; gap: 6px; }
+.HomeStartGuide__downloads h4 { font-size: 18px; }
+.HomeStartGuide__downloads p { color: var(--color-muted); font-size: 13px; line-height: 1.6; max-width: 680px; }
+.HomeStartGuide__downloads a,
+.HomeStartGuide__downloads button { align-items: center; background: transparent; border: 1px solid var(--color-border); color: var(--color-tertiary); display: inline-flex; font: inherit; font-size: 12px; gap: 8px; min-height: 38px; padding: 0 14px; text-decoration: none; }
+.HomeStartGuide__downloads a { color: var(--home-accent); }
+.HomeStartGuide__downloads button { cursor: not-allowed; }
+.HomeStartGuide__downloads button:disabled { opacity: 0.72; }
 
 @media (max-width: 1320px) {
   .HomeCaseStage { grid-template-columns: 150px minmax(0, 1fr); }
@@ -650,13 +656,12 @@
   .HomeHeroSummary,
   .HomeContextGrid,
   .HomeCapabilityGrid,
-  .HomeStartGrid,
-  .HomeStartGuide__paths { grid-template-columns: 1fr; }
+  .HomeStartGrid { grid-template-columns: 1fr; }
   .HomeHeroSummary article + article,
   .HomeContextGrid article + article,
   .HomeCapabilityGrid article + article,
   .HomeStartGrid article + article { border-left: 0; border-top: 1px solid var(--color-border); }
-  .HomeStartGuide__paths article + article { border-left: 0; border-top: 1px solid var(--color-border); padding-left: 0; }
+  .HomeStartGuide__downloads article { align-items: start; gap: 16px; grid-template-columns: 1fr; }
   .HomeContextGrid article + article { border-top: 0; padding-left: 0; }
   .HomeHeroSummary { min-height: 0; }
   .HomeHeroSummary article { min-height: 140px; padding: 32px 24px; }
