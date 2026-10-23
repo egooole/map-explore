@@ -118,6 +118,7 @@ type GoogleMarkerLibrary = {
 };
 
 declare class GoogleOverlayView {
+  static preventMapHitsAndGesturesFrom(element: HTMLElement): void;
   draw(): void;
   getPanes(): { overlayMouseTarget: HTMLElement } | null;
   getProjection(): { fromLatLngToDivPixel: (position: GoogleLatLng) => { x: number; y: number } } | null;
@@ -208,6 +209,11 @@ export interface PreviewRouteGroup {
   stopPositions?: GoogleLatLngLiteral[];
 }
 
+export interface PreviewProgressInfo {
+  metrics: Array<{ label: string; value: string }>;
+  title: string;
+}
+
 interface DynamicRouteLayer {
   listeners: GoogleMapsListener[];
   markers: MapMarkerHandle[];
@@ -247,9 +253,13 @@ export interface MapCanvasProps {
   previewMarkerFamily?: MarkerPreviewFamily;
   previewMarkerGroups?: PreviewMarkerGroup[];
   previewMarkers?: MarkerPreviewState[];
+  previewProgressInfo?: PreviewProgressInfo;
+  previewProgressSelected?: boolean;
   previewRouteFamily?: RoutePreviewFamily;
   previewRouteGroups?: PreviewRouteGroup[];
   previewSelectedRouteId?: string;
+  onPreviewProgressClearSelection?: () => void;
+  onPreviewProgressSelect?: () => void;
   onPreviewRouteClearSelection?: () => void;
   onPreviewRouteHover?: (routeId: string | null) => void;
   onPreviewRouteSelect?: (routeId: string) => void;
@@ -351,8 +361,11 @@ interface DynamicRouteStyle {
 
 interface RouteProgressOverlayConfig {
   completedColor: string;
+  info?: PreviewProgressInfo;
+  onSelect?: () => void;
   pathIndex?: number;
   ratio: number;
+  selected?: boolean;
 }
 
 interface RouteOverlayInteractionConfig {
@@ -1418,6 +1431,8 @@ function createRouteWithNormalLocationOverlay(
   class RouteOverlay extends googleMaps.maps.OverlayView {
     private container = document.createElement("div");
     private progressPin = document.createElement("span");
+    private progressPopover: HTMLSpanElement | null = null;
+    private progressTrigger = document.createElement("button");
     private svgLayer = document.createElement("div");
     private focused = Boolean(interactionConfig?.selected || interactionConfig?.hovered);
     private hovered = Boolean(interactionConfig?.hovered);
@@ -1428,15 +1443,83 @@ function createRouteWithNormalLocationOverlay(
       this.container.className = "MapRouteOverlay";
       this.container.style.position = "absolute";
       this.container.style.pointerEvents = "none";
-      this.container.style.zIndex = "10";
+      this.container.style.zIndex = progressConfig?.selected ? "220" : "10";
       this.svgLayer.className = "MapRouteOverlay__svgLayer";
       this.progressPin.className = "MapRouteOverlay__progressPin";
-      this.progressPin.innerHTML = `
-        <span class="MapRouteOverlay__progressRing" aria-hidden="true"></span>
-        <img class="MapRouteOverlay__progressIcon" src="${routeProgressLocationPin}" alt="" />
-      `;
+      const progressRing = document.createElement("span");
+      progressRing.className = "MapRouteOverlay__progressRing";
+      progressRing.setAttribute("aria-hidden", "true");
+
+      const progressIcon = document.createElement("img");
+      progressIcon.alt = "";
+      progressIcon.className = "MapRouteOverlay__progressIcon";
+      progressIcon.src = routeProgressLocationPin;
+
+      this.progressTrigger.className = "MapRouteOverlay__progressTrigger";
+      this.progressTrigger.type = "button";
+      this.progressTrigger.append(progressIcon);
+      this.progressTrigger.setAttribute("aria-expanded", String(Boolean(progressConfig?.selected)));
+      this.progressTrigger.setAttribute("aria-label", progressConfig?.info?.title ?? "Progress location");
+      this.progressTrigger.addEventListener("pointerdown", this.handleProgressPinPointerDown);
+      this.progressTrigger.addEventListener("pointerup", this.handleProgressPinPointerUp);
+      this.progressTrigger.addEventListener("click", this.handleProgressPinClick);
+      googleMaps.maps.OverlayView.preventMapHitsAndGesturesFrom(this.progressTrigger);
+      this.progressPin.classList.toggle("is-selected", Boolean(progressConfig?.selected));
+      this.progressPin.append(progressRing, this.progressTrigger);
+
+      if (progressConfig?.info) {
+        const popover = document.createElement("span");
+        popover.className = "MapRouteOverlay__progressPopover";
+        popover.classList.toggle("is-selected", Boolean(progressConfig.selected));
+        popover.setAttribute("role", "dialog");
+        popover.setAttribute("aria-label", progressConfig.info.title);
+
+        const title = document.createElement("strong");
+        title.textContent = progressConfig.info.title;
+        popover.append(title);
+
+        progressConfig.info.metrics.forEach((metric) => {
+          const row = document.createElement("span");
+          row.className = "MapRouteOverlay__progressPopoverRow";
+
+          const label = document.createElement("span");
+          label.textContent = metric.label;
+          const value = document.createElement("b");
+          value.textContent = metric.value;
+          row.append(label, value);
+          popover.append(row);
+        });
+
+        this.progressPopover = popover;
+      }
       this.container.append(this.svgLayer, this.progressPin);
     }
+
+    private handleProgressPinPointerDown = (event: PointerEvent) => {
+      event.stopPropagation();
+    };
+
+    private handleProgressPinPointerUp = (event: PointerEvent) => {
+      event.stopPropagation();
+      progressConfig?.onSelect?.();
+    };
+
+    private handleProgressPinClick = (event: MouseEvent) => {
+      event.stopPropagation();
+      if (event.detail === 0) {
+        progressConfig?.onSelect?.();
+      }
+    };
+
+    private positionProgressPopover = () => {
+      if (!this.progressPopover || !progressConfig?.selected) {
+        return;
+      }
+
+      const pinRect = this.progressPin.getBoundingClientRect();
+      this.progressPopover.style.left = `${pinRect.left + pinRect.width / 2}px`;
+      this.progressPopover.style.top = `${pinRect.top + pinRect.height / 2}px`;
+    };
 
     private isRouteHit(event: PointerEvent | MouseEvent) {
       return document
@@ -1534,12 +1617,17 @@ function createRouteWithNormalLocationOverlay(
       this.container.style.top = `${minY}px`;
       this.container.style.width = `${width}px`;
       this.container.style.height = `${height}px`;
-      this.container.style.zIndex = this.focused || this.selected ? "12" : "10";
+      this.container.style.zIndex = progressConfig?.selected ? "220" : this.focused || this.selected ? "12" : "10";
       this.container.classList.toggle("is-focused", this.focused);
       this.progressPin.style.display = progressConfig && progressPoint ? "grid" : "none";
       if (progressPoint) {
         this.progressPin.style.left = `${progressPoint.x}px`;
         this.progressPin.style.top = `${progressPoint.y}px`;
+        if (this.progressPopover) {
+          this.progressPopover.style.display = progressConfig?.selected ? "grid" : "none";
+          this.progressPopover.classList.toggle("is-selected", Boolean(progressConfig?.selected));
+          this.positionProgressPopover();
+        }
       }
       this.svgLayer.innerHTML = `
         <svg width="${width}" height="${height}" viewBox="0 0 ${width} ${height}" xmlns="http://www.w3.org/2000/svg">
@@ -1608,14 +1696,20 @@ function createRouteWithNormalLocationOverlay(
     }
 
     onAdd() {
-      const svgPane = this.getPanes()?.overlayMouseTarget;
-      if (!svgPane) {
+      const panes = this.getPanes();
+      if (!panes) {
         return;
       }
 
       document.addEventListener("pointermove", this.handlePointerMove);
       document.addEventListener("click", this.handleClick);
-      svgPane.appendChild(this.container);
+      window.addEventListener("resize", this.positionProgressPopover);
+      window.addEventListener("scroll", this.positionProgressPopover, true);
+      panes.overlayMouseTarget.appendChild(this.container);
+      if (this.progressPopover) {
+        document.body.appendChild(this.progressPopover);
+        this.positionProgressPopover();
+      }
     }
 
     draw() {
@@ -1625,6 +1719,12 @@ function createRouteWithNormalLocationOverlay(
     onRemove() {
       document.removeEventListener("pointermove", this.handlePointerMove);
       document.removeEventListener("click", this.handleClick);
+      window.removeEventListener("resize", this.positionProgressPopover);
+      window.removeEventListener("scroll", this.positionProgressPopover, true);
+      this.progressTrigger.removeEventListener("pointerdown", this.handleProgressPinPointerDown);
+      this.progressTrigger.removeEventListener("pointerup", this.handleProgressPinPointerUp);
+      this.progressTrigger.removeEventListener("click", this.handleProgressPinClick);
+      this.progressPopover?.remove();
       this.container.remove();
     }
   }
@@ -1748,6 +1848,8 @@ export function MapCanvas({
   previewMarkerFamily = "normal",
   previewMarkerGroups,
   previewMarkers,
+  previewProgressInfo,
+  previewProgressSelected = false,
   previewRegionColors,
   previewRegionShapes,
   previewRegionStyles,
@@ -1755,6 +1857,8 @@ export function MapCanvas({
   previewRouteFamily,
   previewRouteGroups,
   previewSelectedRouteId,
+  onPreviewProgressClearSelection,
+  onPreviewProgressSelect,
   onPreviewRouteClearSelection,
   onPreviewRouteHover,
   onPreviewRouteSelect,
@@ -2145,8 +2249,19 @@ export function MapCanvas({
             group.family === "routeWithProgress"
               ? {
                   completedColor: resolveRouteStateColor("completed"),
+                  info: previewProgressInfo,
+                  onSelect: onPreviewProgressSelect
+                    ? () => {
+                        suppressNextPreviewMapClickRef.current = true;
+                        window.setTimeout(() => {
+                          suppressNextPreviewMapClickRef.current = false;
+                        }, 400);
+                        onPreviewProgressSelect();
+                      }
+                    : undefined,
                   pathIndex: group.progressPointIndex,
                   ratio: routeWithProgressRatio,
+                  selected: previewProgressSelected,
                 }
               : undefined,
             group.id
@@ -2341,10 +2456,13 @@ export function MapCanvas({
     previewMarkerFamily,
     previewMarkerGroups,
     previewMarkers,
+    previewProgressInfo,
+    previewProgressSelected,
     previewHoveredRouteId,
     previewRouteFamily,
     previewRouteGroups,
     previewSelectedRouteId,
+    onPreviewProgressSelect,
     onPreviewRouteHover,
     onPreviewRouteSelect,
     previewRouteState,
@@ -2355,7 +2473,11 @@ export function MapCanvas({
   ]);
 
   useEffect(() => {
-    if (!mapRef.current || status !== "ready" || !onPreviewRouteClearSelection) {
+    if (
+      !mapRef.current ||
+      status !== "ready" ||
+      (!onPreviewRouteClearSelection && !onPreviewProgressClearSelection)
+    ) {
       return;
     }
 
@@ -2363,11 +2485,12 @@ export function MapCanvas({
       if (suppressNextPreviewMapClickRef.current) {
         return;
       }
-      onPreviewRouteClearSelection();
+      onPreviewRouteClearSelection?.();
+      onPreviewProgressClearSelection?.();
     });
 
     return () => listener?.remove?.();
-  }, [onPreviewRouteClearSelection, status]);
+  }, [onPreviewProgressClearSelection, onPreviewRouteClearSelection, status]);
 
   useEffect(() => {
     if (!window.google?.maps || !mapRef.current || status !== "ready") {

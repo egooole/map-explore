@@ -483,8 +483,8 @@
 .HomeMap__regionLabel { background: rgba(5, 7, 7, 0.95); border: 1px solid var(--home-green); color: #fff; font-size: 12px; left: 38%; padding: 8px 10px; position: absolute; top: 48%; z-index: 5; }
 .HomeMap__directionNote { color: #fff; font-size: 17px; left: 45%; letter-spacing: 8px; position: absolute; top: 45%; transform: rotate(-18deg); z-index: 5; }
 
-.HomeCases { background: #07090a; border-bottom: 1px solid var(--color-border); border-top: 1px solid var(--color-border); }
-.HomeCases__inner { padding: 112px 0; }
+.HomeCases { background: #07090a; }
+.HomeCases__inner { border-bottom: 1px solid var(--color-border); border-top: 1px solid var(--color-border); padding: 112px 0; }
 .HomeCaseStage { border: 1px solid var(--color-border); display: grid; grid-template-columns: 180px minmax(0, 1fr) 300px; margin-top: 48px; min-height: 500px; }
 .HomeCaseTabs { border-right: 1px solid var(--color-border); display: grid; grid-template-rows: repeat(4, 1fr); }
 .HomeCaseTabs button { background: transparent; border: 0; border-bottom: 1px solid var(--color-border); color: var(--color-muted); font-size: 12px; padding: 18px; text-align: left; }
@@ -575,9 +575,9 @@
 .HomeCaseDetail p { color: var(--color-muted); font-size: 12px; line-height: 1.55; margin: 6px 0 0; }
 
 .HomeStart { border-top: 0 !important; }
-.HomeStartGrid { border: 1px solid var(--color-border); display: grid; grid-template-columns: repeat(2, 1fr); margin-top: 48px; }
+.HomeStartGrid { border: 1px solid var(--color-border); border-left: 0; display: grid; grid-template-columns: repeat(2, 1fr); margin-top: 48px; }
 .HomeStartGrid article { display: flex; flex-direction: column; min-height: 340px; padding: 32px; }
-.HomeStartGrid article + article { border-left: 1px solid var(--color-border); }
+.HomeStartGrid > article + article { border-left: 1px solid var(--color-border); }
 .HomeStartGrid__heading { align-items: flex-start; display: flex; gap: 16px; }
 .HomeStartGrid__heading svg { color: var(--home-accent); margin-top: 2px; }
 .HomeStartGrid__heading h3 { font-size: 24px; margin: 6px 0 0; }
@@ -660,7 +660,7 @@
   .HomeHeroSummary article + article,
   .HomeContextGrid article + article,
   .HomeCapabilityGrid article + article,
-  .HomeStartGrid article + article { border-left: 0; border-top: 1px solid var(--color-border); }
+  .HomeStartGrid > article + article { border-left: 0; border-top: 1px solid var(--color-border); }
   .HomeStartGuide__downloads article { align-items: start; gap: 16px; grid-template-columns: 1fr; }
   .HomeContextGrid article + article { border-top: 0; padding-left: 0; }
   .HomeHeroSummary { min-height: 0; }

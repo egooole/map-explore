@@ -20,6 +20,7 @@ import {
   MapCanvas,
   type MapCanvasProps,
   type PreviewMarkerGroup,
+  type PreviewProgressInfo,
   type PreviewRouteGroup,
 } from "../components/MapCanvas";
 import { useWorkbenchStore } from "../store/workbenchStore";
@@ -530,6 +531,7 @@ function CaseStage({
   const { t } = useTranslation();
   const [selectedDispatchRouteId, setSelectedDispatchRouteId] = useState<string | null>(null);
   const [hoveredDispatchRouteId, setHoveredDispatchRouteId] = useState<string | null>(null);
+  const [showTrackingDriverInfo, setShowTrackingDriverInfo] = useState(false);
   const selectedDispatchRoute = dispatchRoutes.find((route) => route.id === selectedDispatchRouteId) ?? dispatchRoutes[0];
   const selectDispatchRoute = (routeId: string) => {
     setSelectedDispatchRouteId((currentRouteId) => currentRouteId === routeId ? null : routeId);
@@ -578,6 +580,37 @@ function CaseStage({
     network: networkAreaConfiguration,
   };
   const configuration = configurations[activeCase];
+  const trackingDriverInfo: PreviewProgressInfo = {
+    title: t("home.cases.tracking.driver.name"),
+    metrics: [
+      {
+        label: t("home.cases.tracking.driver.completed"),
+        value: t("home.cases.tracking.driver.completedValue"),
+      },
+      {
+        label: t("home.cases.tracking.driver.status"),
+        value: t("home.cases.tracking.driver.statusValue"),
+      },
+      {
+        label: t("home.cases.tracking.driver.onTimeRate"),
+        value: t("home.cases.tracking.driver.onTimeRateValue"),
+      },
+      {
+        label: t("home.cases.tracking.driver.remaining"),
+        value: t("home.cases.tracking.driver.remainingValue"),
+      },
+      {
+        label: t("home.cases.tracking.driver.returnRisk"),
+        value: t("home.cases.tracking.driver.returnRiskValue"),
+      },
+    ],
+  };
+
+  useEffect(() => {
+    if (activeCase !== "tracking") {
+      setShowTrackingDriverInfo(false);
+    }
+  }, [activeCase]);
 
   return (
     <div className={`HomeCaseMap is-${activeCase}`}>
@@ -622,16 +655,20 @@ function CaseStage({
           })}
         </div>
       ) : null}
-      <div className="HomeCaseMap__canvas" aria-hidden="true">
+      <div className="HomeCaseMap__canvas">
         <HomeGoogleMap
           controls={homeCaseControls}
           lang={lang}
           mapCategory="entity"
           mapTheme={mapTheme}
+          onPreviewProgressClearSelection={activeCase === "tracking" ? () => setShowTrackingDriverInfo(false) : undefined}
+          onPreviewProgressSelect={activeCase === "tracking" ? () => setShowTrackingDriverInfo((selected) => !selected) : undefined}
           onPreviewRouteClearSelection={activeCase === "dispatch" ? () => setSelectedDispatchRouteId(null) : undefined}
           onPreviewRouteHover={activeCase === "dispatch" ? setHoveredDispatchRouteId : undefined}
           onPreviewRouteSelect={activeCase === "dispatch" ? selectDispatchRoute : undefined}
           previewHoveredRouteId={activeCase === "dispatch" ? hoveredDispatchRouteId ?? undefined : undefined}
+          previewProgressInfo={activeCase === "tracking" ? trackingDriverInfo : undefined}
+          previewProgressSelected={activeCase === "tracking" && showTrackingDriverInfo}
           previewSelectedRouteId={activeCase === "dispatch" ? selectedDispatchRouteId ?? undefined : undefined}
           {...configuration}
         />

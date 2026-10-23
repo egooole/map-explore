@@ -628,6 +628,83 @@
   z-index: 2;
 }
 
+.MapRouteOverlay__progressTrigger {
+  appearance: none;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  display: grid;
+  grid-area: 1 / 1;
+  height: 44px;
+  padding: 2px;
+  place-items: center;
+  pointer-events: auto;
+  width: 44px;
+  z-index: 2;
+}
+
+.MapRouteOverlay__progressTrigger:focus-visible {
+  outline: 2px solid #2a3ef4;
+  outline-offset: 2px;
+}
+
+.MapRouteOverlay__progressPopover {
+  background: #ffffff;
+  border-radius: 4px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  color: #171718;
+  display: none;
+  gap: 8px;
+  left: 50%;
+  max-width: 416px;
+  min-width: 220px;
+  padding: 8px 12px;
+  pointer-events: none;
+  position: fixed;
+  transform: translate(-50%, calc(-100% - 26px));
+  z-index: 2147483000;
+}
+
+.MapRouteOverlay__progressPopover.is-selected {
+  display: grid;
+}
+
+.MapRouteOverlay__progressPopover::after {
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-top: 5px solid #ffffff;
+  content: "";
+  left: 50%;
+  position: absolute;
+  top: 100%;
+  transform: translateX(-50%);
+}
+
+.MapRouteOverlay__progressPopover > strong,
+.MapRouteOverlay__progressPopoverRow > b,
+.MapRouteOverlay__progressPopoverRow > span {
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.MapRouteOverlay__progressPopover > strong,
+.MapRouteOverlay__progressPopoverRow > b {
+  color: #171718;
+  font-weight: 500;
+}
+
+.MapRouteOverlay__progressPopoverRow {
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+  white-space: nowrap;
+}
+
+.MapRouteOverlay__progressPopoverRow > span {
+  color: #6c6d6f;
+  font-weight: 400;
+}
+
 .MapRouteOverlay.is-focused .MapRouteOverlay__progressPin {
   --pin-ring-base-scale: var(--pin-hover-scale);
   --pin-ring-end-scale: calc(var(--pin-hover-scale) * 3);

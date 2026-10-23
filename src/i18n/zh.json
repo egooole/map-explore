@@ -177,7 +177,20 @@
         "title": "司机位置追踪",
         "problem": "包裹在多节点流转中，用户需要理解当前位置、已完成路径和预计送达。",
         "components": "Route with Progress",
-        "outcome": "把复杂履约链路转化为连续、可信的追踪体验。"
+        "outcome": "把复杂履约链路转化为连续、可信的追踪体验。",
+        "driver": {
+          "name": "司机 · 陈伟",
+          "completed": "已完成任务",
+          "completedValue": "12 单",
+          "status": "当前状态",
+          "statusValue": "准点",
+          "onTimeRate": "准点率",
+          "onTimeRateValue": "96.8%",
+          "remaining": "剩余任务",
+          "remainingValue": "4 单",
+          "returnRisk": "返仓风险",
+          "returnRiskValue": "低"
+        }
       },
       "network": {
         "index": "CASE 01",

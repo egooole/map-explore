@@ -128,7 +128,26 @@
           "3": { "name": "Route C" }
         }
       },
-      "tracking": { "index": "CASE 03", "title": "Driver location tracking", "problem": "Across many handoffs, users need to understand current position, completed movement, and expected delivery.", "components": "Route with Progress", "outcome": "Turn a complex fulfillment chain into a continuous, trustworthy tracking experience." },
+      "tracking": {
+        "index": "CASE 03",
+        "title": "Driver location tracking",
+        "problem": "Across many handoffs, users need to understand current position, completed movement, and expected delivery.",
+        "components": "Route with Progress",
+        "outcome": "Turn a complex fulfillment chain into a continuous, trustworthy tracking experience.",
+        "driver": {
+          "name": "Driver · Alex Chen",
+          "completed": "Completed tasks",
+          "completedValue": "12",
+          "status": "Current status",
+          "statusValue": "On time",
+          "onTimeRate": "On-time rate",
+          "onTimeRateValue": "96.8%",
+          "remaining": "Remaining tasks",
+          "remainingValue": "4",
+          "returnRisk": "Return risk",
+          "returnRiskValue": "Low"
+        }
+      },
       "network": { "index": "CASE 01", "title": "Logistics network planning", "problem": "Network planning must evaluate facility locations, coverage relationships, and cross-region transport links together.", "components": "Multiple Areas · Area Selection · Region Label", "outcome": "Support site selection, coverage evaluation, and network scenario comparison." }
     },
     "start": {
