@@ -860,7 +860,18 @@ export function HomeScene({ heroVisualVariant = "mapLab", standalone = false }: 
               <span>{t(`home.cases.${activeCase}.index`)}</span>
               <h3>{t(`home.cases.${activeCase}.title`)}</h3>
               {(["problem", "components", "outcome"] as const).map((field) => (
-                <div key={field}><small>{t(`home.cases.labels.${field}`)}</small><p>{t(`home.cases.${activeCase}.${field}`)}</p></div>
+                <div key={field}>
+                  <small>{t(`home.cases.labels.${field}`)}</small>
+                  {field === "components" ? (
+                    <div className="HomeCaseDetail__chips">
+                      {t(`home.cases.${activeCase}.${field}`).split(" · ").map((component) => (
+                        <span key={component}>{component}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p>{t(`home.cases.${activeCase}.${field}`)}</p>
+                  )}
+                </div>
               ))}
               {!standalone ? (
                 <button className="HomeTextLink" onClick={() => navigate("/use-case")} type="button">
@@ -882,8 +893,11 @@ export function HomeScene({ heroVisualVariant = "mapLab", standalone = false }: 
           {(["designer", "engineer"] as const).map((role) => (
             <article key={role}>
               <div className="HomeStartGrid__heading">
-                {role === "designer" ? <BookOpen size={22} /> : <Code2 size={22} />}
-                <div><span>{t(`home.start.${role}.role`)}</span><h3>{t(`home.start.${role}.title`)}</h3></div>
+                <div className="HomeStartGrid__role">
+                  {role === "designer" ? <BookOpen size={22} /> : <Code2 size={22} />}
+                  <span>{t(`home.start.${role}.role`)}</span>
+                </div>
+                <h3>{t(`home.start.${role}.title`)}</h3>
               </div>
               <ul>
                 {(["item1", "item2", "item3"] as const).map((item) => (

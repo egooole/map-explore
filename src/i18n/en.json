@@ -63,72 +63,72 @@
       "languageAria": "Choose display language",
       "home": "Home",
       "context": "Why Map Lab",
-      "capabilities": "Capabilities",
+      "capabilities": "Building blocks",
       "components": "Components",
       "cases": "Use cases",
       "start": "Get started"
     },
     "hero": {
-      "title": "Build consistent map experiences for global logistics",
-      "description": "Map Lab unifies spatial objects, interaction standards, and frontend components so warehouse location, driver dispatch, vehicle routing, parcel tracking, and network planning stay consistent across markets.",
-      "explore": "Explore map capabilities",
+      "title": "Logistics maps, consistent in every market",
+      "description": "Map Lab brings spatial objects, interaction patterns, and front-end components into one system. Warehouses, drivers, routes, parcels, and networks look and behave the same wherever you operate.",
+      "explore": "Explore the map system",
       "components": "Browse components"
     },
     "summary": {
-      "endToEnd": { "title": "End-to-end", "description": "From design standards to frontend components" },
-      "model": { "title": "Location · Route · Area", "description": "A unified spatial object model" },
-      "global": { "title": "Global & Multi-scenario", "description": "Reusable across markets and logistics scenarios" }
+      "endToEnd": { "title": "End-to-end", "description": "From design spec to production code" },
+      "model": { "title": "Location · Route · Area", "description": "One model for every spatial object" },
+      "global": { "title": "Global & multi-scenario", "description": "Build once, reuse across markets and use cases" }
     },
     "sections": {
-      "context": { "eyebrow": "WHY MAP LAB", "title": "Complex logistics needs a unified spatial language", "description": "Global markets, diverse scenarios, and dense information cause the same map capabilities to be rebuilt repeatedly. Map Lab keeps the experience consistent." },
-      "capabilities": { "eyebrow": "SPATIAL MODEL", "title": "One spatial language, three core capabilities", "description": "Location, Route, and Area form the base model of logistics maps and the shared grammar for component composition." },
-      "components": { "eyebrow": "COMPONENT SYSTEM", "title": "Composable logistics map components", "description": "From basic locations to progress routes and service areas, every component has consistent states and can be composed into real products." },
-      "cases": { "eyebrow": "IN PRODUCT", "title": "Built into real logistics products", "description": "Components are not isolated styles. Stable composition patterns turn them into operable, dispatchable, and trackable product capabilities." },
-      "start": { "eyebrow": "GET STARTED", "title": "Start your Map Lab experience now", "description": "Enter through the path for your role and move quickly from standards and components to a shippable logistics map solution." }
+      "context": { "eyebrow": "WHY MAP LAB", "title": "Logistics is complex. Your product shouldn't be.", "description": "Every market and every team ends up rebuilding the same map features. Map Lab gives them one shared spatial language, so the experience stays consistent wherever you ship." },
+      "capabilities": { "eyebrow": "SPATIAL MODEL", "title": "One spatial language. Three building blocks.", "description": "Location, Route, and Area are the foundation of every logistics map,\nand the grammar every component is built from." },
+      "components": { "eyebrow": "COMPONENT SYSTEM", "title": "Map components that snap together", "description": "From a single pin to live-progress routes and service zones, every component shares the same states, so they combine cleanly into real products." },
+      "cases": { "eyebrow": "IN PRODUCT", "title": "How Map Lab solves real logistics problems", "description": "Components aren't just styles. Combined the right way, they become features teams use every day to operate, dispatch, and track." },
+      "start": { "eyebrow": "GET STARTED", "title": "Start building with Map Lab", "description": "Pick your path. Start from the specs and components, and get to a production-ready logistics map, fast." }
     },
     "context": {
-      "global": { "title": "Global", "description": "Differences in basemaps, addresses, languages, and information density create very different map environments for the same logistics task." },
-      "scenario": { "title": "Multi-scenario", "description": "Warehousing, dispatch, fulfillment, tracking, and network planning evolve separately and often rebuild the same spatial capabilities." },
-      "complex": { "title": "Complex", "description": "Locations, routes, areas, and live states appear together and need stable hierarchy and interaction rules." }
+      "global": { "title": "Global", "description": "Basemaps, address formats, languages, and data density change from country to country, so the same delivery task can look completely different on the map." },
+      "scenario": { "title": "Multi-scenario", "description": "Warehousing, dispatch, fulfillment, tracking, and network planning grow on their own, and the same spatial features get built again and again." },
+      "complex": { "title": "Complex", "description": "Locations, routes, zones, and live status all share one screen. Without clear hierarchy and interaction rules, the map turns into noise." }
     },
     "capabilities": {
-      "objects": "Logistics objects",
-      "value": "Business value",
-      "location": { "title": "Location", "question": "Where is the object?", "definition": "Express locatable, selectable, and clusterable logistics entities through a unified location component.", "objects": "Warehouses, drivers, vehicles, merchants, parcels, sites", "value": "Consistent object recognition and state expression" },
-      "route": { "title": "Route", "question": "How does the object move?", "definition": "Express planned routes, actual tracks, movement direction, and task progress.", "objects": "Planned routes, actual tracks, transport tasks", "value": "Make dispatch and fulfillment understandable" },
-      "area": { "title": "Area", "question": "Where does business happen?", "definition": "Use boundaries and ranges to express service capacity, operating areas, and warehouse coverage.", "objects": "Pickup zones, service ranges, operating regions", "value": "Support coverage decisions and network planning" }
+      "objects": "Objects",
+      "value": "Why it matters",
+      "location": { "title": "Location", "question": "Where is it?", "definition": "One location component for every entity you need to find, select, or cluster.", "objects": "Warehouses, drivers, vehicles, merchants, parcels, stations", "value": "Recognize any object and its status at a glance" },
+      "route": { "title": "Route", "question": "How does it move?", "definition": "Show planned routes, actual tracks, direction of travel, and live progress.", "objects": "Planned routes, GPS tracks, transport jobs", "value": "Make dispatch and fulfillment easy to follow" },
+      "area": { "title": "Area", "question": "Where does it happen?", "definition": "Draw service coverage, operating zones, and warehouse reach with clear boundaries.", "objects": "Pickup & delivery zones, service areas, operating regions", "value": "Decide coverage and plan networks with confidence" }
     },
     "components": {
       "categoryAria": "Choose a spatial capability category",
       "stateAria": "Choose a component state",
       "listAria": "Choose a map component",
-      "openManual": "Open the complete component manual",
+      "openManual": "View the full component library",
       "states": { "default": "Default", "hover": "Hover", "selected": "Selected" },
       "items": {
-        "normalLocation": { "title": "Normal Location", "description": "A standard location point for basic position, state, and density relationships." },
-        "informatedLocation": { "title": "Informated Location", "description": "An information-rich pin with a business icon for stronger object recognition." },
-        "cumulativeLocation": { "title": "Cumulative Location", "description": "Clusters and separates high-volume locations by zoom level to reduce map noise." },
-        "customLocation": { "title": "Custom Location", "description": "An extensible location container for letters, numbers, and business icons." },
-        "normalRoute": { "title": "Normal Route", "description": "A foundational route for planned paths and actual tracks." },
-        "directionalRoute": { "title": "Directional Route", "description": "Uses directional arrows to explain movement along a route." },
-        "routeWithEndpoints": { "title": "Route with endpoints", "description": "Combines a route with origin and destination so the task relationship is immediately clear." },
-        "progressRoute": { "title": "Progress Route", "description": "Separates completed and remaining segments and marks the live task position." },
-        "areaSelection": { "title": "Area Selection", "description": "Highlights a single service or operating area with clear state feedback." },
-        "multipleAreas": { "title": "Multiple Areas", "description": "Compares the coverage and spatial relationships of multiple regions." },
-        "regionLabel": { "title": "Region Label", "description": "Displays a name and key business data at an area's center." }
+        "normalLocation": { "title": "Normal Location", "description": "The standard pin for position, status, and density." },
+        "informatedLocation": { "title": "Informated Location", "description": "A pin with a business icon, so object types are recognizable at a glance." },
+        "cumulativeLocation": { "title": "Cumulative Location", "description": "Groups and splits large numbers of locations as you zoom, keeping the map readable." },
+        "customLocation": { "title": "Custom Location", "description": "A flexible pin that holds letters, numbers, or business icons." },
+        "normalRoute": { "title": "Normal Route", "description": "The basic line for planned paths and actual tracks." },
+        "directionalRoute": { "title": "Directional Route", "description": "Arrows along the line show which way things are moving." },
+        "routeWithEndpoints": { "title": "Route with endpoints", "description": "A route with its origin and destination, so every job reads at a glance." },
+        "progressRoute": { "title": "Progress Route", "description": "Splits completed and remaining segments, and marks where the job is right now." },
+        "areaSelection": { "title": "Area Selection", "description": "Highlights one service or operating zone, with clear state feedback." },
+        "multipleAreas": { "title": "Multiple Areas", "description": "Compare coverage and overlaps across several zones at once." },
+        "regionLabel": { "title": "Region Label", "description": "Puts the zone name and key metrics right at its center." }
       }
     },
     "cases": {
       "aria": "Choose a logistics product case",
-      "open": "View all business cases",
-      "labels": { "problem": "Business problem", "components": "Map Lab components", "outcome": "Product capability" },
-      "operations": { "index": "CASE 04", "title": "Logistics operations monitoring", "problem": "Large networks contain many facilities, transport tasks, and exceptions, making operational risks hard to locate quickly.", "components": "Custom Location", "outcome": "Monitor network health, task progress, and regional risk in one map." },
+      "open": "See all use cases",
+      "labels": { "problem": "The challenge", "components": "Built with", "outcome": "The result" },
+      "operations": { "index": "CASE 04", "title": "Operations monitoring", "problem": "A global network runs countless facilities, shipments, and exceptions at once, and risks are easy to miss.", "components": "Custom Location", "outcome": "See network health, task progress, and regional risk on a single map." },
       "dispatch": {
         "index": "CASE 02",
         "title": "Delivery dispatch",
-        "problem": "Teams must compare routes and assign drivers under capacity, time, and service-area constraints.",
+        "problem": "Dispatchers have to compare routes and assign drivers within limits on capacity, time windows, and service areas.",
         "components": "Route with Informated Location",
-        "outcome": "Create a dispatch workflow that is comparable, selectable, and executable.",
+        "outcome": "A dispatch flow where every route can be compared, chosen, and acted on.",
         "routeListAria": "Choose a delivery route",
         "routeListTitle": "Delivery routes",
         "status": { "notStarted": "Not started", "inProgress": "In progress", "completed": "Completed" },
@@ -140,39 +140,39 @@
       },
       "tracking": {
         "index": "CASE 03",
-        "title": "Driver location tracking",
-        "problem": "Across many handoffs, users need to understand current position, completed movement, and expected delivery.",
+        "title": "Live driver tracking",
+        "problem": "A parcel passes through many hands. People need to see where it is, how far it has come, and when it will arrive.",
         "components": "Route with Progress",
-        "outcome": "Turn a complex fulfillment chain into a continuous, trustworthy tracking experience.",
+        "outcome": "Turn a complex delivery chain into one continuous tracking view people can trust.",
         "driver": {
           "name": "Driver · Alex Chen",
           "completed": "Completed tasks",
-          "completedValue": "12",
+          "completedValue": "12 jobs",
           "status": "Current status",
           "statusValue": "On time",
           "onTimeRate": "On-time rate",
           "onTimeRateValue": "96.8%",
           "remaining": "Remaining tasks",
-          "remainingValue": "4",
+          "remainingValue": "4 jobs",
           "returnRisk": "Return risk",
           "returnRiskValue": "Low"
         }
       },
-      "network": { "index": "CASE 01", "title": "Logistics network planning", "problem": "Network planning must evaluate facility locations, coverage relationships, and cross-region transport links together.", "components": "Multiple Areas · Area Selection · Region Label", "outcome": "Support site selection, coverage evaluation, and network scenario comparison." }
+      "network": { "index": "CASE 01", "title": "Network planning", "problem": "Planning a network means weighing facility locations, coverage, and cross-region links all at once.", "components": "Multiple Areas · Area Selection · Region Label", "outcome": "Compare site options, check coverage, and evaluate network designs on one map." }
     },
     "start": {
-      "designer": { "role": "DESIGNER", "title": "Design from a unified experience", "item1": "Map experience standards", "item2": "Figma component library", "item3": "Logistics business templates", "cta": "Open component manual" },
-      "engineer": { "role": "AI DEVELOPMENT", "title": "Build map experiences faster with AI", "item1": "Map Skill installation and usage", "item2": "AI tool integration packages", "item3": "Component examples and developer docs", "cta": "Get AI development resources" },
+      "designer": { "role": "DESIGNER", "title": "Design with one shared system", "item1": "Map experience guidelines", "item2": "Figma component library", "item3": "Logistics page templates", "cta": "Open the component library" },
+      "engineer": { "role": "AI DEVELOPMENT", "title": "Build maps faster with AI", "item1": "Install and use the Map Skill", "item2": "Ready-made packs for AI coding tools", "item3": "Component examples and developer docs", "cta": "Get AI resources" },
       "guide": {
         "eyebrow": "AI DEVELOPMENT",
-        "title": "Choose your Map Lab resource package",
-        "description": "Select the download that matches your AI development tool. Real URLs can be added later without changing this layout.",
+        "title": "Pick the pack for your tools",
+        "description": "Choose the package that matches your AI coding tool.",
         "downloads": {
-          "download": "Download resource",
-          "pending": "Link coming soon",
-          "zip": { "type": "Universal", "title": "ZIP documentation package", "description": "Download the complete guidelines, component notes, and examples for manual import into any AI tool." },
-          "agentbody": { "type": "AgentBody", "title": "AgentBody package", "description": "A preconfigured AgentBody resource package for using Map Lab component guidelines directly." },
-          "trea": { "type": "Trea", "title": "Trea package", "description": "A preconfigured Trea resource package for quickly adding Map Lab to a local AI workflow." }
+          "download": "Download",
+          "pending": "Coming soon",
+          "zip": { "type": "Universal", "title": "ZIP package", "description": "Full guidelines, component notes, and examples. Import into any AI tool." },
+          "agentbody": { "type": "AgentBody", "title": "AgentBody package", "description": "Pre-configured for AgentBody. Install it and the Map Lab guidelines are ready to use." },
+          "trea": { "type": "Trae", "title": "Trae package", "description": "Pre-configured for a quick start in your local AI workflow." }
         }
       }
     }

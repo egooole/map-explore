@@ -14,6 +14,12 @@
   margin: 0;
 }
 
+.HomeScene h1,
+.HomeScene h2,
+.HomeScene h3 {
+  text-wrap: balance;
+}
+
 .HomeScene--standalone #capabilities,
 .HomeScene--standalone #components,
 .HomeScene--standalone #use-cases,
@@ -66,12 +72,18 @@
   max-width: 680px;
 }
 
+:lang(en) .HomeHero h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  max-width: 18ch;
+}
+
 .HomeHero__content > p {
   color: var(--color-muted);
   font-size: 17px;
   line-height: 1.75;
   margin: 0;
-  max-width: 580px;
+  max-width: 520px;
 }
 
 .HomeHero__actions,
@@ -357,6 +369,7 @@
 
 .HomeSectionHeader { display: grid; gap: 12px; max-width: 720px; }
 .HomeSectionHeader--center { margin: 0 auto; text-align: center; }
+.HomeSectionHeader--center h2 { margin-left: auto; margin-right: auto; max-width: 20ch; }
 .HomeSectionHeader h2 { font-size: clamp(30px, 3vw, 44px); font-weight: var(--font-weight-semibold); line-height: 1.18; margin: 0; }
 .HomeContext .HomeSectionHeader h2 { white-space: pre-line; }
 .HomeSectionHeader p { color: var(--color-muted); font-size: 15px; line-height: 1.7; margin: 0; }
@@ -382,19 +395,26 @@
 .HomeContextGrid p { color: var(--color-muted); font-size: 13px; line-height: 1.7; margin: 0; }
 
 .HomeCapabilityGrid { border: 1px solid var(--color-border); }
-.HomeCapabilityGrid article { display: grid; min-height: 410px; padding: 28px; }
+.HomeCapabilityGrid article {
+  display: grid;
+  grid-template-rows: 24px 104px 40px 128px 1fr;
+  min-height: 410px;
+  min-width: 0;
+  padding: 28px;
+}
 .HomeCapabilityGrid article + article { border-left: 1px solid var(--color-border); }
 .HomeCapabilityGrid__top { align-items: center; display: flex; justify-content: space-between; }
 .HomeCapabilityGrid__top span { color: var(--color-tertiary); font-size: 11px; }
 .HomeCapabilityGrid article.is-location svg { color: var(--home-accent); }
 .HomeCapabilityGrid article.is-route svg { color: var(--home-blue); }
 .HomeCapabilityGrid article.is-area svg { color: var(--home-green); }
-.HomeCapabilityGrid h3 { font-size: 27px; margin: 52px 0 8px; }
-.HomeCapabilityGrid article > strong { color: var(--color-muted); font-size: 14px; font-weight: var(--font-weight-medium); }
-.HomeCapabilityGrid article > p { color: var(--color-muted); font-size: 13px; line-height: 1.65; margin: 20px 0 34px; }
-.HomeCapabilityGrid dl { align-self: end; display: grid; gap: 12px; margin: 0; }
-.HomeCapabilityGrid dl div { border-top: 1px solid var(--color-border); display: grid; gap: 4px; grid-template-columns: 72px 1fr; padding-top: 10px; }
-.HomeCapabilityGrid dt { color: var(--color-tertiary); font-size: 10px; text-transform: uppercase; }
+.HomeCapabilityGrid h3 { align-self: end; font-size: 27px; margin: 0 0 8px; }
+.HomeCapabilityGrid article > strong { align-self: start; color: var(--color-muted); font-size: 14px; font-weight: var(--font-weight-medium); }
+.HomeCapabilityGrid article > p { align-self: start; color: var(--color-muted); font-size: 13px; line-height: 1.65; margin: 0 0 34px; }
+.HomeCapabilityGrid dl { align-self: start; display: grid; gap: 12px; margin: 0; width: 100%; }
+.HomeCapabilityGrid dl div { align-items: baseline; border-top: 1px solid var(--color-border); display: grid; gap: 8px; grid-template-columns: 104px minmax(0, 1fr); padding-top: 10px; }
+.HomeCapabilityGrid dl div:first-child { box-sizing: border-box; min-height: 58px; }
+.HomeCapabilityGrid dt { color: var(--color-tertiary); font-size: 10px; text-transform: uppercase; white-space: nowrap; }
 .HomeCapabilityGrid dd { color: var(--color-muted); font-size: 11px; line-height: 1.5; margin: 0; }
 
 .HomeComponentExplorer { border: 1px solid var(--color-border); margin-top: 48px; }
@@ -487,7 +507,7 @@
 .HomeCases__inner { border-bottom: 1px solid var(--color-border); border-top: 1px solid var(--color-border); padding: 112px 0; }
 .HomeCaseStage { border: 1px solid var(--color-border); display: grid; grid-template-columns: 180px minmax(0, 1fr) 300px; margin-top: 48px; min-height: 500px; }
 .HomeCaseTabs { border-right: 1px solid var(--color-border); display: grid; grid-template-rows: repeat(4, 1fr); }
-.HomeCaseTabs button { background: transparent; border: 0; border-bottom: 1px solid var(--color-border); color: var(--color-muted); font-size: 12px; padding: 18px; text-align: left; }
+.HomeCaseTabs button { align-items: center; background: transparent; border: 0; border-bottom: 1px solid var(--color-border); color: var(--color-muted); display: flex; font-size: 12px; min-height: 0; padding: 18px; text-align: left; white-space: nowrap; }
 .HomeCaseTabs button:last-child { border-bottom: 0; }
 .HomeCaseTabs button:hover { color: var(--color-text); }
 .HomeCaseTabs button.is-active { background: var(--home-accent-soft); color: var(--home-accent); }
@@ -573,14 +593,17 @@
 .HomeCaseDetail > div { border-top: 1px solid var(--color-border); padding: 14px 0; }
 .HomeCaseDetail small { color: var(--color-tertiary); font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; }
 .HomeCaseDetail p { color: var(--color-muted); font-size: 12px; line-height: 1.55; margin: 6px 0 0; }
+.HomeCaseDetail__chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.HomeCaseDetail__chips span { background: var(--home-accent-soft); color: var(--home-accent); font-size: 10px; line-height: 1.35; padding: 5px 7px; }
 
 .HomeStart { border-top: 0 !important; }
 .HomeStartGrid { border: 1px solid var(--color-border); border-left: 0; display: grid; grid-template-columns: repeat(2, 1fr); margin-top: 48px; }
 .HomeStartGrid article { display: flex; flex-direction: column; min-height: 340px; padding: 32px; }
 .HomeStartGrid > article + article { border-left: 1px solid var(--color-border); }
-.HomeStartGrid__heading { align-items: flex-start; display: flex; gap: 16px; }
-.HomeStartGrid__heading svg { color: var(--home-accent); margin-top: 2px; }
-.HomeStartGrid__heading h3 { font-size: 24px; margin: 6px 0 0; }
+.HomeStartGrid__heading { display: grid; gap: 8px; }
+.HomeStartGrid__role { align-items: center; display: flex; gap: 12px; }
+.HomeStartGrid__heading svg { color: var(--home-accent); }
+.HomeStartGrid__heading h3 { font-size: 24px; margin: 0; }
 .HomeStartGrid ul { display: grid; gap: 12px; list-style: none; margin: 34px 0; padding: 0; }
 .HomeStartGrid li { align-items: center; color: var(--color-muted); display: flex; font-size: 13px; gap: 9px; }
 .HomeStartGrid li svg { color: var(--home-accent); }
@@ -643,6 +666,15 @@
   .HomeMap--hero { width: 100%; }
   .HomeHeroSummary { margin-top: 48px; }
   .HomeComponentExplorer__body { grid-template-columns: minmax(0, 1fr) 300px; }
+  .HomeCapabilityGrid dl div:first-child { min-height: 78px; }
+}
+
+@media (max-width: 900px) {
+  .HomeCapabilityGrid dl div:first-child { min-height: 98px; }
+}
+
+@media (max-width: 800px) {
+  .HomeCapabilityGrid dl div:first-child { min-height: 124px; }
 }
 
 @media (max-width: 760px) {
@@ -667,15 +699,25 @@
   .HomeHeroSummary article { min-height: 140px; padding: 32px 24px; }
   .HomeHeroSummary strong { font-size: 24px; }
   .HomeHeroSummary small { font-size: 14px; line-height: 22px; }
-  .HomeCapabilityGrid article { min-height: 350px; }
+  .HomeCapabilityGrid article { grid-template-rows: auto; min-height: 350px; row-gap: 16px; }
+  .HomeCapabilityGrid dl div:first-child { min-height: 0; }
   .HomeSection,
   .HomeCases__inner { padding: 76px 0; }
   .HomeComponentExplorer__body { grid-template-columns: 1fr; }
   .HomeMap--component { border-bottom: 1px solid var(--color-border); border-right: 0; min-height: 390px; }
   .HomeComponentPanel { min-height: 390px; }
   .HomeCaseStage { grid-template-columns: 1fr; }
-  .HomeCaseTabs { border-bottom: 1px solid var(--color-border); border-right: 0; grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(2, auto); min-height: 0; }
-  .HomeCaseTabs button { min-height: 58px; }
+  .HomeCaseTabs {
+    border-bottom: 1px solid var(--color-border);
+    border-right: 0;
+    display: flex;
+    min-height: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .HomeCaseTabs::-webkit-scrollbar { display: none; }
+  .HomeCaseTabs button { border-bottom: 0; border-right: 1px solid var(--color-border); flex: 0 0 auto; min-height: 52px; white-space: nowrap; }
+  .HomeCaseTabs button:last-child { border-right: 0; }
   .HomeCaseMap { border-bottom: 1px solid var(--color-border); border-right: 0; min-height: 400px; }
   .HomeCaseMap.is-dispatch { min-height: 620px; }
   .HomeCaseMap.is-dispatch .HomeCaseMap__canvas { left: 0; top: 220px; }
@@ -692,6 +734,12 @@
   .HomeDispatchRoutes button { align-items: center; padding: 10px 14px; }
   .HomeDispatchRoutes__content { gap: 3px; }
   .HomeCaseDetail { grid-column: auto; grid-row: auto; }
+  .HomeStartGrid__heading { width: 100%; }
+  .HomeStartGrid__role { width: 100%; }
+  .HomeStartGrid h3,
+  .HomeStartGrid ul,
+  .HomeStartGrid .HomeButton { width: 100%; }
+  .HomeStartGrid .HomeButton { justify-content: flex-start; }
 }
 
 @media (max-width: 480px) {

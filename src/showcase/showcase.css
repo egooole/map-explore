@@ -56,7 +56,8 @@ body {
 
 .ShowcaseSectionNav {
   display: grid;
-  gap: 3px;
+  gap: 0;
+  padding: 8px 0 8px 24px;
   position: fixed;
   right: clamp(20px, 2vw, 32px);
   top: 50%;
@@ -64,59 +65,90 @@ body {
   z-index: 35;
 }
 
+.ShowcaseSectionNav::before {
+  background: rgba(5, 7, 10, 0.72);
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  content: "";
+  inset: 0 0 0 auto;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  transition: opacity 200ms cubic-bezier(0.2, 0, 0, 1);
+  width: 168px;
+  z-index: -1;
+}
+
+.ShowcaseSectionNav.is-expanded::before {
+  opacity: 1;
+}
+
 .ShowcaseSectionNav button {
   align-items: center;
   background: transparent;
   border: 0;
   display: flex;
-  height: 26px;
+  height: 20px;
   justify-content: flex-end;
   padding: 0;
   position: relative;
-  width: 42px;
+  width: 48px;
 }
 
 .ShowcaseSectionNav__line {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.28);
   display: block;
   height: 2px;
-  transition: background-color 180ms ease, width 180ms cubic-bezier(0.22, 1, 0.36, 1);
-  width: 17px;
+  width: 12px;
+}
+
+.ShowcaseSectionNav__indicator {
+  background: var(--home-accent);
+  border-radius: 1px;
+  height: 2px;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 17px;
+  transform: translateY(calc(var(--section-index) * 20px));
+  transition: transform 320ms cubic-bezier(0.2, 0, 0, 1);
+  width: 18px;
+  z-index: 2;
 }
 
 .ShowcaseSectionNav__label {
-  color: rgba(255, 255, 255, 0.78);
+  color: rgba(255, 255, 255, 0.5);
   font-size: 12px;
   line-height: 1;
   opacity: 0;
   pointer-events: none;
   position: absolute;
-  right: 50px;
-  text-shadow: 0 1px 8px #000;
-  transform: translateX(5px);
-  transition: opacity 160ms ease, transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+  right: 48px;
+  transform: translateX(6px);
+  transition:
+    opacity 200ms cubic-bezier(0.2, 0, 0, 1),
+    transform 200ms cubic-bezier(0.2, 0, 0, 1),
+    color 200ms cubic-bezier(0.2, 0, 0, 1);
+  transition-delay: 0ms;
   white-space: nowrap;
 }
 
-.ShowcaseSectionNav button:hover .ShowcaseSectionNav__line,
-.ShowcaseSectionNav button:focus-visible .ShowcaseSectionNav__line {
-  background: rgba(255, 255, 255, 0.72);
-  width: 24px;
-}
-
-.ShowcaseSectionNav button:hover .ShowcaseSectionNav__label,
-.ShowcaseSectionNav button:focus-visible .ShowcaseSectionNav__label {
+.ShowcaseSectionNav.is-expanded .ShowcaseSectionNav__label {
   opacity: 1;
   transform: translateX(0);
+  transition-delay: calc(var(--i) * 18ms);
 }
 
-.ShowcaseSectionNav button.is-active .ShowcaseSectionNav__line {
-  background: var(--home-accent);
-  height: 3px;
-  width: 30px;
+.ShowcaseSectionNav button.is-hovered .ShowcaseSectionNav__label,
+.ShowcaseSectionNav button:focus-visible .ShowcaseSectionNav__label {
+  color: #f4f7f9;
 }
 
 @media (max-width: 1080px) {
+  .ShowcaseSectionNav::before {
+    display: none;
+  }
+
   .ShowcaseSectionNav__label {
     display: none;
   }
@@ -136,6 +168,7 @@ body {
     top: 0;
     transform: none;
     width: 100%;
+    padding: 0;
   }
 
   .ShowcaseSectionNav button {
@@ -144,16 +177,21 @@ body {
     width: auto;
   }
 
-  .ShowcaseSectionNav__line,
-  .ShowcaseSectionNav button:hover .ShowcaseSectionNav__line,
-  .ShowcaseSectionNav button:focus-visible .ShowcaseSectionNav__line,
-  .ShowcaseSectionNav button.is-active .ShowcaseSectionNav__line {
+  .ShowcaseSectionNav__indicator {
+    display: none;
+  }
+
+  .ShowcaseSectionNav__line {
     height: 2px;
     width: 100%;
   }
 
   .ShowcaseSectionNav button:not(.is-active) .ShowcaseSectionNav__line {
     background: rgba(255, 255, 255, 0.18);
+  }
+
+  .ShowcaseSectionNav button.is-active .ShowcaseSectionNav__line {
+    background: var(--home-accent);
   }
 }
 
@@ -163,8 +201,11 @@ body {
   }
 
   .ShowcaseLanguage button,
+  .ShowcaseSectionNav::before,
+  .ShowcaseSectionNav__indicator,
   .ShowcaseSectionNav__label,
   .ShowcaseSectionNav__line {
     transition: none;
+    transition-delay: 0ms;
   }
 }

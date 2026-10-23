@@ -230,7 +230,7 @@
       "guide": {
         "eyebrow": "AI DEVELOPMENT",
         "title": "选择适合你的 Map Lab 资源包",
-        "description": "根据你正在使用的 AI 开发工具选择下载方式。真实下载链接补充后，无需再调整页面结构。",
+        "description": "根据你正在使用的 AI 开发工具选择下载方式。",
         "downloads": {
           "download": "下载资源",
           "pending": "链接待补充",
@@ -245,9 +245,9 @@
             "description": "面向 AgentBody 的预配置资源，安装后即可引用 Map Lab 组件规范。"
           },
           "trea": {
-            "type": "Trea",
-            "title": "Trea 安装包",
-            "description": "面向 Trea 的预配置资源，用于在本地 AI 开发流程中快速接入。"
+            "type": "Trae",
+            "title": "Trae 安装包",
+            "description": "面向 Trae 的预配置资源，用于在本地 AI 开发流程中快速接入。"
           }
         }
       }
