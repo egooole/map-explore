@@ -158,7 +158,34 @@
           "returnRiskValue": "Low"
         }
       },
-      "network": { "index": "CASE 01", "title": "Network planning", "problem": "Planning a network means weighing facility locations, coverage, and cross-region links all at once.", "components": "Multiple Areas · Area Selection · Region Label", "outcome": "Compare site options, check coverage, and evaluate network designs on one map." }
+      "network": {
+        "index": "CASE 01",
+        "title": "Facility coverage",
+        "problem": "Coverage can only be checked in lists, with no overall view to guide new facilities or coverage changes.",
+        "components": "Multiple Areas · Area Selection · Custom Location",
+        "outcome": "Find coverage gaps level by level and see exactly what each facility covers.",
+        "coverageUi": {
+          "viewAria": "Switch coverage view",
+          "levelAria": "Switch administrative area",
+          "views": { "admin": "By Admin Division", "facility": "By Facility" },
+          "filter": "Filters",
+          "levels": { "country": "China", "shanghai": "Shanghai" },
+          "coverageType": "Coverage type",
+          "coverageTypes": { "delivery": "Delivery", "pickup": "Pick up", "return": "Return" },
+          "serviceType": "Service type",
+          "serviceTypes": { "all": "All", "regular": "Regular", "ndd": "NDD" },
+          "status": { "fully": "Fully covered", "partial": "Partially covered", "none": "Not covered" },
+          "metrics": { "coverage": "Coverage", "density": "Density", "facility": "Facility", "areas": "Areas" },
+          "hints": {
+            "drill": "Click to drill down",
+            "uncovered": "Uncovered areas cannot be opened",
+            "lastLevel": "Lowest available level",
+            "demoOnly": "Demo data is available for Shanghai only"
+          },
+          "toast": { "demoOnly": "Demo data is available for Shanghai only", "locatedShanghai": "Located to Shanghai" },
+          "legendAria": "Coverage status legend"
+        }
+      }
     },
     "start": {
       "designer": { "role": "DESIGNER", "title": "Design with one shared system", "item1": "Map experience guidelines", "item2": "Figma component library", "item3": "Logistics page templates", "cta": "Open the component library" },
@@ -171,7 +198,7 @@
           "download": "Download",
           "pending": "Coming soon",
           "zip": { "type": "Universal", "title": "ZIP package", "description": "Full guidelines, component notes, and examples. Import into any AI tool." },
-          "agentbody": { "type": "AgentBody", "title": "AgentBody package", "description": "Pre-configured for AgentBody. Install it and the Map Lab guidelines are ready to use." },
+          "agentbody": { "type": "AgentBuddy", "title": "AgentBuddy package", "description": "Pre-configured for AgentBuddy. Install it and the Map Lab guidelines are ready to use." },
           "trea": { "type": "Trae", "title": "Trae package", "description": "Pre-configured for a quick start in your local AI workflow." }
         }
       }

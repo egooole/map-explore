@@ -204,10 +204,31 @@
       },
       "network": {
         "index": "CASE 01",
-        "title": "物流网络规划",
-        "problem": "仓网规划需要同时判断节点位置、覆盖关系与跨区域运输连接。",
-        "components": "Multiple Areas · Area Selection · Region Label",
-        "outcome": "支持设施选址、覆盖评估与网络结构方案比较。"
+        "title": "设施覆盖查询",
+        "problem": "只能通过列表查询设施的覆盖情况，看不到全局，新开设施和调整覆盖时缺少依据。",
+        "components": "Multiple Areas · Area Selection · Custom Location",
+        "outcome": "在地图上逐级查看覆盖缺口，并按设施查看覆盖范围。",
+        "coverageUi": {
+          "viewAria": "切换覆盖查询视图",
+          "levelAria": "切换行政区范围",
+          "views": { "admin": "按行政区", "facility": "按设施" },
+          "filter": "筛选",
+          "levels": { "country": "全国", "shanghai": "上海" },
+          "coverageType": "覆盖类型",
+          "coverageTypes": { "delivery": "派送", "pickup": "揽收", "return": "退回" },
+          "serviceType": "服务类型",
+          "serviceTypes": { "all": "全部", "regular": "常规", "ndd": "次日达" },
+          "status": { "fully": "完全覆盖", "partial": "部分覆盖", "none": "未覆盖" },
+          "metrics": { "coverage": "覆盖率", "density": "密度", "facility": "设施", "areas": "区域" },
+          "hints": {
+            "drill": "点击下钻到下一级",
+            "uncovered": "未覆盖区域不可点击",
+            "lastLevel": "已是末级区域",
+            "demoOnly": "示例数据仅开放上海"
+          },
+          "toast": { "demoOnly": "示例数据仅开放上海", "locatedShanghai": "已定位到上海" },
+          "legendAria": "覆盖状态图例"
+        }
       }
     },
     "start": {
@@ -240,9 +261,9 @@
             "description": "下载完整规范、组件说明与示例文件，适合手动导入任意 AI 工具。"
           },
           "agentbody": {
-            "type": "AgentBody",
-            "title": "AgentBody 安装包",
-            "description": "面向 AgentBody 的预配置资源，安装后即可引用 Map Lab 组件规范。"
+            "type": "AgentBuddy",
+            "title": "AgentBuddy 安装包",
+            "description": "面向 AgentBuddy 的预配置资源，安装后即可引用 Map Lab 组件规范。"
           },
           "trea": {
             "type": "Trae",

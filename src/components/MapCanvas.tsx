@@ -62,6 +62,7 @@ interface GoogleMap {
   addListener: (eventName: "click" | "zoom_changed", handler: () => void) => GoogleMapsListener;
   controls: Record<number, { clear: () => void }>;
   fitBounds: (bounds: unknown, padding?: number) => void;
+  getDiv: () => HTMLElement;
   getZoom: () => number | undefined;
   setCenter: (center: GoogleLatLng) => void;
   setOptions: (options: Record<string, unknown>) => void;
@@ -84,6 +85,7 @@ interface GooglePolygon {
 }
 
 interface GoogleAdvancedMarker {
+  addEventListener: (eventName: string, handler: () => void) => void;
   map: GoogleMap | null;
 }
 
@@ -93,6 +95,7 @@ interface GoogleDataFeature {
 
 interface GoogleDataMouseEvent {
   feature: GoogleDataFeature;
+  latLng?: GoogleLatLng;
 }
 
 interface GoogleDataLayer {
@@ -145,6 +148,7 @@ interface MapMarkerHandle {
 
 interface PreviewMarkerItem {
   family: MarkerPreviewFamily;
+  id?: string;
   marker: MarkerPreviewState;
   position: GoogleLatLng;
 }
@@ -176,6 +180,7 @@ interface RegionManifestEntry {
   level: string;
   nameEn: string;
   nameZh: string;
+  parentId?: string;
   source: string;
 }
 
@@ -187,8 +192,21 @@ interface RegionManifest {
 export interface PreviewMarkerGroup {
   distribution?: MapCanvasProps["previewDistribution"];
   family: MarkerPreviewFamily;
+  ids?: string[];
   markers: MarkerPreviewState[];
   positions?: GoogleLatLngLiteral[];
+}
+
+export interface PreviewTooltipData {
+  clickable?: boolean;
+  hint?: string;
+  metrics: Array<{ label: string; value: string }>;
+  placement?: "above" | "below";
+  status?: {
+    label: string;
+    tone: "fully" | "partial" | "none";
+  };
+  title: string;
 }
 
 export interface PreviewRegionShape {
@@ -223,7 +241,7 @@ interface DynamicRouteLayer {
   route: GooglePolyline | null;
 }
 
-type MapMarkerAnchor = "bottom" | "center" | "pin-tip";
+type MapMarkerAnchor = "bottom" | "center" | "pin-tip" | "tooltip-above" | "tooltip-below";
 
 /**
  * MapCanvas 的 props 是整个地图画布的控制入口。
@@ -248,10 +266,21 @@ export interface MapCanvasProps {
   previewRegionMetrics?: Record<string, Array<{ label: string; value: string }>>;
   previewRegionShapes?: PreviewRegionShape[];
   previewRegionState?: "default" | "selected";
-  previewRegionStyles?: Record<string, { fillColor: string; strokeColor: string }>;
+  previewRegionStyles?: Record<string, {
+    fillColor?: string;
+    fillOpacity?: number;
+    strokeColor?: string;
+    strokeOpacity?: number;
+    strokeWeight?: number;
+  }>;
+  previewDimmedRegionIds?: string[];
+  previewFitRegionId?: string;
+  previewFlashRegionId?: string;
+  previewRegionTooltip?: (regionId: string) => PreviewTooltipData | null;
   hidePreviewContent?: boolean;
   previewMarkerFamily?: MarkerPreviewFamily;
   previewMarkerGroups?: PreviewMarkerGroup[];
+  previewMarkerTooltip?: (markerId: string) => PreviewTooltipData | null;
   previewMarkers?: MarkerPreviewState[];
   previewProgressInfo?: PreviewProgressInfo;
   previewProgressSelected?: boolean;
@@ -263,6 +292,9 @@ export interface MapCanvasProps {
   onPreviewRouteClearSelection?: () => void;
   onPreviewRouteHover?: (routeId: string | null) => void;
   onPreviewRouteSelect?: (routeId: string) => void;
+  onPreviewMarkerHover?: (markerId: string | null) => void;
+  onPreviewRegionClick?: (regionId: string) => void;
+  onPreviewRegionHover?: (regionId: string | null) => void;
   previewHoveredRouteId?: string;
   previewRouteState?: RoutePreviewVariant;
   previewRoutes?: RoutePreviewState[];
@@ -881,6 +913,65 @@ function createRegionLabelElement(
   });
 
   return label;
+}
+
+function createPreviewTooltipElement(data: PreviewTooltipData) {
+  const tooltip = document.createElement("div");
+  tooltip.className = `MapCoverageTooltip is-${data.placement ?? "above"}`;
+  tooltip.setAttribute("role", "tooltip");
+
+  const header = document.createElement("div");
+  header.className = "MapCoverageTooltip__header";
+  const title = document.createElement("strong");
+  title.textContent = data.title;
+  header.append(title);
+
+  if (data.status) {
+    const status = document.createElement("span");
+    status.className = `MapCoverageTooltip__status is-${data.status.tone}`;
+    status.textContent = data.status.label;
+    header.append(status);
+  }
+  tooltip.append(header);
+
+  const metrics = document.createElement("div");
+  metrics.className = "MapCoverageTooltip__metrics";
+  data.metrics.forEach((metric) => {
+    const row = document.createElement("div");
+    const label = document.createElement("span");
+    const value = document.createElement("strong");
+    label.textContent = metric.label;
+    value.textContent = metric.value;
+    row.append(label, value);
+    metrics.append(row);
+  });
+  tooltip.append(metrics);
+
+  if (data.hint) {
+    const hint = document.createElement("p");
+    hint.className = "MapCoverageTooltip__hint";
+    hint.textContent = data.hint;
+    tooltip.append(hint);
+  }
+
+  return tooltip;
+}
+
+function clampPreviewTooltipToMap(map: GoogleMap, tooltip: HTMLElement) {
+  window.requestAnimationFrame(() => {
+    if (!tooltip.isConnected) return;
+    const mapRect = map.getDiv().getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+    const safeInset = 12;
+    let offsetX = 0;
+    if (tooltipRect.left < mapRect.left + safeInset) {
+      offsetX = mapRect.left + safeInset - tooltipRect.left;
+    } else if (tooltipRect.right > mapRect.right - safeInset) {
+      offsetX = mapRect.right - safeInset - tooltipRect.right;
+    }
+    tooltip.style.translate = `${offsetX}px 0`;
+    tooltip.style.setProperty("--map-tooltip-pointer-shift", `${-offsetX}px`);
+  });
 }
 
 /**
@@ -1763,7 +1854,13 @@ function createOverlayMarker(
         return;
       }
       const anchorTransform =
-        anchor === "center" ? "translate(-50%, -50%)" : anchor === "pin-tip" ? "translate(-50%, -51px)" : "translate(-50%, -100%)";
+        anchor === "center"
+          ? "translate(-50%, -50%)"
+          : anchor === "pin-tip"
+            ? "translate(-50%, -51px)"
+            : anchor === "tooltip-below"
+              ? "translate(-50%, 12px)"
+              : "translate(-50%, -100%)";
       this.markerElement.style.transform = `translate(${pixel.x}px, ${pixel.y}px) ${anchorTransform}`;
       if (zIndex !== undefined) {
         this.markerElement.style.zIndex = String(zIndex);
@@ -1808,6 +1905,11 @@ async function createAdvancedMarker(
             anchorLeft: "-50%",
             anchorTop: "-51px",
           }
+        : anchor === "tooltip-below"
+          ? {
+              anchorLeft: "-50%",
+              anchorTop: "12px",
+            }
       : {
           anchorLeft: "-50%",
           anchorTop: "-100%",
@@ -1821,6 +1923,14 @@ async function createAdvancedMarker(
     title: element.getAttribute("aria-label") ?? undefined,
     zIndex,
   });
+
+  if (element.classList.contains("MapMarker--interactive")) {
+    (["mouseenter", "mouseleave", "focus", "blur"] as const).forEach((eventName) => {
+      marker.addEventListener(eventName, () => {
+        element.dispatchEvent(new Event(eventName));
+      });
+    });
+  }
 
   return {
     remove: () => {
@@ -1841,18 +1951,23 @@ export function MapCanvas({
   hidePreviewContent = false,
   previewDistribution = "local",
   previewFeature,
+  previewDimmedRegionIds,
+  previewFitRegionId,
+  previewFlashRegionId,
   previewRegionInteraction = "single",
   previewRegionIds,
   previewRegionMetrics,
   previewRegionState = "default",
   previewMarkerFamily = "normal",
   previewMarkerGroups,
+  previewMarkerTooltip,
   previewMarkers,
   previewProgressInfo,
   previewProgressSelected = false,
   previewRegionColors,
   previewRegionShapes,
   previewRegionStyles,
+  previewRegionTooltip,
   previewHoveredRouteId,
   previewRouteFamily,
   previewRouteGroups,
@@ -1862,6 +1977,9 @@ export function MapCanvas({
   onPreviewRouteClearSelection,
   onPreviewRouteHover,
   onPreviewRouteSelect,
+  onPreviewMarkerHover,
+  onPreviewRegionClick,
+  onPreviewRegionHover,
   previewRouteState = "default",
   previewRoutes,
 }: MapCanvasProps) {
@@ -1872,8 +1990,13 @@ export function MapCanvas({
   const polylineRef = useRef<GooglePolyline | null>(null);
   const polygonRef = useRef<GooglePolygon | null>(null);
   const regionDataRef = useRef<GoogleDataLayer | null>(null);
+  const regionOutlineDataRef = useRef<GoogleDataLayer | null>(null);
   const regionListenersRef = useRef<GoogleMapsListener[]>([]);
   const regionLabelRef = useRef<MapMarkerHandle | null>(null);
+  const markerTooltipRef = useRef<MapMarkerHandle | null>(null);
+  const previewMarkerTooltipCallbackRef = useRef(previewMarkerTooltip);
+  const previewMarkerHoverCallbackRef = useRef(onPreviewMarkerHover);
+  const lastRegionFitKeyRef = useRef("");
   const dynamicRouteRef = useRef<DynamicRouteLayer>(createEmptyDynamicRouteLayer());
   const manualRoutePreviewRef = useRef<DynamicRouteLayer>(createEmptyDynamicRouteLayer());
   const suppressNextPreviewMapClickRef = useRef(false);
@@ -1919,6 +2042,9 @@ export function MapCanvas({
         Boolean(route.nodes.find((node) => node.id === "start")?.value) &&
         Boolean(route.nodes.find((node) => node.id === "end")?.value),
     );
+
+  previewMarkerTooltipCallbackRef.current = previewMarkerTooltip;
+  previewMarkerHoverCallbackRef.current = onPreviewMarkerHover;
 
   // 开发环境下输出当前实际使用的 Map ID，方便排查云端地图样式是否生效。
   useEffect(() => {
@@ -2081,7 +2207,7 @@ export function MapCanvas({
     const hasPreviewRouteGroups = Boolean(previewRouteGroups?.length);
     const shouldShowMarkers =
       !hidePreviewContent &&
-      (!previewFeature || previewFeature === "point" || previewFeature === "container") &&
+      (!previewFeature || previewFeature === "point" || previewFeature === "container" || (previewFeature === "area" && hasPreviewMarkerGroups)) &&
       (hasPreviewMarkerGroups || previewMarkers !== undefined || !hasPreviewRouteGroups);
     const shouldShowRoutePreview =
       !canRenderDynamicRoute &&
@@ -2365,6 +2491,7 @@ export function MapCanvas({
                   const basePosition = group.positions?.[index % group.positions.length] ?? previewPositions[index % previewPositions.length];
                   return {
                     family: group.family,
+                    id: group.ids?.[index] ?? marker.label,
                     marker,
                     position: offsetGroupedPreviewPosition(
                       basePosition,
@@ -2378,7 +2505,7 @@ export function MapCanvas({
           );
 
         const markerHandles = await Promise.all(
-          markerItems.map(({ family, marker, position }) => {
+          markerItems.map(async ({ family, id, marker, position }) => {
             const markerElement = createPointMarkerElement({
               count: marker.count,
               customContent: marker.customContent,
@@ -2387,15 +2514,64 @@ export function MapCanvas({
               style: controls.markerStyle,
               variant: marker.id,
             });
+            const markerId = id ?? marker.label;
+            const removeMarkerTooltip = () => {
+              markerTooltipRef.current?.remove();
+              markerTooltipRef.current = null;
+            };
+            const showMarkerTooltip = async () => {
+              if (!markerId || !previewMarkerTooltipCallbackRef.current) return;
+              const tooltipData = previewMarkerTooltipCallbackRef.current(markerId);
+              if (!tooltipData) return;
+              removeMarkerTooltip();
+              const tooltipElement = createPreviewTooltipElement(tooltipData);
+              const tooltipMarker = await createAdvancedMarker(
+                googleMaps,
+                map,
+                position,
+                tooltipElement,
+                tooltipData.placement === "below" ? "tooltip-below" : "tooltip-above",
+                240,
+              );
+              if (cancelled) {
+                tooltipMarker.remove();
+                return;
+              }
+              clampPreviewTooltipToMap(map, tooltipElement);
+              markerTooltipRef.current = tooltipMarker;
+            };
+            if (markerId && (onPreviewMarkerHover || previewMarkerTooltip)) {
+              markerElement.addEventListener("mouseenter", () => {
+                markerElement.classList.add("is-preview-hovered");
+                previewMarkerHoverCallbackRef.current?.(markerId);
+                void showMarkerTooltip();
+              });
+              markerElement.addEventListener("mouseleave", () => {
+                markerElement.classList.remove("is-preview-hovered");
+                previewMarkerHoverCallbackRef.current?.(null);
+                removeMarkerTooltip();
+              });
+              markerElement.addEventListener("focus", () => {
+                markerElement.classList.add("is-preview-hovered");
+                previewMarkerHoverCallbackRef.current?.(markerId);
+                void showMarkerTooltip();
+              });
+              markerElement.addEventListener("blur", () => {
+                markerElement.classList.remove("is-preview-hovered");
+                previewMarkerHoverCallbackRef.current?.(null);
+                removeMarkerTooltip();
+              });
+            }
             if (family === "cumulative" && marker.count) {
               markerElement.addEventListener("click", () => {
                 map.setZoom(Math.min((map.getZoom() ?? renderPreviewZoom ?? controls.zoom) + 1, 16));
               });
             }
 
+            const anchor = family === "custom" && marker.customContent === "warehouse" ? "pin-tip" : "center";
             return activeMapId
-              ? createAdvancedMarker(googleMaps, map, position, markerElement, "center")
-              : Promise.resolve(createOverlayMarker(googleMaps, map, position, markerElement, "center"));
+              ? createAdvancedMarker(googleMaps, map, position, markerElement, anchor)
+              : createOverlayMarker(googleMaps, map, position, markerElement, anchor);
           }),
         );
 
@@ -2435,6 +2611,9 @@ export function MapCanvas({
 
     return () => {
       cancelled = true;
+      markerTooltipRef.current?.remove();
+      markerTooltipRef.current = null;
+      previewMarkerHoverCallbackRef.current?.(null);
       markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
       routePreviewsRef.current.forEach((route) => route.remove());
@@ -2520,6 +2699,14 @@ export function MapCanvas({
         dataLayer.setMap(null);
         regionDataRef.current = null;
       }
+      if (regionOutlineDataRef.current) {
+        const outlineLayer = regionOutlineDataRef.current;
+        const outlineFeatures: GoogleDataFeature[] = [];
+        outlineLayer.forEach((feature) => outlineFeatures.push(feature));
+        outlineFeatures.forEach((feature) => outlineLayer.remove(feature));
+        outlineLayer.setMap(null);
+        regionOutlineDataRef.current = null;
+      }
     };
 
     if (
@@ -2533,6 +2720,7 @@ export function MapCanvas({
 
     const resolveFeatureRegionId = (feature: GoogleDataFeature) => String(feature.getProperty("mapLabId") ?? "");
     const inlineRegionColors = new Map(previewRegionShapes?.map((region) => [region.id, region.color]) ?? []);
+    const dimmedRegionIds = new Set(previewDimmedRegionIds ?? []);
     const styleForFeature = (feature: GoogleDataFeature) => {
       const regionId = resolveFeatureRegionId(feature);
       const regionColor = previewRegionColors?.[regionId] ?? inlineRegionColors.get(regionId);
@@ -2545,11 +2733,9 @@ export function MapCanvas({
         strokeWeight: number;
       }) =>
         regionStyle
-          ? {
-              ...style,
-              fillColor: regionStyle.fillColor,
-              strokeColor: regionStyle.strokeColor,
-            }
+          ? Object.fromEntries(
+              Object.entries({ ...style, ...regionStyle }).filter(([, value]) => value !== undefined),
+            )
           : regionColor
           ? {
               ...style,
@@ -2558,6 +2744,21 @@ export function MapCanvas({
             }
           : style;
       const activeRegionId = selectedRegionId ?? hoveredRegionId;
+      if (previewRegionTooltip) {
+        const isEmphasized = regionId === hoveredRegionId || (dimmedRegionIds.size > 0 && !dimmedRegionIds.has(regionId));
+        const componentStyle = dimmedRegionIds.has(regionId)
+          ? regionDataStyles.disabled
+          : isEmphasized || regionId === previewFlashRegionId
+            ? regionDataStyles.selected
+            : regionDataStyles.default;
+        const tooltipData = previewRegionTooltip(regionId);
+        return {
+          ...applyRegionColor(componentStyle),
+          cursor: tooltipData?.clickable ? "pointer" : "default",
+          strokeOpacity: 1,
+          zIndex: isEmphasized || regionId === previewFlashRegionId ? 3 : 2,
+        };
+      }
       if (previewRegionInteraction === "multi") {
         const isPressed = Boolean(activeRegionId && regionId !== activeRegionId);
         return applyRegionColor(isPressed ? multiRegionDataStyles.pressed : multiRegionDataStyles.default);
@@ -2575,7 +2776,7 @@ export function MapCanvas({
       regionLabelRef.current?.remove();
       regionLabelRef.current = null;
     };
-    const renderLabel = async (regionId: string | null) => {
+    const renderLabel = async (regionId: string | null, anchorPosition?: GoogleLatLng) => {
       removeLabel();
       if (!regionId) {
         return;
@@ -2588,19 +2789,33 @@ export function MapCanvas({
         return;
       }
 
-      const labelElement = createRegionLabelElement(region, previewRegionMetrics?.[regionId]);
-      const labelMarker = await createAdvancedMarker(googleMaps, map, region.center, labelElement, "center", 120);
+      const tooltipData = previewRegionTooltip?.(regionId);
+      const resolvedTooltipData = tooltipData
+        ? { ...tooltipData, title: tooltipData.title || (lang === "zh" ? region.nameZh : region.nameEn) }
+        : null;
+      const labelElement = resolvedTooltipData
+        ? createPreviewTooltipElement(resolvedTooltipData)
+        : createRegionLabelElement(region, previewRegionMetrics?.[regionId]);
+      const labelMarker = await createAdvancedMarker(
+        googleMaps,
+        map,
+        anchorPosition ?? region.center,
+        labelElement,
+        resolvedTooltipData?.placement === "below" ? "tooltip-below" : "tooltip-above",
+        220,
+      );
       if (cancelled || labelRegionId !== regionId) {
         labelMarker.remove();
         return;
       }
+      clampPreviewTooltipToMap(map, labelElement);
       regionLabelRef.current = labelMarker;
     };
-    const selectRegion = (regionId: string | null) => {
+    const selectRegion = (regionId: string | null, anchorPosition?: GoogleLatLng) => {
       hoveredRegionId = null;
       selectedRegionId = regionId;
       refreshStyles();
-      void renderLabel(regionId);
+      void renderLabel(regionId, anchorPosition);
     };
 
     clearRegionLayer();
@@ -2645,30 +2860,28 @@ export function MapCanvas({
         const regions = manifest.regions.filter((region) => regionIds.has(region.id));
         regionById = new Map(regions.map((region) => [region.id, region]));
 
-        for (const region of regions) {
-          const inlineShape = previewRegionShapes?.find((shape) => shape.id === region.id);
-          const geoJson = inlineShape
-            ? {
-                type: "FeatureCollection" as const,
-                features: [
-                  {
-                    type: "Feature",
-                    properties: { mapLabId: region.id },
-                    geometry: {
-                      type: "Polygon",
-                      coordinates: [
-                        [...inlineShape.path, inlineShape.path[0]].map((point) => [point.lng, point.lat]),
-                      ],
+        const geoJsonCollections = await Promise.all(
+          regions.map(async (region) => {
+            const inlineShape = previewRegionShapes?.find((shape) => shape.id === region.id);
+            return inlineShape
+              ? {
+                  type: "FeatureCollection" as const,
+                  features: [
+                    {
+                      type: "Feature",
+                      properties: { mapLabId: region.id },
+                      geometry: {
+                        type: "Polygon",
+                        coordinates: [[...inlineShape.path, inlineShape.path[0]].map((point) => [point.lng, point.lat])],
+                      },
                     },
-                  },
-                ],
-              }
-            : await loadRegionGeoJson(region);
-          if (cancelled) {
-            return;
-          }
-          dataLayer.addGeoJson(geoJson);
-        }
+                  ],
+                }
+              : loadRegionGeoJson(region);
+          }),
+        );
+        if (cancelled) return;
+        geoJsonCollections.forEach((geoJson) => dataLayer.addGeoJson(geoJson));
 
         refreshStyles();
         if (previewRegionState === "selected" && regions[0]) {
@@ -2676,35 +2889,73 @@ export function MapCanvas({
           void renderLabel(selectedRegionId);
         }
 
-        regionListenersRef.current = [
-          dataLayer.addListener("mouseover", (event) => {
-            if (selectedRegionId) {
-              return;
-            }
-            hoveredRegionId = resolveFeatureRegionId(event.feature);
-            refreshStyles();
-          }),
-          dataLayer.addListener("mouseout", (event) => {
-            const regionId = resolveFeatureRegionId(event.feature);
-            if (regionId !== selectedRegionId) {
-              hoveredRegionId = null;
-              refreshStyles();
-            }
-          }),
-          dataLayer.addListener("click", (event) => {
-            suppressNextMapClick = true;
-            selectRegion(resolveFeatureRegionId(event.feature));
-            window.setTimeout(() => {
-              suppressNextMapClick = false;
-            }, 50);
-          }),
-          map.addListener("click", () => {
-            if (suppressNextMapClick) {
-              return;
-            }
-            selectRegion(null);
-          }),
-        ];
+        regionListenersRef.current = previewRegionTooltip
+          ? [
+              dataLayer.addListener("mouseover", (event) => {
+                hoveredRegionId = resolveFeatureRegionId(event.feature);
+                onPreviewRegionHover?.(hoveredRegionId);
+                refreshStyles();
+                void renderLabel(hoveredRegionId, event.latLng);
+              }),
+              dataLayer.addListener("mouseout", () => {
+                hoveredRegionId = null;
+                onPreviewRegionHover?.(null);
+                removeLabel();
+                refreshStyles();
+              }),
+              dataLayer.addListener("click", (event) => {
+                const regionId = resolveFeatureRegionId(event.feature);
+                if (previewRegionTooltip(regionId)?.clickable) {
+                  void renderLabel(regionId, event.latLng);
+                  onPreviewRegionClick?.(regionId);
+                }
+              }),
+            ]
+          : [
+              dataLayer.addListener("mouseover", (event) => {
+                if (selectedRegionId) return;
+                hoveredRegionId = resolveFeatureRegionId(event.feature);
+                refreshStyles();
+              }),
+              dataLayer.addListener("mouseout", (event) => {
+                const regionId = resolveFeatureRegionId(event.feature);
+                if (regionId !== selectedRegionId) {
+                  hoveredRegionId = null;
+                  refreshStyles();
+                }
+              }),
+              dataLayer.addListener("click", (event) => {
+                suppressNextMapClick = true;
+                selectRegion(resolveFeatureRegionId(event.feature), event.latLng);
+                window.setTimeout(() => {
+                  suppressNextMapClick = false;
+                }, 50);
+              }),
+              map.addListener("click", () => {
+                if (suppressNextMapClick) return;
+                selectRegion(null);
+              }),
+            ];
+
+        const fitRegion = previewFitRegionId
+          ? manifest.regions.find((region) => region.id === previewFitRegionId)
+          : undefined;
+        if (previewRegionTooltip && fitRegion) {
+          const outlineLayer = new googleMaps.maps.Data({ map });
+          regionOutlineDataRef.current = outlineLayer;
+          const outlineGeoJson = await loadRegionGeoJson(fitRegion);
+          if (!cancelled) {
+            outlineLayer.addGeoJson(outlineGeoJson);
+            outlineLayer.setStyle(() => ({
+              clickable: false,
+              fillOpacity: 0,
+              strokeColor: regionDataStyles.default.strokeColor,
+              strokeOpacity: 1,
+              strokeWeight: regionDataStyles.default.strokeWeight,
+              zIndex: 4,
+            }));
+          }
+        }
 
         const bounds = regions.reduce(
           (currentBounds, region) => ({
@@ -2715,8 +2966,11 @@ export function MapCanvas({
           }),
           { east: -Infinity, north: -Infinity, south: Infinity, west: Infinity },
         );
-        if (Number.isFinite(bounds.east)) {
-          map.fitBounds(bounds, 56);
+        const fitKey = previewFitRegionId ?? [...regionIds].sort().join("|");
+        const targetBounds = fitRegion?.bbox ?? bounds;
+        if (Number.isFinite(targetBounds.east) && lastRegionFitKeyRef.current !== fitKey) {
+          lastRegionFitKeyRef.current = fitKey;
+          map.fitBounds(targetBounds, 64);
         }
       })
       .catch((error) => {
@@ -2725,11 +2979,17 @@ export function MapCanvas({
 
     return () => {
       cancelled = true;
+      onPreviewRegionHover?.(null);
       clearRegionLayer();
     };
   }, [
     hidePreviewContent,
+    onPreviewRegionClick,
+    onPreviewRegionHover,
     previewFeature,
+    previewDimmedRegionIds,
+    previewFitRegionId,
+    previewFlashRegionId,
     previewRegionColors,
     previewRegionInteraction,
     previewRegionIds,
@@ -2737,6 +2997,7 @@ export function MapCanvas({
     previewRegionShapes,
     previewRegionState,
     previewRegionStyles,
+    previewRegionTooltip,
     status,
   ]);
 

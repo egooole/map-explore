@@ -1365,7 +1365,7 @@
   bottom: -4px;
   content: "";
   height: 8px;
-  left: 50%;
+  left: calc(50% + var(--map-tooltip-pointer-shift, 0px));
   position: absolute;
   transform: translateX(-50%) rotate(45deg);
   width: 8px;
@@ -1406,4 +1406,140 @@
   flex: 1;
   font-weight: var(--font-weight-medium);
   text-align: right;
+}
+
+.MapCoverageTooltip {
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 4px;
+  box-sizing: border-box;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+  color: #171718;
+  display: grid;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "PingFang SC", "Segoe UI", Roboto, sans-serif;
+  gap: 8px;
+  max-width: 416px;
+  opacity: 1;
+  padding: 8px 12px;
+  pointer-events: none;
+  position: relative;
+  transition: opacity 120ms ease;
+  width: 208px;
+}
+
+.MapCoverageTooltip::after {
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  content: "";
+  left: calc(50% + var(--map-tooltip-pointer-shift, 0px));
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.MapCoverageTooltip.is-above::after {
+  border-top: 5px solid rgba(255, 255, 255, 0.95);
+  bottom: -5px;
+}
+
+.MapCoverageTooltip.is-below::after {
+  border-bottom: 5px solid rgba(255, 255, 255, 0.95);
+  top: -5px;
+}
+
+.MapCoverageTooltip__header {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.MapCoverageTooltip__header > strong {
+  color: #171718;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.MapCoverageTooltip__status {
+  align-items: center;
+  border-radius: 4px;
+  display: inline-flex;
+  flex: 0 0 auto;
+  font-size: 12px;
+  height: 20px;
+  line-height: 18px;
+  padding: 0 6px;
+  white-space: nowrap;
+}
+
+.MapCoverageTooltip__status.is-fully {
+  background: rgba(0, 153, 149, 0.1);
+  color: #007a77;
+}
+
+.MapCoverageTooltip__status.is-partial {
+  background: rgba(42, 62, 244, 0.1);
+  color: #2a3ef4;
+}
+
+.MapCoverageTooltip__status.is-none {
+  background: rgba(97, 107, 148, 0.12);
+  color: #4c5476;
+}
+
+.MapCoverageTooltip__metrics {
+  display: grid;
+  gap: 4px;
+}
+
+.MapCoverageTooltip__metrics > div {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  line-height: 18px;
+}
+
+.MapCoverageTooltip__metrics span,
+.MapCoverageTooltip__metrics strong,
+.MapCoverageTooltip__hint {
+  font-size: 12px;
+  line-height: 18px;
+}
+
+.MapCoverageTooltip__metrics span {
+  color: #6c6d6f;
+  flex: 0 0 54px;
+}
+
+.MapCoverageTooltip__metrics strong {
+  color: #171718;
+  flex: 1;
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  text-align: right;
+}
+
+.MapCoverageTooltip__hint {
+  border-top: 1px solid #edeeef;
+  color: #6c6d6f;
+  margin: 0;
+  padding-top: 6px;
+}
+
+.MapMarker--custom.is-preview-hovered > .MapMarker__customAsset,
+.MapMarker--custom.is-preview-hovered > .MapMarker__customTextPin {
+  transform: scale(1.15);
+  transition: transform 160ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .MapCoverageTooltip,
+  .MapMarker--custom.is-preview-hovered > .MapMarker__customAsset,
+  .MapMarker--custom.is-preview-hovered > .MapMarker__customTextPin {
+    transition: none;
+  }
 }

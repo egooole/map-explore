@@ -513,6 +513,72 @@
 .HomeCaseTabs button.is-active { background: var(--home-accent-soft); color: var(--home-accent); }
 .HomeCaseMap { border: 0; border-right: 1px solid var(--color-border); min-width: 0; }
 .HomeCaseMap__canvas { inset: 0; position: absolute; }
+.HomeCoveragePanel {
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: #171718;
+  display: grid;
+  gap: 8px;
+  left: 12px;
+  padding: 10px 12px;
+  position: absolute;
+  top: 12px;
+  width: 224px;
+  z-index: 20;
+}
+.HomeCoveragePanel__tabs { display: grid; grid-template-columns: repeat(2, 1fr); }
+.HomeCoveragePanel__tabs button {
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  color: #6c6d6f;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  min-height: 28px;
+  padding: 0 8px 4px;
+}
+.HomeCoveragePanel__tabs button.is-active { border-bottom-color: #2a3ef4; color: #171718; }
+.HomeCoveragePanel__levels { display: grid; grid-template-columns: repeat(2, 1fr); }
+.HomeCoveragePanel__levels button {
+  background: #fff;
+  border: 1px solid #d3d4d5;
+  color: #6c6d6f;
+  font: inherit;
+  font-size: 13px;
+  height: 28px;
+  margin-left: -1px;
+  padding: 0 8px;
+  white-space: nowrap;
+}
+.HomeCoveragePanel__levels button:first-child { margin-left: 0; }
+.HomeCoveragePanel__levels button.is-active { border-color: #2a3ef4; color: #2a3ef4; font-weight: 500; position: relative; z-index: 1; }
+.HomeCoverageLegend {
+  align-items: center;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  color: #171718;
+  display: flex;
+  gap: 16px;
+  padding: 12px;
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  z-index: 20;
+}
+.HomeCoverageLegend span { align-items: center; display: flex; font-size: 14px; gap: 6px; white-space: nowrap; }
+.HomeCoverageLegend i { border-radius: 50%; height: 8px; width: 8px; }
+.HomeCoverageToast {
+  background: #171718;
+  bottom: 72px;
+  color: #fff;
+  font-size: 13px;
+  left: 50%;
+  padding: 9px 12px;
+  position: absolute;
+  transform: translateX(-50%);
+  z-index: 24;
+}
 .HomeCaseMap.is-dispatch .HomeCaseMap__canvas { left: 0; }
 .HomeDispatchRoutes {
   background: #07090a;
@@ -719,6 +785,8 @@
   .HomeCaseTabs button { border-bottom: 0; border-right: 1px solid var(--color-border); flex: 0 0 auto; min-height: 52px; white-space: nowrap; }
   .HomeCaseTabs button:last-child { border-right: 0; }
   .HomeCaseMap { border-bottom: 1px solid var(--color-border); border-right: 0; min-height: 400px; }
+  .HomeCoveragePanel { max-width: calc(100% - 24px); width: 224px; }
+  .HomeCoverageLegend { bottom: 12px; flex-direction: column; gap: 6px; right: 12px; top: auto; }
   .HomeCaseMap.is-dispatch { min-height: 620px; }
   .HomeCaseMap.is-dispatch .HomeCaseMap__canvas { left: 0; top: 220px; }
   .HomeDispatchRoutes {

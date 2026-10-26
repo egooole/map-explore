@@ -8,6 +8,7 @@
     "dev:showcase": "vite --host 127.0.0.1 --port 5175",
     "build": "tsc -b && vite build",
     "geo:download": "node scripts/geo-data/download-boundaries.mjs",
+    "geo:coverage": "node scripts/geo-data/build-coverage-boundaries.mjs",
     "geo:process": "node scripts/geo-data/process-boundaries.mjs",
     "preview": "vite preview"
   },

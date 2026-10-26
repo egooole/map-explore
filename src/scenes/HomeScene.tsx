@@ -8,7 +8,7 @@ import {
   MapPinned,
   Route,
 } from "lucide-react";
-import { useEffect, useId, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import heroBasemap from "../assets/hero-basemap.jpg";
@@ -22,9 +22,21 @@ import {
   type PreviewMarkerGroup,
   type PreviewProgressInfo,
   type PreviewRouteGroup,
+  type PreviewTooltipData,
 } from "../components/MapCanvas";
 import { ShowcaseNavigation } from "../components/ShowcaseNavigation";
 import { useWorkbenchStore } from "../store/workbenchStore";
+import {
+  coverageFacilities,
+  getCoverageMetric,
+  getCoverageStatus,
+  getCoverageSummary,
+  provinceRegionIds,
+  shanghaiDistrictIds,
+  type CoverageStatus,
+  type CoverageType,
+  type ServiceType,
+} from "../mocks/coverageDemo";
 import type {
   CustomMarkerContent,
   MapControlsState,
@@ -37,6 +49,14 @@ import type {
 
 type SpatialCategory = "location" | "route" | "area";
 type CaseId = "operations" | "dispatch" | "tracking" | "network";
+type CoverageView = "admin" | "facility";
+type CoverageLevel = "country" | "shanghai";
+
+const coverageStatusColors: Record<CoverageStatus, string> = {
+  fully: "#009995",
+  partial: "#2A3EF4",
+  none: "#616B94",
+};
 
 interface ComponentOption {
   id: string;
@@ -70,17 +90,24 @@ const componentOptions: ComponentOption[] = [
   { category: "route", id: "progressRoute" },
   { category: "area", id: "areaSelection" },
   { category: "area", id: "multipleAreas" },
-  { category: "area", id: "regionLabel" },
 ];
 
 const categoryIds: SpatialCategory[] = ["location", "route", "area"];
 const caseIds: CaseId[] = ["network", "dispatch", "tracking", "operations"];
 const aiDownloadOptions: ReadonlyArray<{
+  download?: string;
   href?: string;
   id: "agentbody" | "trea" | "zip";
 }> = [
-  { id: "zip" },
-  { id: "agentbody" },
+  {
+    id: "zip",
+    download: "map-lab-components-skill-v1.3.zip",
+    href: `${import.meta.env.BASE_URL}downloads/map-lab-components-skill-v1.3.zip`,
+  },
+  {
+    id: "agentbody",
+    href: "https://skills.bytedance.net/skill/skills:skills.byted.org/GEC/Business_Tools_and_Platforms/map-lab-components?fromSpaceId=skills.byted.org%2FGEC%2FBusiness_Tools_and_Platforms&fromSpaceName=skills.byted.org%2FGEC%2FBusiness_Tools_and_Platforms",
+  },
   { id: "trea" },
 ];
 const designerComponentLibraryUrl =
@@ -533,12 +560,19 @@ function CaseStage({
   const [selectedDispatchRouteId, setSelectedDispatchRouteId] = useState<string | null>(null);
   const [hoveredDispatchRouteId, setHoveredDispatchRouteId] = useState<string | null>(null);
   const [showTrackingDriverInfo, setShowTrackingDriverInfo] = useState(false);
+  const [coverageView, setCoverageView] = useState<CoverageView>("admin");
+  const [coverageLevel, setCoverageLevel] = useState<CoverageLevel>("country");
+  const coverageType: CoverageType = "delivery";
+  const serviceType: ServiceType = "all";
+  const [hoveredFacilityId, setHoveredFacilityId] = useState<string | null>(null);
+  const [coverageToast, setCoverageToast] = useState<string | null>(null);
+  const [flashRegionId, setFlashRegionId] = useState<string | null>(null);
   const selectedDispatchRoute = dispatchRoutes.find((route) => route.id === selectedDispatchRouteId) ?? dispatchRoutes[0];
   const selectDispatchRoute = (routeId: string) => {
     setSelectedDispatchRouteId((currentRouteId) => currentRouteId === routeId ? null : routeId);
     setHoveredDispatchRouteId(null);
   };
-  const networkAreaConfiguration: Pick<MapCanvasProps, "previewFeature" | "previewMarkerGroups" | "previewRegionColors" | "previewRegionInteraction" | "previewRegionIds" | "previewRegionMetrics" | "previewRegionShapes" | "previewRegionStyles" | "previewRouteGroups"> = {
+  const operationsAreaConfiguration: Pick<MapCanvasProps, "previewFeature" | "previewMarkerGroups" | "previewRegionColors" | "previewRegionInteraction" | "previewRegionIds" | "previewRegionMetrics" | "previewRegionShapes" | "previewRegionStyles" | "previewRouteGroups"> = {
     previewFeature: "area",
     previewRegionInteraction: "multi",
     previewRegionIds: ["yangpu", "xuhui", "baoshan"],
@@ -568,8 +602,8 @@ function CaseStage({
       yangpu: { fillColor: "#1966FF", strokeColor: "#2A3EF4" },
     },
   };
-  const configurations: Record<CaseId, Pick<MapCanvasProps, "previewFeature" | "previewMarkerGroups" | "previewRegionColors" | "previewRegionInteraction" | "previewRegionIds" | "previewRegionMetrics" | "previewRegionShapes" | "previewRegionStyles" | "previewRouteGroups">> = {
-    operations: networkAreaConfiguration,
+  const configurations: Record<Exclude<CaseId, "network">, Pick<MapCanvasProps, "previewFeature" | "previewMarkerGroups" | "previewRegionColors" | "previewRegionInteraction" | "previewRegionIds" | "previewRegionMetrics" | "previewRegionShapes" | "previewRegionStyles" | "previewRouteGroups">> = {
+    operations: operationsAreaConfiguration,
     dispatch: {
       previewFeature: "line",
       previewRouteGroups: dispatchRouteGroups,
@@ -578,9 +612,104 @@ function CaseStage({
       previewFeature: "line",
       previewRouteGroups: routePreview("routeWithProgress"),
     },
-    network: networkAreaConfiguration,
   };
-  const configuration = configurations[activeCase];
+  const configuration = activeCase === "network" ? null : configurations[activeCase];
+  const coverageRegionIds = coverageLevel === "country" ? [...provinceRegionIds] : [...shanghaiDistrictIds];
+  const coverageMetrics = useMemo(
+    () => Object.fromEntries(coverageRegionIds.map((regionId) => [regionId, getCoverageMetric(regionId, coverageType, serviceType)])),
+    [coverageLevel, coverageType, serviceType],
+  );
+  const coverageRegionColors = useMemo<MapCanvasProps["previewRegionColors"]>(
+    () => Object.fromEntries(
+      coverageRegionIds.map((regionId) => {
+        const status = getCoverageStatus(coverageMetrics[regionId].coverage);
+        return [regionId, coverageStatusColors[status]];
+      }),
+    ),
+    [coverageMetrics, coverageRegionIds],
+  );
+  const hoveredFacility = coverageFacilities.find((facility) => facility.id === hoveredFacilityId);
+  const dimmedDistrictIds = hoveredFacility
+    ? shanghaiDistrictIds.filter((regionId) => !hoveredFacility.coveredDistrictIds.includes(regionId))
+    : [];
+  const facilityMarkerGroup = useMemo<PreviewMarkerGroup>(() => ({
+    family: "custom",
+    ids: coverageFacilities.map((facility) => facility.id),
+    markers: coverageFacilities.map((facility) => ({
+      customContent: "warehouse",
+      id: "default",
+      label: facility.name,
+    })),
+    positions: coverageFacilities.map((facility) => facility.position),
+  }), []);
+  const coverageValue = getCoverageSummary(coverageRegionIds, coverageType, serviceType);
+
+  const statusLabel = useCallback((status: CoverageStatus) => t(`home.cases.network.coverageUi.status.${status}`), [t]);
+  const coverageRegionTooltip = useCallback((regionId: string): PreviewTooltipData | null => {
+    const metric = getCoverageMetric(regionId, coverageType, serviceType);
+    const status = getCoverageStatus(metric.coverage);
+    const isTopEdge = ["heilongjiang", "inner-mongolia", "xinjiang", "chongming", "baoshan"].includes(regionId);
+    const canDrill = coverageView === "admin" && coverageLevel === "country" && status !== "none";
+    let hint: string | undefined;
+    if (coverageView === "admin") {
+      if (status === "none") hint = t("home.cases.network.coverageUi.hints.uncovered");
+      else if (coverageLevel === "shanghai") hint = t("home.cases.network.coverageUi.hints.lastLevel");
+      else if (regionId === "shanghai") hint = t("home.cases.network.coverageUi.hints.drill");
+      else hint = t("home.cases.network.coverageUi.hints.demoOnly");
+    }
+    return {
+      clickable: canDrill,
+      hint,
+      metrics: [
+        { label: t("home.cases.network.coverageUi.metrics.coverage"), value: `${Math.round(metric.coverage * 100)}%` },
+        { label: "ADO", value: metric.ado.toLocaleString(lang === "zh" ? "zh-CN" : "en-US") },
+        { label: t("home.cases.network.coverageUi.metrics.density"), value: metric.density.toLocaleString() },
+        { label: t("home.cases.network.coverageUi.metrics.facility"), value: String(metric.facilityCount) },
+      ],
+      placement: isTopEdge ? "below" : "above",
+      status: { label: statusLabel(status), tone: status },
+      title: "",
+    };
+  }, [coverageLevel, coverageType, coverageView, lang, serviceType, statusLabel, t]);
+
+  const facilityTooltip = useCallback((markerId: string): PreviewTooltipData | null => {
+    const facility = coverageFacilities.find((item) => item.id === markerId);
+    if (!facility) return null;
+    return {
+      metrics: [
+        { label: "km²", value: facility.km2.toLocaleString() },
+        { label: "ADO", value: facility.ado.toLocaleString(lang === "zh" ? "zh-CN" : "en-US") },
+        { label: t("home.cases.network.coverageUi.metrics.density"), value: facility.density.toLocaleString() },
+        { label: t("home.cases.network.coverageUi.metrics.areas"), value: String(facility.coveredDistrictIds.length) },
+      ],
+      title: facility.name,
+    };
+  }, [lang, t]);
+
+  const showCoverageToast = useCallback((message: string) => {
+    setCoverageToast(message);
+    window.setTimeout(() => setCoverageToast((current) => current === message ? null : current), 2200);
+  }, []);
+
+  const handleCoverageRegionClick = useCallback((regionId: string) => {
+    if (coverageView !== "admin" || coverageLevel !== "country") return;
+    if (regionId !== "shanghai") {
+      showCoverageToast(t("home.cases.network.coverageUi.toast.demoOnly"));
+      return;
+    }
+    setCoverageLevel("shanghai");
+    setFlashRegionId("shanghai");
+    window.setTimeout(() => setFlashRegionId(null), 1000);
+  }, [coverageLevel, coverageView, showCoverageToast, t]);
+
+  const selectCoverageView = (view: CoverageView) => {
+    setCoverageView(view);
+    setHoveredFacilityId(null);
+    if (view === "facility" && coverageLevel !== "shanghai") {
+      setCoverageLevel("shanghai");
+      showCoverageToast(t("home.cases.network.coverageUi.toast.locatedShanghai"));
+    }
+  };
   const trackingDriverInfo: PreviewProgressInfo = {
     title: t("home.cases.tracking.driver.name"),
     metrics: [
@@ -615,6 +744,32 @@ function CaseStage({
 
   return (
     <div className={`HomeCaseMap is-${activeCase}`}>
+      {activeCase === "network" ? (
+        <div className="HomeCoveragePanel">
+          <div className="HomeCoveragePanel__tabs" role="tablist" aria-label={t("home.cases.network.coverageUi.viewAria")}>
+            {(["admin", "facility"] as CoverageView[]).map((view) => (
+              <button aria-selected={coverageView === view} className={coverageView === view ? "is-active" : ""} key={view} onClick={() => selectCoverageView(view)} role="tab" type="button">
+                {t(`home.cases.network.coverageUi.views.${view}`)}
+              </button>
+            ))}
+          </div>
+          {coverageView === "admin" ? (
+            <div className="HomeCoveragePanel__levels" role="group" aria-label={t("home.cases.network.coverageUi.levelAria")}>
+              {(["country", "shanghai"] as CoverageLevel[]).map((level) => (
+                <button
+                  aria-pressed={coverageLevel === level}
+                  className={coverageLevel === level ? "is-active" : ""}
+                  key={level}
+                  onClick={() => setCoverageLevel(level)}
+                  type="button"
+                >
+                  {t(`home.cases.network.coverageUi.levels.${level}`)}
+                </button>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
       {activeCase === "dispatch" ? (
         <div className="HomeDispatchRoutes" role="listbox" aria-label={t("home.cases.dispatch.routeListAria")}>
           <header className="HomeDispatchRoutes__header">
@@ -671,12 +826,32 @@ function CaseStage({
           previewProgressInfo={activeCase === "tracking" ? trackingDriverInfo : undefined}
           previewProgressSelected={activeCase === "tracking" && showTrackingDriverInfo}
           previewSelectedRouteId={activeCase === "dispatch" ? selectedDispatchRouteId ?? undefined : undefined}
-          {...configuration}
+          {...(configuration ?? {})}
+          onPreviewMarkerHover={activeCase === "network" && coverageView === "facility" ? setHoveredFacilityId : undefined}
+          onPreviewRegionClick={activeCase === "network" ? handleCoverageRegionClick : undefined}
+          previewDimmedRegionIds={activeCase === "network" && coverageView === "facility" ? dimmedDistrictIds : undefined}
+          previewFeature={activeCase === "network" ? "area" : configuration?.previewFeature}
+          previewFitRegionId={activeCase === "network" ? (coverageLevel === "country" ? "cn" : "shanghai") : undefined}
+          previewFlashRegionId={activeCase === "network" ? flashRegionId ?? undefined : undefined}
+          previewMarkerGroups={activeCase === "network" && coverageView === "facility" ? [facilityMarkerGroup] : configuration?.previewMarkerGroups}
+          previewMarkerTooltip={activeCase === "network" && coverageView === "facility" ? facilityTooltip : undefined}
+          previewRegionColors={activeCase === "network" ? coverageRegionColors : configuration?.previewRegionColors}
+          previewRegionIds={activeCase === "network" ? coverageRegionIds : configuration?.previewRegionIds}
+          previewRegionStyles={activeCase === "network" ? undefined : configuration?.previewRegionStyles}
+          previewRegionTooltip={activeCase === "network" ? coverageRegionTooltip : undefined}
         />
       </div>
+      {activeCase === "network" ? (
+        <div className="HomeCoverageLegend" aria-label={t("home.cases.network.coverageUi.legendAria")}>
+          {(["fully", "partial", "none"] as CoverageStatus[]).map((status) => (
+            <span key={status}><i style={{ background: coverageStatusColors[status] }} />{statusLabel(status)}</span>
+          ))}
+        </div>
+      ) : null}
+      {activeCase === "network" && coverageToast ? <div className="HomeCoverageToast" role="status">{coverageToast}</div> : null}
       <div className="HomeCaseMap__metric">
-        <span>ON-TIME RATE</span>
-        <strong>{activeCase === "tracking" ? "94.8%" : activeCase === "dispatch" ? selectedDispatchRoute.duration : "97.2%"}</strong>
+        <span>{activeCase === "network" ? "COVERAGE" : "ON-TIME RATE"}</span>
+        <strong>{activeCase === "network" ? `${Math.round(coverageValue * 100)}%` : activeCase === "tracking" ? "94.8%" : activeCase === "dispatch" ? selectedDispatchRoute.duration : "97.2%"}</strong>
       </div>
     </div>
   );
@@ -946,7 +1121,12 @@ export function HomeScene({ heroVisualVariant = "mapLab", standalone = false }: 
                       <p>{t(`home.start.guide.downloads.${option.id}.description`)}</p>
                     </div>
                     {option.href ? (
-                      <a href={option.href} rel="noopener noreferrer" target="_blank">
+                      <a
+                        download={option.download}
+                        href={option.href}
+                        rel="noopener noreferrer"
+                        target={option.download ? undefined : "_blank"}
+                      >
                         <Download aria-hidden="true" size={15} />
                         {t("home.start.guide.downloads.download")}
                       </a>
