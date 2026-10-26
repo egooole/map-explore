@@ -663,7 +663,7 @@
 .HomeCaseDetail__chips span { background: var(--home-accent-soft); color: var(--home-accent); font-size: 10px; line-height: 1.35; padding: 5px 7px; }
 
 .HomeStart { border-top: 0 !important; }
-.HomeStartGrid { border: 1px solid var(--color-border); border-left: 0; display: grid; grid-template-columns: repeat(2, 1fr); margin-top: 48px; }
+.HomeStartGrid { border: 1px solid var(--color-border); display: grid; grid-template-columns: repeat(2, 1fr); margin-top: 48px; }
 .HomeStartGrid article { display: flex; flex-direction: column; min-height: 340px; padding: 32px; }
 .HomeStartGrid > article + article { border-left: 1px solid var(--color-border); }
 .HomeStartGrid__heading { display: grid; gap: 8px; }

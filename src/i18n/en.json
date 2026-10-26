@@ -188,7 +188,7 @@
       }
     },
     "start": {
-      "designer": { "role": "DESIGNER", "title": "Design with one shared system", "item1": "Map experience guidelines", "item2": "Figma component library", "item3": "Logistics page templates", "cta": "Open the component library" },
+      "designer": { "role": "DESIGNER", "title": "Design with one shared system", "item1": "Map experience guidelines", "item2": "Figma component library", "item3": "Logistics page templates", "cta": "Open in Figma" },
       "engineer": { "role": "AI DEVELOPMENT", "title": "Build maps faster with AI", "item1": "Install and use the Map Skill", "item2": "Ready-made packs for AI coding tools", "item3": "Component examples and developer docs", "cta": "Get AI resources" },
       "guide": {
         "eyebrow": "AI DEVELOPMENT",
