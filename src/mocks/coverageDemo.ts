@@ -68,7 +68,8 @@ export function getCoverageMetric(
   serviceType: ServiceType,
 ): CoverageMetric {
   const metric = baseMetric(regionId);
-  const adjusted = metric.coverage * coverageFactors[coverageType] * serviceFactors[serviceType];
+  const baseCoverage = regionId === "taiwan" ? 0.56 : metric.coverage;
+  const adjusted = baseCoverage * coverageFactors[coverageType] * serviceFactors[serviceType];
   const coverage = adjusted >= 0.88 ? 1 : adjusted <= 0.16 ? 0 : Math.min(0.99, adjusted);
   return {
     ...metric,
