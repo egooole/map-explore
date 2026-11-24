@@ -79,6 +79,22 @@ export function ShowcaseNavigation() {
   }, [i18n, lang, setLang]);
 
   useEffect(() => {
+    const initialSectionId = window.location.hash.slice(1) as ShowcaseSectionId;
+    const isKnownSection = showcaseSections.some(({ id }) => id === initialSectionId);
+
+    if (!isKnownSection) {
+      return;
+    }
+
+    const frame = window.requestAnimationFrame(() => {
+      document.getElementById(initialSectionId)?.scrollIntoView({ behavior: "auto", block: "start" });
+      setActiveSection(initialSectionId);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
+
+  useEffect(() => {
     const sections = showcaseSections
       .map(({ id }) => document.getElementById(id))
       .filter((section): section is HTMLElement => Boolean(section));

@@ -31,10 +31,14 @@ function RouteStoreSync() {
 }
 
 function App() {
+  const location = useLocation();
+  const isStandaloneManual = location.pathname === "/manual"
+    && new URLSearchParams(location.search).get("from") === "showcase";
+
   return (
-    <div className="AppShell">
+    <div className={`AppShell${isStandaloneManual ? " AppShell--manual-standalone" : ""}`}>
       <RouteStoreSync />
-      <Sidebar />
+      {isStandaloneManual ? null : <Sidebar />}
       <main className="MainStage">
         <Routes>
           <Route element={<HomeScene />} path="/home" />

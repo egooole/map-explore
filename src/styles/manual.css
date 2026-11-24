@@ -9,10 +9,113 @@
   padding: 24px;
 }
 
+.ManualScene--from-showcase {
+  --manual-accent: #35e6d1;
+  --manual-accent-soft: rgba(53, 230, 209, 0.1);
+  --manual-border: #263033;
+  background: #05070a;
+  border-radius: 0;
+  gap: 32px;
+  margin: 0 auto;
+  max-width: 1200px;
+  padding: 112px 0 64px;
+  width: calc(100% - 64px);
+}
+
+.ManualShowcaseEyebrow {
+  color: var(--manual-accent);
+  font-size: 11px;
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  margin-bottom: -18px;
+  text-align: center;
+}
+
+.ManualScene--from-showcase .WorkbenchPageHeader {
+  border-bottom: 0;
+  gap: 14px;
+  justify-items: center;
+  padding: 0 0 24px;
+  text-align: center;
+}
+
+.ManualScene--from-showcase .WorkbenchPageHeader h1 {
+  font-size: 44px;
+  font-weight: var(--font-weight-semibold);
+  line-height: 1.18;
+}
+
+.ManualScene--from-showcase .WorkbenchPageHeader p {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 15px;
+  line-height: 1.7;
+  max-width: 720px;
+}
+
+.ManualReturnLink {
+  align-items: center;
+  background: rgba(10, 10, 10, 0.94);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  box-shadow: var(--shadow-floating);
+  color: var(--color-text);
+  display: inline-flex;
+  font-size: 13px;
+  font-weight: var(--font-weight-semibold);
+  gap: 8px;
+  left: calc(var(--sidebar-width) + 44px);
+  min-height: 40px;
+  padding: 0 14px;
+  position: fixed;
+  text-decoration: none;
+  top: 20px;
+  transition: background 160ms ease, border-color 160ms ease, color 160ms ease;
+  z-index: 60;
+}
+
+.ManualScene--from-showcase .ManualReturnLink {
+  background: #05070a;
+  border-color: var(--manual-border);
+  border-radius: 0;
+  box-shadow: none;
+  min-height: 42px;
+  padding: 0 16px;
+}
+
+.ManualScene--from-showcase .ManualReturnLink:hover {
+  background: var(--manual-accent-soft);
+  border-color: var(--manual-accent);
+  color: var(--manual-accent);
+}
+
+.ManualReturnLink:hover {
+  background: var(--color-surface-raised);
+  border-color: rgba(103, 232, 219, 0.7);
+  color: #67e8db;
+}
+
+.ManualDetail {
+  scroll-margin-top: 84px;
+}
+
 .ManualHierarchy {
   /* 三层信息架构区域：地图类型 / 组件分类 / 具体组件入口。 */
   display: grid;
   gap: 14px;
+}
+
+.ManualScene--from-showcase .ManualHierarchy {
+  gap: 20px;
+}
+
+.ManualScene--from-showcase .ManualHierarchy__layer {
+  gap: 12px;
+}
+
+.ManualScene--from-showcase .ManualHierarchy__layer h2 {
+  color: rgba(255, 255, 255, 0.52);
+  font-weight: var(--font-weight-medium);
 }
 
 .ManualHierarchy__layer {
@@ -54,6 +157,42 @@
 .ManualHierarchy__layer--map > div {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ManualHierarchy__layer--map > .ManualHierarchy__fixedMapType {
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  display: grid;
+  gap: 5px;
+  grid-template-columns: 1fr;
+  min-height: 68px;
+  padding: 12px 14px;
+}
+
+.ManualHierarchy__fixedMapType strong {
+  color: var(--color-text);
+  font-size: 16px;
+  line-height: 1.3;
+}
+
+.ManualHierarchy__fixedMapType span {
+  color: var(--color-muted);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.ManualScene--from-showcase .ManualHierarchy__layer--map > .ManualHierarchy__fixedMapType {
+  background: #080c0d;
+  border-color: var(--manual-border);
+  border-radius: 0;
+  min-height: 72px;
+  padding: 16px 20px;
+}
+
+.ManualScene--from-showcase .ManualHierarchy__fixedMapType strong {
+  color: var(--manual-accent);
+  font-size: 15px;
 }
 
 .ManualHierarchy__layer--map button {
@@ -107,9 +246,44 @@
   color: var(--color-text);
 }
 
+.ManualScene--from-showcase .ManualHierarchy__layer--category > div {
+  background: transparent;
+  border-color: var(--manual-border);
+  border-radius: 0;
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 0;
+  width: 100%;
+}
+
+.ManualScene--from-showcase .ManualHierarchy__layer--category button {
+  border-radius: 0;
+  min-height: 56px;
+  width: 100%;
+}
+
+.ManualScene--from-showcase .ManualHierarchy__layer--category button + button {
+  border-left: 1px solid var(--manual-border);
+}
+
+.ManualScene--from-showcase .ManualHierarchy__layer--category button:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.ManualScene--from-showcase .ManualHierarchy__layer--category button.is-active {
+  background: var(--manual-accent-soft);
+  box-shadow: none;
+  color: var(--manual-accent);
+}
+
 .ManualComponentList {
   display: grid;
   gap: 14px;
+}
+
+.ManualScene--from-showcase .ManualComponentList {
+  gap: 32px;
 }
 
 .ManualDetail {
@@ -124,6 +298,34 @@
   min-height: 408px;
   padding: 18px;
   transition: background 180ms ease;
+}
+
+.ManualScene--from-showcase .ManualDetail {
+  background: #080c0d;
+  border: 1px solid var(--manual-border);
+  border-radius: 0;
+  gap: 0;
+  grid-template-columns: minmax(520px, 1.25fr) minmax(340px, 0.75fr);
+  padding: 0;
+}
+
+.ManualScene--from-showcase .ManualDetail__left,
+.ManualScene--from-showcase .ManualDetail__right {
+  gap: 18px;
+  padding: 28px;
+}
+
+.ManualScene--from-showcase .ManualDetail__right {
+  border-left-color: var(--manual-border);
+}
+
+.ManualScene--from-showcase .ManualPanelHeader h2 {
+  font-size: 24px;
+  font-weight: var(--font-weight-semibold);
+}
+
+.ManualScene--from-showcase .ManualPanelHeader > span {
+  color: rgba(255, 255, 255, 0.62);
 }
 
 .ManualDetail__left,
@@ -212,6 +414,27 @@
   color: #ffffff;
 }
 
+.ManualScene--from-showcase .ManualStateSwitcher {
+  border: 1px solid var(--manual-border);
+  gap: 0;
+  margin-top: 8px;
+}
+
+.ManualScene--from-showcase .ManualStateSwitcher button {
+  border-radius: 0;
+  min-height: 32px;
+}
+
+.ManualScene--from-showcase .ManualStateSwitcher button + button {
+  border-left: 1px solid var(--manual-border);
+}
+
+.ManualScene--from-showcase .ManualStateSwitcher button.is-active {
+  background: var(--manual-accent-soft);
+  box-shadow: none;
+  color: var(--manual-accent);
+}
+
 .ManualMapRegion {
   /* 地图预览容器：这里决定地图在组件卡片里的圆角、边框和最小高度。 */
   border-radius: var(--radius-lg);
@@ -220,6 +443,12 @@
   min-height: 250px;
   overflow: hidden;
   position: relative;
+}
+
+.ManualScene--from-showcase .ManualMapRegion {
+  border-color: var(--manual-border);
+  border-radius: 0;
+  min-height: 320px;
 }
 
 .ManualMapRegion .MapCanvas {
@@ -260,6 +489,12 @@
   gap: 12px;
   grid-template-columns: minmax(72px, 0.42fr) minmax(0, 1fr);
   padding: 7px 0;
+}
+
+.ManualScene--from-showcase .ManualInfoRows__row,
+.ManualScene--from-showcase .ManualColorTokens__pair,
+.ManualScene--from-showcase .ManualUsageItem {
+  border-color: var(--manual-border);
 }
 
 .ManualInfoRows__row:first-child {
@@ -351,6 +586,18 @@
   padding: 0 10px;
 }
 
+.ManualScene--from-showcase .ManualCodeBlock button,
+.ManualScene--from-showcase .ManualCodeBlock pre {
+  border-color: var(--manual-border);
+  border-radius: 0;
+}
+
+.ManualScene--from-showcase .ManualCodeBlock button:hover {
+  background: var(--manual-accent-soft);
+  border-color: var(--manual-accent);
+  color: var(--manual-accent);
+}
+
 .ManualCodeBlock button:hover {
   background: var(--color-surface-muted);
   border-color: var(--color-border-strong);
@@ -422,12 +669,19 @@
   padding: 6px 9px;
 }
 
+.ManualScene--from-showcase .ManualUsageItem span {
+  background: var(--manual-accent-soft);
+  border-radius: 0;
+  color: var(--manual-accent);
+}
+
 .ManualUsageItem ul {
   color: var(--color-muted);
   display: grid;
   font-size: 12px;
   gap: 5px;
+  list-style: none;
   line-height: 1.48;
   margin: 0;
-  padding-left: 18px;
+  padding-left: 0;
 }

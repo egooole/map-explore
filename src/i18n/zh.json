@@ -469,6 +469,8 @@
   },
   "manual": {
     "title": "组件手册",
+    "eyebrow": "COMPONENT SYSTEM",
+    "returnToShowcase": "返回 MyBlab",
     "intro": "按地图类型、组件分类和具体组件组织内容，持续沉淀可扩展的地图组件规范。",
     "tokens": "设计 Token",
     "preview": "组件预览",
@@ -524,7 +526,7 @@
       "disable": "Disable",
       "completed": "已完成"
     },
-    "usageIntro": "场景标签用于快速识别类型，具体说明放在下方 bullet 中。",
+    "usageIntro": "场景标签用于快速识别类型，具体说明紧随其后。",
     "usageTags": {
       "primary": "主要场景",
       "extended": "扩展场景",

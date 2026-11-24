@@ -92,6 +92,19 @@ const componentOptions: ComponentOption[] = [
   { category: "area", id: "multipleAreas" },
 ];
 
+const manualTargetsByComponentId: Record<string, { category: "area" | "line" | "point"; component: string }> = {
+  normalLocation: { category: "point", component: "entity-point-location-marker" },
+  informatedLocation: { category: "point", component: "entity-point-informated-location" },
+  cumulativeLocation: { category: "point", component: "entity-point-cumulative-location" },
+  customLocation: { category: "point", component: "entity-point-custom" },
+  normalRoute: { category: "line", component: "entity-line-normal-route-no-arrow" },
+  directionalRoute: { category: "line", component: "entity-line-normal-route-has-arrow" },
+  routeWithEndpoints: { category: "line", component: "entity-line-route-with-informated-location" },
+  progressRoute: { category: "line", component: "entity-line-route-with-progress" },
+  areaSelection: { category: "area", component: "entity-area-placeholder-01" },
+  multipleAreas: { category: "area", component: "entity-area-placeholder-01" },
+};
+
 const categoryIds: SpatialCategory[] = ["location", "route", "area"];
 const caseIds: CaseId[] = ["network", "dispatch", "tracking", "operations"];
 const aiDownloadOptions: ReadonlyArray<{
@@ -869,6 +882,17 @@ export function HomeScene({ heroVisualVariant = "mapLab", standalone = false }: 
     () => componentOptions.filter((component) => component.category === activeCategory),
     [activeCategory],
   );
+  const manualHref = useMemo(() => {
+    const target = manualTargetsByComponentId[activeComponentId] ?? manualTargetsByComponentId.normalLocation;
+    const params = new URLSearchParams({
+      category: target.category,
+      component: target.component,
+      from: "showcase",
+      lang,
+    });
+
+    return `${import.meta.env.BASE_URL}#/manual?${params.toString()}`;
+  }, [activeComponentId, lang]);
 
   const selectCategory = (category: SpatialCategory) => {
     setActiveCategory(category);
@@ -1001,7 +1025,7 @@ export function HomeScene({ heroVisualVariant = "mapLab", standalone = false }: 
                   ))}
                 </div>
                 {standalone ? (
-                  <a className="HomeTextLink" href={designerComponentLibraryUrl} rel="noopener noreferrer" target="_blank">
+                  <a className="HomeTextLink" href={manualHref}>
                     {t("home.components.openManual")}<ArrowRight size={15} />
                   </a>
                 ) : (

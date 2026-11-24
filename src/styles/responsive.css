@@ -64,6 +64,27 @@
   .ManualDetail__left {
     grid-template-rows: auto minmax(320px, auto) auto;
   }
+
+  .ManualScene--from-showcase {
+    margin: 0 auto;
+    padding: 96px 0 48px;
+    width: calc(100% - 64px);
+  }
+
+  .ManualScene--from-showcase .ManualDetail {
+    grid-template-columns: 1fr;
+  }
+
+  .ManualScene--from-showcase .ManualDetail__right {
+    border-left: 0;
+    border-top: 1px solid var(--manual-border);
+  }
+
+  .ManualReturnLink {
+    bottom: 20px;
+    left: 32px;
+    top: auto;
+  }
 }
 
 @media (max-width: 720px) {
@@ -148,5 +169,35 @@
 
   .ManualMapRegion {
     height: 260px;
+  }
+
+  .ManualReturnLink {
+    bottom: 12px;
+    left: 16px;
+  }
+
+  .ManualScene--from-showcase {
+    margin: 0 auto;
+    gap: 24px;
+    padding: 84px 0 40px;
+    width: calc(100% - 32px);
+  }
+
+  .ManualScene--from-showcase .WorkbenchPageHeader {
+    padding-bottom: 12px;
+  }
+
+  .ManualScene--from-showcase .WorkbenchPageHeader h1 {
+    font-size: 32px;
+  }
+
+  .ManualScene--from-showcase .ManualDetail__left,
+  .ManualScene--from-showcase .ManualDetail__right {
+    padding: 18px;
+  }
+
+  .ManualScene--from-showcase .ManualHierarchy__layer--category button {
+    min-height: 48px;
+    padding: 0 8px;
   }
 }

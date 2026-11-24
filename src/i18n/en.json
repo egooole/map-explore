@@ -399,6 +399,8 @@
   },
   "manual": {
     "title": "Component Manual",
+    "eyebrow": "COMPONENT SYSTEM",
+    "returnToShowcase": "Back to MyBlab",
     "intro": "Organize map component guidance by map type, component category, and concrete component for long-term expansion.",
     "tokens": "Design Tokens",
     "preview": "Component Preview",
@@ -454,7 +456,7 @@
       "disable": "Disable",
       "completed": "Completed"
     },
-    "usageIntro": "Tags summarize the scenario type; detailed guidance lives in the bullets.",
+    "usageIntro": "Tags summarize the scenario type; detailed guidance follows directly.",
     "usageTags": {
       "primary": "Primary",
       "extended": "Extended",

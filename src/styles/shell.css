@@ -15,6 +15,16 @@
   overscroll-behavior: contain;
 }
 
+.AppShell--manual-standalone .MainStage {
+  background: #05070a;
+  padding: 0;
+  width: 100%;
+}
+
+.AppShell--manual-standalone .ManualReturnLink {
+  left: max(32px, calc((100vw - 1200px) / 2));
+}
+
 .WorkbenchPageHeader {
   border-bottom: 1px solid var(--color-border);
   display: grid;
